@@ -5,6 +5,7 @@ import {
 import { createMap } from './map.js';
 import { icon } from './icons.js';
 import { renderMarkdown, toggleTask } from './markdown.js';
+import { withVideoInfo } from './video.js';
 import { runBackup, getBackupStatus, listBackups, readBackup, STATUS_KEY } from './backup.js';
 import { isAgentEnabled, setAgentEnabled, syncAgent, getAgentSync, SYNC_KEY } from './agent.js';
 
@@ -315,7 +316,7 @@ async function saveText(text, tags = '') {
   text = text.trim();
   if (!text) return;
   if (isUrl(text)) {
-    await addItem({ type: guessType(text), url: text, title: domainOf(text), image: guessType(text) === 'image' ? text : imageFor(text), tags });
+    await addItem(await withVideoInfo({ type: guessType(text), url: text, title: domainOf(text), image: guessType(text) === 'image' ? text : imageFor(text), tags }));
   } else {
     await addItem({ type: 'note', text, tags });
   }

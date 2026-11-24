@@ -1,7 +1,8 @@
-import { onItemsChanged, addItem, guessType, domainOf, imageFor, shrinkImage } from './storage.js';
+import { onItemsChanged, getItems, updateItem, addItem, guessType, domainOf, imageFor, shrinkImage } from './storage.js';
 import { buildPageItem } from './capture.js';
 import { runBackup, getBackupStatus } from './backup.js';
 import { syncAgent } from './agent.js';
+import { withVideoInfo, videoInfo, needsVideoFix, hasPlaceholderTitle } from './video.js';
 
 const MENUS = [
   { id: 'save-page', title: 'Enregistrer cette page', contexts: ['page'] },
@@ -13,9 +14,26 @@ const MENUS = [
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => MENUS.forEach(m => chrome.contextMenus.create(m)));
+  repairVideos();
   scheduleSync(0);
   chrome.alarms.create('backup', { delayInMinutes: 1 });
 });
+
+// ---------- vidéos enregistrées avec le titre « YouTube » (avant la 1.5) ----------
+async function repairVideos() {
+  try {
+    for (const it of (await getItems()).filter(needsVideoFix)) {
+      const v = await videoInfo(it.url);
+      if (!v) continue;
+      await updateItem(it.id, cur => ({
+        type: 'video',
+        title: hasPlaceholderTitle(cur) && v.title ? v.title : cur.title, // un titre choisi par toi n'est jamais remplacé
+        image: v.image,
+        description: cur.description || (v.author ? 'Chaîne : ' + v.author : ''),
+      }));
+    }
+  } catch (e) { console.warn('réparation des vidéos', e); }
+}
 
 // ---------- copie pour le serveur MCP (mcp/) ----------
 // Tenue à jour si l'accès des agents est activé (page cerveau), effacée sinon : voir agent.js.
@@ -48,12 +66,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         await addItem({ type: 'quote', text: info.selectionText, title: tab?.title || '', url: info.pageUrl });
         break;
       case 'save-link':
-        await addItem({
+        await addItem(await withVideoInfo({
           type: guessType(info.linkUrl),
           url: info.linkUrl,
           title: info.linkText || info.selectionText || domainOf(info.linkUrl) || info.linkUrl,
           image: imageFor(info.linkUrl),
-        });
+        }));
         break;
       case 'save-image': {
         let image = info.srcUrl;
