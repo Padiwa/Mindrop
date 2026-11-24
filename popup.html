@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Second Cerveau</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand"><img src="icons/icon32.png" alt=""><span>Second Cerveau</span></div>
+    <nav class="tabs">
+      <button class="tab active" data-mode="page" id="tab-page">Page</button>
+      <button class="tab" data-mode="note" id="tab-note">Note</button>
+    </nav>
+  </header>
+
+  <section id="mode-page" class="panel">
+    <div class="preview" id="preview">
+      <div class="shimmer" id="shimmer">Capture…</div>
+      <img id="p-img" alt="" hidden>
+    </div>
+    <div class="source"><img id="p-fav" alt=""><span id="p-domain"></span><span id="dupe" class="dupe" hidden>Déjà enregistrée</span></div>
+    <input id="p-title" class="title" placeholder="Titre">
+    <label class="quote" id="quote-box" hidden>
+      <input type="checkbox" id="use-quote" checked>
+      <span>Garder la sélection comme citation</span>
+      <blockquote id="quote-text"></blockquote>
+    </label>
+    <textarea id="p-note" rows="3" placeholder="Pourquoi je garde ça ? (optionnel)"></textarea>
+    <input id="p-tags" placeholder="#tags, séparés par des espaces">
+    <button class="primary" id="save-page" disabled>Enregistrer</button>
+  </section>
+
+  <section id="mode-note" class="panel" hidden>
+    <textarea id="n-text" rows="7" placeholder="Une idée, une pensée, un rappel…"></textarea>
+    <input id="n-tags" placeholder="#tags">
+    <button class="primary" id="save-note">Enregistrer la note</button>
+  </section>
+
+  <footer>
+    <button class="link" id="open-brain">Ouvrir mon cerveau →</button>
+    <span class="hint">Ctrl+Entrée pour enregistrer</span>
+  </footer>
+
+  <div class="done" id="done" hidden><div>✓</div><p>Gardé en mémoire</p></div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

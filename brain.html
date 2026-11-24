@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Mon second cerveau</title>
+<link rel="icon" href="icons/icon32.png">
+<link rel="stylesheet" href="brain.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="icons/icon48.png" alt="">
+      <div><h1>Second Cerveau</h1><p id="count"></p></div>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Rechercher dans ta mémoire…  (/ pour chercher, #tag pour filtrer)" autocomplete="off">
+    </div>
+    <div class="actions">
+      <button id="random" title="Ressortir un souvenir au hasard">✦ Redécouvrir</button>
+      <button id="export" title="Télécharger une sauvegarde JSON">Exporter</button>
+      <button id="import" title="Restaurer une sauvegarde JSON">Importer</button>
+      <input id="import-file" type="file" accept="application/json,.json" hidden>
+    </div>
+  </header>
+
+  <nav class="filters">
+    <div class="filter-row">
+      <div id="types" class="chips"></div>
+      <div class="views" role="tablist">
+        <button data-view="grid">▦ Mosaïque</button>
+        <button data-view="map">◎ Carte mentale</button>
+      </div>
+    </div>
+    <div id="tags" class="chips tags"></div>
+  </nav>
+
+  <section class="composer">
+    <textarea id="c-text" rows="1" placeholder="Une idée, une pensée, un lien… (Ctrl+Entrée)"></textarea>
+    <div class="composer-row" id="c-row" hidden>
+      <input id="c-tags" placeholder="#tags">
+      <button id="c-save" class="primary">Garder</button>
+    </div>
+  </section>
+
+  <main id="grid" class="grid"></main>
+  <section id="map" class="map" hidden>
+    <div class="map-ui">
+      <button id="z-in" title="Zoomer (+)">+</button>
+      <button id="z-out" title="Dézoomer (−)">−</button>
+      <button id="z-fit" title="Tout voir (0)">⤢</button>
+      <button id="z-reset" title="Réorganiser la carte">↻</button>
+    </div>
+    <div class="map-hint" id="map-hint"></div>
+  </section>
+  <div id="empty" class="empty" hidden></div>
+
+  <div id="drop" class="drop" hidden><div>Dépose ici pour garder en mémoire</div></div>
+
+  <div id="modal" class="modal" hidden>
+    <div class="backdrop" data-close></div>
+    <div class="sheet" role="dialog" aria-modal="true">
+      <button class="close" data-close aria-label="Fermer">×</button>
+      <div class="sheet-media" id="m-media"></div>
+      <div class="sheet-side" id="m-side"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script type="module" src="brain.js"></script>
+</body>
+</html>
