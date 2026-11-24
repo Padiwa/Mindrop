@@ -62,3 +62,13 @@ Le dossier `mcp/` installe un pont entre l'extension et ton ordinateur, sans pas
 - un **serveur MCP** pour qu'un agent IA (Claude Code ou tout client MCP) cherche dans ton second cerveau, en lecture seule.
 
 Installation, utilisation, restauration, dépannage : voir **[MCP.md](MCP.md)**.
+
+## Tests
+
+Node 22 ou plus, et un navigateur Chromium pour les tests navigateur (`CHROME_PATH` s'il n'est pas trouvé tout seul) :
+
+```sh
+npm test               # tout
+npm run test:node      # recherche MCP, pont local, Markdown (texte brut)
+npm run test:browser   # stockage IndexedDB, rendu Markdown, sauvegarde et restauration
+```

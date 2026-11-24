@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>markdown.js</title>
+<div id="box"></div>
+<script src="chrome-shim.js"></script>
+<script type="module">
+import { renderMarkdown } from '../../markdown.js';
+
+const html = (md, opts) => { const b = document.getElementById('box'); b.replaceChildren(renderMarkdown(md, opts)); return b; };
+
+test('titres, gras, italique, barré, code', () => {
+  const b = html('## Titre\nUn **gras**, un *italique*, ~~barré~~ et `code`.');
+  assert(b.querySelector('h2')?.textContent === 'Titre');
+  assert(b.querySelector('strong')?.textContent === 'gras');
+  assert(b.querySelector('em')?.textContent === 'italique');
+  assert(b.querySelector('del')?.textContent === 'barré');
+  assert(b.querySelector('code')?.textContent === 'code');
+});
+
+test('#tag sans espace reste du texte, pas un titre', () => {
+  const b = html('#idee du jour');
+  assert(!b.querySelector('h1') && b.querySelector('p').textContent === '#idee du jour');
+});
+
+test('retours à la ligne conservés dans un paragraphe', () => {
+  assert(html('ligne 1\nligne 2').querySelectorAll('p br').length === 1);
+});
+
+test('listes imbriquées et numérotées', () => {
+  const b = html('- un\n  - sous\n- deux\n\n3. trois\n4. quatre');
+  assert(b.querySelectorAll('ul > li').length === 3, b.innerHTML);
+  assert(b.querySelector('ul > li > ul > li')?.textContent === 'sous');
+  assert(b.querySelector('ol')?.getAttribute('start') === '3');
+});
+
+test('cases à cocher : état, et ligne transmise au clic', () => {
+  let got = null;
+  const b = html('texte\n\n- [ ] a\n- [x] b', { onToggle: (line, on) => { got = [line, on]; } });
+  const boxes = b.querySelectorAll('input[type=checkbox]');
+  assert(boxes.length === 2 && !boxes[0].checked && boxes[1].checked);
+  boxes[0].click();
+  assert(JSON.stringify(got) === '[2,true]', JSON.stringify(got));
+});
+
+test('cases désactivées sans callback', () => {
+  assert(html('- [ ] a').querySelector('input').disabled);
+});
+
+test('citations, code en bloc, séparateur', () => {
+  const b = html('> citée\n\n```\nlet a = 1;\n```\n\n---');
+  assert(b.querySelector('blockquote p')?.textContent === 'citée');
+  assert(b.querySelector('pre code')?.textContent === 'let a = 1;');
+  assert(b.querySelector('hr'));
+});
+
+test('liens : http et mailto actifs, javascript: refusé', () => {
+  const b = html('[ok](https://example.com) [mail](mailto:a@b.c) [ko](javascript:alert(1)) https://nu.example/x.');
+  const hrefs = [...b.querySelectorAll('a')].map(a => a.getAttribute('href'));
+  assert(JSON.stringify(hrefs) === JSON.stringify(['https://example.com', 'mailto:a@b.c', 'https://nu.example/x']), JSON.stringify(hrefs));
+  assert(b.querySelectorAll('a').every?.(a => a.rel.includes('noopener')) ?? [...b.querySelectorAll('a')].every(a => a.rel.includes('noopener')));
+  assert(b.textContent.includes('ko'), 'le texte du lien refusé reste visible');
+});
+
+test('le HTML saisi n’est jamais interprété', () => {
+  const b = html('<img src=x onerror="window.__pwned=1"> <b>gras</b>');
+  assert(!b.querySelector('img') && !b.querySelector('b'));
+  assert(b.textContent.includes('<img'));
+});
+
+test('snake_case et échappements', () => {
+  const b = html('snake_case_name et \\*pas italique\\*');
+  assert(!b.querySelector('em'), b.innerHTML);
+  assert(b.textContent === 'snake_case_name et *pas italique*');
+});
+
+run();
+</script>

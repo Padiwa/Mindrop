@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>backup.js</title>
+<script>
+  window.__legacyItems = Array.from({ length: 40 }, (_, i) => ({
+    id: 'b' + i, type: 'image', title: 'Image ' + i, image: 'data:image/jpeg;base64,' + 'A'.repeat(20000),
+    tags: [], createdAt: 1000 + i, updatedAt: 1000 + i,
+  }));
+</script>
+<script src="chrome-shim.js"></script>
+<script type="module">
+import { runBackup, listBackups, readBackup, chunkItems, getBackupStatus } from '../../backup.js';
+import { getItems, deleteItem, mergeItems } from '../../storage.js';
+
+// Pont local imité : même protocole que mcp/host.mjs.
+const disk = {};
+const sent = [];
+function fakeHost(msg) {
+  sent.push(msg.type);
+  if (msg.type === 'backup-begin') { disk.open = { total: msg.total, items: [] }; return [{ ok: true }]; }
+  if (msg.type === 'backup-chunk') { disk.open.items.push(...msg.items); return [{ ok: true }]; }
+  if (msg.type === 'backup-end') {
+    const b = disk.open; delete disk.open;
+    if (b.items.length !== b.total) return [{ ok: false, error: 'sauvegarde incomplète' }];
+    disk['2026-11-24.json'] = b.items;
+    return [{ ok: true, name: '2026-11-24.json', count: b.items.length, bytes: JSON.stringify(b.items).length }];
+  }
+  if (msg.type === 'list-backups') return [{ ok: true, backups: [{ name: '2026-11-24.json', date: '2026-11-24', bytes: 1, count: disk['2026-11-24.json']?.length }] }];
+  if (msg.type === 'read-backup') {
+    const items = disk[msg.name];
+    if (!items) return [{ ok: false, error: 'introuvable' }];
+    const half = Math.ceil(items.length / 2);
+    return [{ ok: true, more: true, items: items.slice(0, half) }, { ok: true, items: items.slice(half), total: items.length, skippedImages: 0 }];
+  }
+  return [{ ok: false, error: 'message inconnu' }];
+}
+
+test('découpage en paquets sous la taille demandée, au moins un souvenir par paquet', () => {
+  const items = Array.from({ length: 10 }, (_, i) => ({ id: i, x: 'y'.repeat(100) }));
+  const chunks = chunkItems(items, 300);
+  assert(chunks.flat().length === 10);
+  assert(chunks.every(c => c.length >= 1 && (c.length === 1 || JSON.stringify(c).length < 400)));
+  assert(chunkItems([{ big: 'z'.repeat(1000) }], 10).length === 1);
+});
+
+test('pont absent : statut « non installé », pas d’exception', async () => {
+  window.__fakeHost = null;
+  const st = await runBackup();
+  assert(!st.ok && st.notInstalled, JSON.stringify(st));
+  assert((await getBackupStatus()).notInstalled);
+});
+
+test('sauvegarde complète en plusieurs morceaux, images comprises', async () => {
+  window.__fakeHost = fakeHost;
+  sent.length = 0;
+  const st = await runBackup({ chunkBytes: 100000 });
+  assert(st.ok && st.count === 40, JSON.stringify(st));
+  assert(sent.filter(t => t === 'backup-chunk').length > 1, 'un seul morceau');
+  assert(disk['2026-11-24.json'].every(x => x.image.startsWith('data:image/jpeg')), 'images perdues');
+  assert((await getBackupStatus()).ok);
+});
+
+test('une erreur du pont est rapportée dans le statut', async () => {
+  window.__fakeHost = msg => (msg.type === 'backup-end' ? [{ ok: false, error: 'disque plein' }] : fakeHost(msg));
+  const st = await runBackup();
+  assert(!st.ok && !st.notInstalled && st.error === 'disque plein', JSON.stringify(st));
+  window.__fakeHost = fakeHost;
+});
+
+test('restauration : relecture en plusieurs messages puis fusion', async () => {
+  const backups = await listBackups();
+  assert(backups[0].count === 40);
+  await Promise.all(['b1', 'b2', 'b3'].map(deleteItem));
+  assert((await getItems()).length === 37);
+  const { items, total } = await readBackup('2026-11-24.json');
+  assert(items.length === 40 && total === 40);
+  const r = await mergeItems(items);
+  assert(r.added === 3 && r.updated === 0, JSON.stringify(r));
+  assert((await getItems()).length === 40);
+});
+
+test('base vide (extension réinstallée) : aucune sauvegarde envoyée', async () => {
+  for (const it of await getItems()) await deleteItem(it.id);
+  sent.length = 0;
+  await runBackup();
+  assert(!sent.includes('backup-begin'), sent.join());
+});
+
+test('relecture d’une sauvegarde introuvable : erreur claire', async () => {
+  let err = null;
+  try { await readBackup('1999-01-01.json'); } catch (e) { err = e; }
+  assert(err?.message === 'introuvable');
+});
+
+run();
+</script>

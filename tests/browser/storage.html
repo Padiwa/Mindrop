@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>storage.js</title>
+<script>
+  const now = Date.now();
+  window.__legacyItems = Array.from({ length: 13 }, (_, i) => ({
+    id: 'a' + (i + 1), type: i % 2 ? 'link' : 'note', title: 'Souvenir ' + (i + 1), text: 'texte ' + i,
+    url: i === 1 ? 'https://example.com/lien' : '', tags: ['methode'], createdAt: now - i * 864e5, updatedAt: now - i * 864e5,
+  }));
+</script>
+<script src="chrome-shim.js"></script>
+<script type="module">
+import { getItems, addItem, updateItem, deleteItem, putItems, mergeItems, findByUrl, onItemsChanged } from '../../storage.js';
+
+let notified = 0;
+onItemsChanged(() => notified++);
+
+test('migration depuis l’ancien stockage, plus récents d’abord', async () => {
+  const items = await getItems();
+  assert(items.length === 13, `${items.length} souvenirs`);
+  assert(items.every((x, i, a) => !i || a[i - 1].createdAt >= x.createdAt), 'ordre');
+  assert((await getItems()).length === 13, 'pas de doublon à la seconde lecture');
+});
+
+test('50 ajouts simultanés : aucun perdu', async () => {
+  const added = await Promise.all(Array.from({ length: 50 }, (_, i) => addItem({ type: 'note', text: 'rafale ' + i })));
+  assert((await getItems()).length === 63);
+  await Promise.all(added.map(x => deleteItem(x.id)));
+  assert((await getItems()).length === 13, 'suppressions');
+});
+
+test('30 modifications simultanées du même souvenir, toutes comptées', async () => {
+  await Promise.all(Array.from({ length: 30 }, () => updateItem('a1', cur => ({ n: (cur.n || 0) + 1 }))));
+  assert((await getItems()).find(x => x.id === 'a1').n === 30);
+});
+
+test('modifications parallèles de champs différents', async () => {
+  await Promise.all([updateItem('a2', { title: 'titre' }), updateItem('a2', { note: 'note' }), updateItem('a2', { tags: '#a #b' })]);
+  const it = (await getItems()).find(x => x.id === 'a2');
+  assert(it.title === 'titre' && it.note === 'note' && it.tags.join() === 'a,b', JSON.stringify(it));
+});
+
+test('modifier un souvenir absent ne crée rien', async () => {
+  assert(await updateItem('absent', { title: 'x' }) === null);
+  assert((await getItems()).length === 13);
+});
+
+test('fusion : ajoute, remplace le plus ancien, garde le plus récent, ne supprime rien', async () => {
+  const cur = (await getItems()).find(x => x.id === 'a3');
+  const r = await mergeItems([
+    { id: 'new1', type: 'note', text: 'nouveau', createdAt: now },
+    { ...cur, title: 'plus récent', updatedAt: cur.updatedAt + 1000 },
+    { id: 'a4', title: 'plus ancien', updatedAt: 1 },
+    { title: 'sans id' },
+  ]);
+  assert(r.added === 1 && r.updated === 1, JSON.stringify(r));
+  const all = await getItems();
+  assert(all.length === 14);
+  assert(all.find(x => x.id === 'a3').title === 'plus récent');
+  assert(all.find(x => x.id === 'a4').title === 'Souvenir 4');
+  await deleteItem('new1');
+});
+
+test('putItems ne touche pas aux autres souvenirs', async () => {
+  await putItems([{ id: 'a5', title: 'importé', createdAt: 5, tags: [] }]);
+  const all = await getItems();
+  assert(all.length === 13 && all.find(x => x.id === 'a5').title === 'importé');
+});
+
+test('recherche d’un doublon par URL (index)', async () => {
+  assert((await findByUrl('https://example.com/lien'))?.id === 'a2');
+  assert(await findByUrl('https://example.com/autre') === null);
+});
+
+test('une écriture refusée remonte une erreur et ne casse rien', async () => {
+  let threw = false;
+  try { await addItem({ id: 'a1' }); } catch { threw = true; }
+  assert(threw, 'pas d’erreur');
+  assert((await getItems()).length === 13);
+});
+
+test('chaque écriture prévient les autres pages', async () => {
+  const before = notified;
+  await updateItem('a6', { title: 'x' });
+  await new Promise(r => setTimeout(r));
+  assert(notified > before);
+});
+
+run();
+</script>
