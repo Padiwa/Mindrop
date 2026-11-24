@@ -242,6 +242,11 @@ body.map-mode .stage { display: flex; flex-direction: column; min-height: 0; pad
 .m-url:hover { color: var(--color-accent-2); text-decoration: underline; }
 .m-url:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .m-desc { margin: var(--space-2xs) 0; color: var(--color-ink-2); font: 400 var(--text-md)/1.5 var(--font-body); }
+.m-content { margin: var(--space-xs) 0 0; border-top: var(--rule-hair) solid var(--color-rule); border-bottom: var(--rule-hair) solid var(--color-rule); }
+.m-content summary { display: flex; align-items: center; min-height: 36px; color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
+.m-content summary:hover { color: var(--color-accent-2); }
+.m-content summary:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.m-content-body { max-height: 18rem; overflow: auto; padding: 0 0 var(--space-sm); color: var(--color-ink-2); font: 400 var(--text-sm)/1.55 var(--font-body); white-space: pre-line; overflow-wrap: break-word; }
 .sheet-side label { margin-top: var(--space-md); color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; }
 .m-note, .m-tags { width: 100%; padding: var(--space-xs) var(--space-sm); border: var(--rule-hair) solid var(--color-muted); border-radius: var(--radius-input); background: var(--color-paper); color: var(--color-ink); outline: 2px solid transparent; outline-offset: -3px; }
 .m-note { min-height: 6rem; font: 400 var(--text-md)/1.5 var(--font-body); resize: vertical; }

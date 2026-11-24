@@ -101,8 +101,8 @@ Demande simplement à l'agent, par exemple :
 
 | Outil | Ce qu'il fait | Paramètres |
 |---|---|---|
-| `search_memories` | Recherche dans titres, textes, notes, tags, descriptions et URL. Insensible aux accents et à la casse. | `query` (`#tag` filtre par tag ; vide = les plus récents), `type` (`link`, `note`, `quote`, `image`, `video`), `tags`, `pinned`, `since`, `until` (dates ISO), `limit`, `offset` |
-| `get_memory` | Contenu complet d'un souvenir : texte en Markdown, note perso, description, tags, dates. | `id` |
+| `search_memories` | Recherche dans titres, textes, notes, tags, descriptions, URL et texte des pages. Insensible aux accents et à la casse. | `query` (`#tag` filtre par tag ; vide = les plus récents), `type` (`link`, `note`, `quote`, `image`, `video`), `tags`, `pinned`, `since`, `until` (dates ISO), `limit`, `offset` |
+| `get_memory` | Contenu complet d'un souvenir : texte en Markdown, note perso, description, tags, dates, et le texte de la page gardé à l'enregistrement (par tranches de 30 000 caractères). | `id`, `contentOffset` |
 | `list_tags` | Tous les tags avec leur nombre de souvenirs, et pour chacun les tags qui reviennent le plus souvent avec lui. | aucun |
 | `related_memories` | Souvenirs qui partagent le plus de tags avec un souvenir donné. | `id`, `limit` |
 

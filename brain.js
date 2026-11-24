@@ -70,7 +70,8 @@ function matches(it) {
   if (state.tag && !it.tags.includes(state.tag)) return false;
   const terms = fold(state.q).split(/\s+/).filter(Boolean);
   if (!terms.length) return true;
-  const hay = fold([it.title, it.text, it.note, it.url, it.description, it.tags.join(' ')].join(' '));
+  // texte normalisé calculé une fois par chargement (le texte des pages peut être long)
+  const hay = it._hay ??= fold([it.title, it.text, it.note, it.url, it.description, it.tags.join(' '), it.content].join(' '));
   return terms.every(t => t.startsWith('#')
     ? it.tags.some(x => fold(x).startsWith(t.slice(1)))
     : hay.includes(t));
@@ -247,6 +248,7 @@ function openModal(id) {
     it.type !== 'note' ? title : null,
     it.url && h('a', { class: 'm-url', href: it.url, target: '_blank', rel: 'noopener' }, source(it), icon('external', { cls: 'ico arrow' })),
     it.description && h('p', { class: 'm-desc' }, it.description),
+    it.content && pageText(it.content),
     h('label', {}, 'Notes'), note,
     h('label', {}, 'Tags'), tags,
     h('label', {}, 'Couleur'), swatches,
@@ -290,13 +292,21 @@ function noteEditor(media, ta, save) {
   setMode(ta.value.trim() ? 'view' : 'write');
 }
 
+// Texte de la page gardé à l'enregistrement, replié par défaut.
+function pageText(content) {
+  const words = content.split(/\s+/).filter(Boolean).length;
+  return h('details', { class: 'm-content' },
+    h('summary', {}, `Texte de la page (${words.toLocaleString('fr-FR')}\u00a0mot${words > 1 ? 's' : ''})`),
+    h('div', { class: 'm-content-body' }, content));
+}
+
 // Écrit puis réaffiche la fiche avec le souvenir renvoyé par l'écriture,
 // sans attendre que la page ait rechargé toute la liste.
 async function patchAndReopen(id, patch) {
   const fresh = await updateItem(id, patch);
   if (fresh) {
     const i = state.items.findIndex(x => x.id === id);
-    if (i >= 0) state.items[i] = { ...state.items[i], ...fresh };
+    if (i >= 0) state.items[i] = { ...state.items[i], ...fresh, _hay: undefined };
   }
   openModal(id);
 }
@@ -370,7 +380,9 @@ function setupDropAndPaste() {
 
 // ---------- sauvegarde ----------
 function exportJson() {
-  const data = { app: 'second-cerveau', version: 1, exportedAt: new Date().toISOString(), items: state.items };
+  // sans les champs de travail de la page (_hay…)
+  const items = state.items.map(it => Object.fromEntries(Object.entries(it).filter(([k]) => !k.startsWith('_'))));
+  const data = { app: 'second-cerveau', version: 1, exportedAt: new Date().toISOString(), items };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = h('a', { href: URL.createObjectURL(blob), download: `second-cerveau-${new Date().toISOString().slice(0, 10)}.json` });
   a.click();
@@ -418,7 +430,7 @@ $('#z-reset').addEventListener('click', () => map.resetLayout());
 
 // ---------- démarrage ----------
 async function load() {
-  const defaults = { type: 'note', title: '', url: '', text: '', note: '', description: '', image: '', thumb: '', color: '', pinned: false, createdAt: 0 };
+  const defaults = { type: 'note', title: '', url: '', text: '', note: '', description: '', content: '', image: '', thumb: '', color: '', pinned: false, createdAt: 0 };
   state.items = (await getItems()).map(x => ({ ...defaults, ...x, tags: Array.isArray(x.tags) ? x.tags : [] }));
   render();
 }

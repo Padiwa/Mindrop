@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<meta charset="utf-8">
+<title>Titre de l’onglet</title>
+<meta property="og:title" content="Un article sur les fiches">
+<meta name="description" content="Résumé de l’article.">
+<meta property="og:image" content="/image.jpg">
+<body>
+  <nav>Accueil · Blog · Contact · Menu très long qui ne doit pas finir dans le texte gardé</nav>
+  <article>
+    <h1>Un article sur les fiches</h1>
+    <p>Niklas Luhmann a rempli près de 90 000 fiches au cours de sa vie.</p>
+    <p>Chaque fiche porte une seule idée et renvoie vers d’autres fiches.</p>
+    <p style="display:none">Texte caché qui ne doit pas être gardé.</p>
+    <p>Ce paragraphe allonge l’article pour qu’il soit reconnu comme le contenu principal de la page, bien plus fourni que le menu ou le pied de page.</p>
+    <p>Encore une phrase, pour dépasser le seuil de quatre cents caractères qui distingue un vrai article d’un simple bandeau.</p>
+  </article>
+  <footer>Mentions légales · Cookies</footer>
+</body>
+<script src="chrome-shim.js"></script>
+<script type="module">
+import { pageReader } from '../../capture.js';
+
+test('texte principal : l’article, sans menu, pied de page ni texte caché', () => {
+  const r = pageReader();
+  assert(r.content.includes('90 000 fiches'), r.content);
+  assert(r.content.includes('renvoie vers d’autres fiches'));
+  assert(!r.content.includes('Menu très long') && !r.content.includes('Mentions légales'), 'menu ou pied de page gardé');
+  assert(!r.content.includes('Texte caché'), 'texte caché gardé');
+  assert(!/\n{3,}/.test(r.content) && r.content === r.content.trim(), 'espaces non nettoyés');
+});
+
+test('métadonnées : og:title, description, image en adresse absolue', () => {
+  const r = pageReader();
+  assert(r.title === 'Un article sur les fiches');
+  assert(r.description === 'Résumé de l’article.');
+  assert(r.ogImage === location.origin + '/image.jpg', r.ogImage);
+  assert(r.pageTitle === 'Titre de l’onglet');
+});
+
+test('sans bloc d’article : toute la page', () => {
+  const a = document.querySelector('article');
+  const div = document.createElement('div');
+  div.innerHTML = a.innerHTML;
+  a.replaceWith(div);
+  const r = pageReader();
+  assert(r.content.includes('90 000 fiches') && r.content.includes('Menu très long'));
+});
+
+run();
+</script>
+</html>

@@ -70,3 +70,24 @@ test('full ne renvoie jamais une image encodée dans le texte', () => {
   assert.equal(full(items[0]).image, undefined);
   assert.equal(full(items[1]).image, 'https://img.example/a.jpg');
 });
+
+test('le texte des pages est cherché, avec un extrait autour du mot trouvé', () => {
+  const long = 'Introduction. '.repeat(50) + 'Le zettelkasten de Luhmann comptait 90 000 fiches.' + ' Suite.'.repeat(50);
+  const withContent = [...items, { id: 'p1', type: 'link', title: 'Article', text: '', note: '', description: 'Un article', url: 'https://example.com/a', image: '', tags: [], pinned: false, createdAt: now, content: long }];
+  const r = search(withContent, { query: '90 000 fiches' });
+  assert.deepEqual(r.results.map(x => x.id), ['p1']);
+  assert.match(r.results[0].snippet, /90 000 fiches/);
+  assert.equal(search(withContent, { query: 'article' }).results[0].id, 'p1', 'le titre compte plus que le texte');
+});
+
+test('get_memory : texte de la page par tranches', () => {
+  const content = 'x'.repeat(70000);
+  const first = full({ ...items[1], content });
+  assert.equal(first.pageText.length, 30000);
+  assert.equal(first.pageTextLength, 70000);
+  assert.equal(first.pageTextNextOffset, 30000);
+  const last = full({ ...items[1], content }, { contentOffset: 60000 });
+  assert.equal(last.pageText.length, 10000);
+  assert.equal(last.pageTextNextOffset, undefined);
+  assert.equal(full(items[1]).pageText, undefined);
+});

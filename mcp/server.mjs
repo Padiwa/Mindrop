@@ -15,7 +15,7 @@ const TOOLS = [
   {
     name: 'search_memories',
     title: 'Search memories',
-    description: 'Search saved memories (links, notes, quotes, images, videos). Accent- and case-insensitive. Every word must match title, text, note, tags, description or URL; if nothing matches all words, results that match some words are returned instead (mode "any"). Words starting with # filter by tag prefix. An empty query returns the most recent memories. Returns short summaries; call get_memory for full content.',
+    description: 'Search saved memories (links, notes, quotes, images, videos). Accent- and case-insensitive. Every word must match title, text, note, tags, description, URL or the saved page text; if nothing matches all words, results that match some words are returned instead (mode "any"). Words starting with # filter by tag prefix. An empty query returns the most recent memories. Returns short summaries; call get_memory for full content.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -36,13 +36,13 @@ const TOOLS = [
   {
     name: 'get_memory',
     title: 'Get one memory',
-    description: 'Full content of one memory by id: title, URL, note text in Markdown, personal note, page description, tags, dates.',
-    inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
+    description: 'Full content of one memory by id: title, URL, note text in Markdown, personal note, page description, tags, dates, and pageText: the main text of the web page as captured when it was saved (article body, or a YouTube video description). Long page texts come in parts of 30,000 characters: when pageTextNextOffset is present, call again with contentOffset set to it.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' }, contentOffset: { type: 'integer', minimum: 0, default: 0, description: 'Where to start reading pageText.' } }, required: ['id'], additionalProperties: false },
     annotations: READ_ONLY,
     run: (a, data) => {
       const it = data.items.find(x => x.id === a.id);
       if (!it) throw new Error(`Aucun souvenir avec l'id ${a.id}.`);
-      return full(it);
+      return full(it, { contentOffset: a.contentOffset || 0 });
     },
   },
   {

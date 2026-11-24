@@ -27,6 +27,7 @@ Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou
 
 - **Mosaïque** de tous tes souvenirs : captures des pages, notes colorées, citations, images, vidéos YouTube.
 - **Recherche** instantanée (touche `/`), insensible aux accents ; `#design` filtre par tag.
+  Elle porte aussi sur le **texte des pages** : à l'enregistrement d'une page, son texte principal (l'article, sans menus) est gardé, et se relit dans la fiche, section « Texte de la page ».
 - **Vidéos YouTube** : titre, chaîne et miniature sont récupérés auprès de YouTube, y compris pour un lien enregistré par clic droit ou collé dans la page. Les vidéos enregistrées avant la version 1.5 avec le titre « YouTube » sont réparées à la mise à jour (un titre que tu as modifié n'est jamais remplacé).
 - **Index** dans la marge gauche : filtres par type (liens, notes, citations, images, vidéos, épinglés) et par tag, avec le nombre de souvenirs de chacun.
 - **Carte mentale** (bouton « Carte mentale ») : chaque #tag est une bulle reliée à « Mon cerveau ».

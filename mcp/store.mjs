@@ -36,7 +36,7 @@ export function load() {
 function normalize(x) {
   return {
     id: String(x.id), type: x.type || 'note', title: x.title || '', url: x.url || '',
-    text: x.text || '', note: x.note || '', description: x.description || '', image: x.image || '',
+    text: x.text || '', note: x.note || '', description: x.description || '', content: x.content || '', image: x.image || '',
     tags: Array.isArray(x.tags) ? x.tags : [], color: x.color || '', pinned: !!x.pinned,
     createdAt: x.createdAt || 0, updatedAt: x.updatedAt || x.createdAt || 0,
   };
@@ -59,10 +59,16 @@ export function brief(it, terms = []) {
 }
 
 // Le souvenir complet (notes en Markdown, telles qu'écrites).
-export function full(it) {
+export const CONTENT_LIMIT = 30000;
+
+export function full(it, { contentOffset = 0 } = {}) {
+  const content = it.content ? it.content.slice(contentOffset, contentOffset + CONTENT_LIMIT) : '';
   return {
     id: it.id, type: it.type, title: it.title || undefined, url: it.url || undefined,
     text: it.text || undefined, note: it.note || undefined, description: it.description || undefined,
+    pageText: content || undefined,
+    pageTextLength: it.content ? it.content.length : undefined,
+    pageTextNextOffset: it.content && contentOffset + CONTENT_LIMIT < it.content.length ? contentOffset + CONTENT_LIMIT : undefined,
     image: /^https?:/.test(it.image) ? it.image : undefined,
     tags: it.tags, pinned: it.pinned, color: it.color || undefined,
     createdAt: iso(it.createdAt), updatedAt: iso(it.updatedAt),
@@ -75,8 +81,9 @@ function firstLine(s) {
 }
 
 function snippet(it, terms) {
-  const src = [it.text, it.note, it.description].find(Boolean) || '';
-  const flat = src.replace(/\s+/g, ' ').trim();
+  // le premier champ qui contient un des mots cherchés, sinon le premier champ rempli
+  const fields = [it.text, it.note, it.description, it.content].filter(Boolean).map(s => s.replace(/\s+/g, ' ').trim());
+  const flat = fields.find(s => terms.some(t => fold(s).includes(t))) || fields[0] || '';
   if (!flat) return '';
   const f = fold(flat);
   const hit = terms.map(t => f.indexOf(t)).filter(i => i >= 0).sort((a, b) => a - b)[0] ?? 0;
@@ -101,7 +108,7 @@ export function search(items, { query = '', type, tags = [], pinned, since, unti
     tagTerms.every(t => it.tags.some(x => fold(x).startsWith(t))));
 
   const score = it => {
-    const fields = [[it.title, 3], [it.tags.join(' '), 3], [it.text, 1.5], [it.note, 1.5], [it.description, 0.75], [it.url, 0.5]]
+    const fields = [[it.title, 3], [it.tags.join(' '), 3], [it.text, 1.5], [it.note, 1.5], [it.description, 0.75], [it.content, 0.5], [it.url, 0.5]]
       .map(([v, w]) => [fold(v), w]);
     let s = 0, matched = 0;
     for (const t of terms) {
