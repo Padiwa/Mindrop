@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>tag-suggest.js</title>
+<form id="f"><input id="t"></form>
+<script src="chrome-shim.js"></script>
+<script type="module">
+import { attachTagSuggest } from '../../tag-suggest.js';
+
+const input = document.getElementById('t');
+const counts = [['methode', 3], ['méta', 1], ['lecture', 2], ['design', 1]];
+let enterSeenByOthers = 0;
+const field = attachTagSuggest(input, () => counts);
+input.addEventListener('keydown', e => { if (e.key === 'Enter') enterSeenByOthers++; });
+const list = document.querySelector('.tag-suggest');
+const type = text => { input.focus(); input.value = text; input.setSelectionRange(text.length, text.length); input.dispatchEvent(new Event('input')); };
+const key = (k, opts = {}) => input.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...opts }));
+const names = () => [...list.querySelectorAll('.tag-name')].map(x => x.textContent);
+
+test('le champ est enveloppé et annoncé comme combobox', () => {
+  assert(field.el.contains(input) && input.getAttribute('role') === 'combobox');
+  assert(input.getAttribute('aria-controls') === list.id);
+});
+
+test('la liste s’ouvre en tapant, sans accents', () => {
+  type('#design #me');
+  assert(!list.hidden && input.getAttribute('aria-expanded') === 'true');
+  assert(names().join() === '#methode,#méta', names().join());
+});
+
+test('flèches puis Entrée : le tag choisi remplace le mot, Entrée ne va pas plus loin', () => {
+  type('#design #me');
+  key('ArrowDown');
+  assert(input.getAttribute('aria-activedescendant') === list.id + '-1');
+  const before = enterSeenByOthers;
+  key('Enter');
+  assert(input.value === '#design #méta ', JSON.stringify(input.value));
+  assert(enterSeenByOthers === before, 'Entrée a été transmise');
+  assert(list.hidden);
+});
+
+test('Tab valide aussi, sans # tapé', () => {
+  type('lec');
+  key('Tab');
+  assert(input.value === '#lecture ', JSON.stringify(input.value));
+});
+
+test('les tags déjà présents ne sont pas reproposés', () => {
+  type('#methode #me');
+  assert(names().join() === '#méta', names().join());
+});
+
+test('Échap ferme seulement la liste', () => {
+  type('#d');
+  let escapedOut = 0;
+  document.addEventListener('keydown', () => escapedOut++, { once: true });
+  key('Escape');
+  assert(list.hidden && escapedOut === 0);
+});
+
+test('Ctrl+Entrée n’est jamais intercepté', () => {
+  type('#me');
+  const before = enterSeenByOthers;
+  key('Enter', { ctrlKey: true });
+  assert(enterSeenByOthers === before + 1 && input.value === '#me');
+});
+
+test('clic sur une proposition', () => {
+  type('#de');
+  list.querySelector('li').dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+  assert(input.value === '#design ');
+});
+
+test('rien à proposer : pas de liste vide', () => {
+  type('#zzz');
+  assert(list.hidden);
+  type('');
+  assert(list.hidden);
+});
+
+run();
+</script>

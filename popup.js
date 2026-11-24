@@ -1,4 +1,5 @@
-import { addItem, findByUrl, domainOf, faviconUrl } from './storage.js';
+import { addItem, findByUrl, domainOf, faviconUrl, getItems } from './storage.js';
+import { attachTagSuggest, tagCounts } from './tag-suggest.js';
 import { buildPageItem } from './capture.js';
 
 const $ = s => document.querySelector(s);
@@ -7,6 +8,10 @@ let tab, pageItem, meta = {}, titleTouched = false, mode = 'page';
 init();
 
 async function init() {
+  let counts = [];
+  getItems().then(items => { counts = tagCounts(items); }).catch(() => {});
+  attachTagSuggest($('#p-tags'), () => counts);
+  attachTagSuggest($('#n-tags'), () => counts);
   document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
   $('#save-page').addEventListener('click', savePage);
   $('#save-note').addEventListener('click', saveNote);

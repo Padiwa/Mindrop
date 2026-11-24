@@ -39,6 +39,7 @@ Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou
   citations (`>`), blocs de code et liens `[texte](https://…)`. Les cases se cochent directement sur la carte.
   Dans la fiche d'une note, onglets **Écrire / Aperçu** (`Ctrl+E` pour basculer, double-clic sur l'aperçu pour écrire).
   Les notes perso des liens et images sont aussi rendues en Markdown sur les cartes.
+- **Tags** : en tapant dans un champ de tags (popup, zone d'écriture, fiche), les tags déjà utilisés sont proposés, les plus fréquents d'abord. Flèches pour choisir, Entrée ou Tab pour valider, Échap pour fermer.
 - **Fiche détaillée** au clic : modifier le titre, la note, les tags, la couleur, épingler, supprimer.
 - **Écrire directement** une idée dans la barre en haut ; coller une URL l'enregistre comme lien.
 - **Glisser-déposer** ou **coller** (`Ctrl+V`) une image, un lien ou un texte sur la page.

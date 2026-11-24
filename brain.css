@@ -109,6 +109,15 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-2xs); bord
 .primary:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
+/* ---------- suggestions de tags ---------- */
+.tag-field { position: relative; display: block; min-width: 0; }
+.tag-suggest { position: absolute; top: calc(100% + var(--space-2xs)); left: 0; z-index: var(--z-dropdown); width: max(100%, 14rem); max-height: 15rem; margin: 0; padding: var(--space-2xs); overflow-y: auto; list-style: none; border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-input); background: var(--color-sheet); box-shadow: var(--shadow-lift); }
+.tag-suggest li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); min-height: 32px; padding: 0 var(--space-xs); border-radius: var(--radius-input); color: var(--color-ink-2); font: 400 var(--text-sm)/1.2 var(--font-ui); cursor: pointer; }
+.tag-suggest li[aria-selected="true"] { background: var(--color-paper-2); color: var(--color-ink); }
+.tag-suggest li[aria-selected="true"] .tag-name { color: var(--color-accent-2); }
+.tag-suggest .tag-count { flex: none; color: var(--color-muted); font: 400 var(--text-xs)/1 var(--font-outlier); font-variant-numeric: tabular-nums; }
+.composer-row .tag-field { flex: 1; }
+
 /* ---------- mosaïque ---------- */
 .grid { column-width: 264px; column-gap: var(--space-md); }
 .card { position: relative; break-inside: avoid; margin: 0 0 var(--space-md); overflow: hidden; border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); background: var(--card, var(--color-sheet)); color: var(--color-ink); cursor: pointer; transition: border-color var(--dur-micro) var(--ease-out); }

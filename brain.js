@@ -6,6 +6,7 @@ import { createMap } from './map.js';
 import { icon } from './icons.js';
 import { renderMarkdown, toggleTask } from './markdown.js';
 import { withVideoInfo } from './video.js';
+import { attachTagSuggest, tagCounts } from './tag-suggest.js';
 import { runBackup, getBackupStatus, listBackups, readBackup, STATUS_KEY } from './backup.js';
 import { isAgentEnabled, setAgentEnabled, syncAgent, getAgentSync, SYNC_KEY } from './agent.js';
 
@@ -223,8 +224,10 @@ function openModal(id) {
   note.value = it.note;
   note.addEventListener('input', () => save({ note: note.value }));
 
-  const tags = h('input', { class: 'm-tags', placeholder: '#tags séparés par des espaces' });
+  const tags = h('input', { class: 'm-tags', placeholder: '#tags séparés par des espaces', 'aria-label': 'Tags' });
   tags.value = it.tags.map(t => '#' + t).join(' ');
+  // branché avant la touche Entrée ci-dessous : Entrée choisit d'abord un tag proposé
+  const tagField = attachTagSuggest(tags, () => tagCounts(state.items));
   tags.addEventListener('change', () => updateItem(id, { tags: tags.value }));
   tags.addEventListener('keydown', e => { if (e.key === 'Enter') tags.blur(); });
 
@@ -250,7 +253,7 @@ function openModal(id) {
     it.description && h('p', { class: 'm-desc' }, it.description),
     it.content && pageText(it.content),
     h('label', {}, 'Notes'), note,
-    h('label', {}, 'Tags'), tags,
+    h('label', {}, 'Tags'), tagField.el,
     h('label', {}, 'Couleur'), swatches,
     h('div', { class: 'm-actions' }, pin, del),
     h('p', { class: 'm-date' }, (({ link: 'Lien gardé', note: 'Note gardée', quote: 'Citation gardée', image: 'Image gardée', video: 'Vidéo gardée' })[it.type] || 'Gardé') + ' le ' + fullDate(it.createdAt)),
@@ -342,6 +345,7 @@ async function saveFile(file) {
 
 function setupComposer() {
   const ta = $('#c-text'), row = $('#c-row');
+  attachTagSuggest($('#c-tags'), () => tagCounts(state.items));
   const grow = () => { autoGrow(ta); row.hidden = !ta.value.trim(); };
   ta.addEventListener('input', grow);
   const submit = async () => {
