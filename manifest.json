@@ -28,7 +28,8 @@
     "contextMenus",
     "activeTab",
     "scripting",
-    "favicon"
+    "favicon",
+    "nativeMessaging"
   ],
   "commands": {
     "_execute_action": {

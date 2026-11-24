@@ -51,3 +51,8 @@ Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou
 - Désinstaller l'extension efface ses données : exporte d'abord.
 - Les polices (Hanken Grotesk, Newsreader, IBM Plex Mono, licence SIL OFL) sont incluses dans `fonts/` : rien n'est chargé depuis Internet.
 - Pour les fichiers locaux (`file://`), active « Autoriser l'accès aux URL de fichier » dans les détails de l'extension.
+
+## Brancher un agent (serveur MCP)
+
+Le dossier `mcp/` permet à un agent IA (Claude Code ou tout client MCP) de chercher dans ton second cerveau, en lecture seule et sans passer par Internet.
+Installation, utilisation, dépannage : voir **[MCP.md](MCP.md)**.

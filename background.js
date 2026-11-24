@@ -1,4 +1,4 @@
-import { addItem, guessType, domainOf, imageFor, shrinkImage } from './storage.js';
+import { KEY, getItems, addItem, guessType, domainOf, imageFor, shrinkImage } from './storage.js';
 import { buildPageItem } from './capture.js';
 
 const MENUS = [
@@ -11,7 +11,26 @@ const MENUS = [
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => MENUS.forEach(m => chrome.contextMenus.create(m)));
+  scheduleSync(0);
 });
+
+// ---------- copie locale pour le serveur MCP (mcp/) ----------
+// Envoie les souvenirs à l'hôte natif, qui les écrit dans un fichier lu par l'agent.
+// Sans hôte installé (node mcp/install.mjs), l'envoi échoue en silence.
+const HOST = 'com.second_cerveau.bridge';
+let syncTimer;
+function scheduleSync(delay = 1500) {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncToAgent, delay);
+}
+async function syncToAgent() {
+  try {
+    const items = (await getItems()).map(({ thumb, image, ...x }) => ({ ...x, image: /^https?:/.test(image || '') ? image : '' }));
+    await chrome.runtime.sendNativeMessage(HOST, { type: 'snapshot', syncedAt: new Date().toISOString(), items });
+  } catch { /* hôte non installé */ }
+}
+chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' && changes[KEY]) scheduleSync(); });
+chrome.runtime.onStartup.addListener(() => scheduleSync(0));
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   try {
