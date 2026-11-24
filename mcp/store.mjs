@@ -24,6 +24,9 @@ export function load() {
   }
   if (st.mtimeMs !== cache.mtime) {
     const raw = JSON.parse(readFileSync(file, 'utf8'));
+    if (raw.disabled) {
+      throw new Error("L'accès des agents est désactivé dans l'extension Second Cerveau : aucune donnée n'est partagée. Pour le rétablir : page cerveau, colonne de gauche, « Accès des agents ».");
+    }
     const items = (Array.isArray(raw.items) ? raw.items : []).map(normalize);
     cache = { mtime: st.mtimeMs, data: { syncedAt: raw.syncedAt || new Date(st.mtimeMs).toISOString(), items } };
   }

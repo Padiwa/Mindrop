@@ -36,6 +36,12 @@ function snapshot(msg) {
   return { ok: true, count: msg.items.length };
 }
 
+// Accès des agents désactivé dans l'extension : la copie est remplacée par un marqueur, sans aucun souvenir.
+function disableAgent() {
+  writeAtomic(snapshotPath(), JSON.stringify({ app: 'second-cerveau', version: 1, disabled: true, disabledAt: new Date().toISOString(), items: [] }));
+  return { ok: true };
+}
+
 // ---------- sauvegardes complètes ----------
 const today = () => new Date().toLocaleDateString('sv') + '.json'; // AAAA-MM-JJ, date locale
 const indexPath = () => join(backupDir(), 'index.json');
@@ -159,6 +165,7 @@ export function handle(msg, session) {
   switch (msg?.type) {
     case 'ping': return [{ ok: true, path: snapshotPath(), backups: backupDir() }];
     case 'snapshot': return [snapshot(msg)];
+    case 'disable-agent': return [disableAgent()];
     case 'backup-begin': return [session.begin(msg)];
     case 'backup-chunk': return [session.chunk(msg)];
     case 'backup-end': return [session.end(msg)];

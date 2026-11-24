@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>agent.js</title>
+<script>
+  window.__legacyItems = [
+    { id: 'a1', type: 'image', title: 'Capture', image: 'data:image/jpeg;base64,AAAA', thumb: 'data:image/jpeg;base64,BBBB', tags: [], createdAt: 2, updatedAt: 2 },
+    { id: 'a2', type: 'link', title: 'Lien', url: 'https://example.com', image: 'https://example.com/og.jpg', thumb: 'data:image/jpeg;base64,CCCC', tags: ['x'], createdAt: 1, updatedAt: 1 },
+  ];
+</script>
+<script src="chrome-shim.js"></script>
+<script type="module">
+import { isAgentEnabled, setAgentEnabled, syncAgent, getAgentSync, shareable } from '../../agent.js';
+
+const sent = [];
+const send = async msg => { sent.push(msg); return { ok: true, count: msg.items?.length }; };
+
+test('activé par défaut', async () => {
+  assert(await isAgentEnabled() === true);
+});
+
+test('activé : envoie une copie sans images encodées', async () => {
+  const st = await syncAgent({ send });
+  const msg = sent.at(-1);
+  assert(st.ok && st.enabled && st.count === 2, JSON.stringify(st));
+  assert(msg.type === 'snapshot' && msg.items.length === 2);
+  const json = JSON.stringify(msg.items);
+  assert(!json.includes('data:image'), 'image encodée partagée');
+  assert(msg.items.find(x => x.id === 'a2').image === 'https://example.com/og.jpg', 'lien d’image web conservé');
+});
+
+test('désactivé : demande l’effacement, n’envoie aucun souvenir', async () => {
+  await setAgentEnabled(false);
+  const st = await syncAgent({ send });
+  const msg = sent.at(-1);
+  assert(st.ok && st.enabled === false, JSON.stringify(st));
+  assert(msg.type === 'disable-agent' && !('items' in msg), JSON.stringify(msg));
+  assert((await getAgentSync()).enabled === false, 'statut enregistré');
+});
+
+test('réactivé : une copie à jour repart', async () => {
+  await setAgentEnabled(true);
+  await syncAgent({ send });
+  assert(sent.at(-1).type === 'snapshot');
+});
+
+test('pont absent : statut « non installé »', async () => {
+  const st = await syncAgent({ send: async () => { throw new Error('Specified native messaging host not found.'); } });
+  assert(!st.ok && st.notInstalled, JSON.stringify(st));
+});
+
+test('erreur renvoyée par le pont : rapportée', async () => {
+  const st = await syncAgent({ send: async () => ({ ok: false, error: 'disque plein' }) });
+  assert(!st.ok && !st.notInstalled && st.error === 'disque plein', JSON.stringify(st));
+});
+
+test('shareable ne modifie pas les souvenirs d’origine', () => {
+  const src = [{ id: 1, image: 'data:x', thumb: 'data:y' }];
+  shareable(src);
+  assert(src[0].thumb === 'data:y');
+});
+
+run();
+</script>

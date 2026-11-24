@@ -188,3 +188,21 @@ test('serveur MCP : message clair quand aucune copie n’existe', async () => {
   assert.equal(r.result.isError, true);
   assert.match(r.result.content[0].text, /install\.mjs/);
 });
+
+test('accès des agents désactivé : la copie est effacée et le serveur le dit', async () => {
+  await bridge([{ type: 'snapshot', items: [item(1, { title: 'Secret' })] }]);
+  const [off] = await bridge([{ type: 'disable-agent' }]);
+  assert.equal(off.ok, true);
+  const raw = readFileSync(join(dir, 'brain.json'), 'utf8');
+  assert.ok(!raw.includes('Secret'), 'plus aucun souvenir dans la copie');
+  for (const name of ['search_memories', 'list_tags', 'get_memory']) {
+    const [r] = await mcp([{ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: { id: 'i1' } } }], { SECOND_CERVEAU_DIR: dir });
+    assert.equal(r.result.isError, true, name);
+    assert.match(r.result.content[0].text, /désactivé/);
+  }
+  // réactivé : une nouvelle copie rend l'accès
+  await bridge([{ type: 'snapshot', items: [item(1, { title: 'Secret' })] }]);
+  const [r] = await mcp([{ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'search_memories', arguments: { query: 'secret' } } }], { SECOND_CERVEAU_DIR: dir });
+  assert.equal(r.result.isError, undefined);
+  assert.equal(JSON.parse(r.result.content[0].text).total, 1);
+});

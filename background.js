@@ -1,6 +1,7 @@
-import { onItemsChanged, getItems, addItem, guessType, domainOf, imageFor, shrinkImage } from './storage.js';
+import { onItemsChanged, addItem, guessType, domainOf, imageFor, shrinkImage } from './storage.js';
 import { buildPageItem } from './capture.js';
 import { runBackup, getBackupStatus } from './backup.js';
+import { syncAgent } from './agent.js';
 
 const MENUS = [
   { id: 'save-page', title: 'Enregistrer cette page', contexts: ['page'] },
@@ -16,20 +17,12 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create('backup', { delayInMinutes: 1 });
 });
 
-// ---------- copie locale pour le serveur MCP (mcp/) ----------
-// Envoie les souvenirs à l'hôte natif, qui les écrit dans un fichier lu par l'agent.
-// Sans hôte installé (node mcp/install.mjs), l'envoi échoue en silence.
-const HOST = 'com.second_cerveau.bridge';
+// ---------- copie pour le serveur MCP (mcp/) ----------
+// Tenue à jour si l'accès des agents est activé (page cerveau), effacée sinon : voir agent.js.
 let syncTimer;
 function scheduleSync(delay = 1500) {
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(syncToAgent, delay);
-}
-async function syncToAgent() {
-  try {
-    const items = (await getItems()).map(({ thumb, image, ...x }) => ({ ...x, image: /^https?:/.test(image || '') ? image : '' }));
-    await chrome.runtime.sendNativeMessage(HOST, { type: 'snapshot', syncedAt: new Date().toISOString(), items });
-  } catch { /* hôte non installé */ }
+  syncTimer = setTimeout(() => syncAgent(), delay);
 }
 onItemsChanged(() => {
   scheduleSync();

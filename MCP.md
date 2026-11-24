@@ -134,6 +134,17 @@ claude mcp remove second-cerveau
 
 La copie et les sauvegardes restent sur le disque ; supprime le dossier `~/.local/share/second-cerveau/` si tu n'en veux plus.
 
+## Activer ou désactiver l'accès des agents
+
+Dans la page « cerveau », colonne de gauche, l'interrupteur **Accès des agents** contrôle ce que le serveur MCP peut lire. Il est activé par défaut.
+
+- **Activé :** la copie lue par le serveur MCP est tenue à jour après chaque changement. Elle contient tous tes souvenirs sauf les images enregistrées dans l'extension (captures, images déposées) ; les liens vers des images web restent.
+- **Désactivé :** la copie est **effacée** sur-le-champ et remplacée par un simple marqueur. Un agent qui interroge le serveur reçoit le message « L'accès des agents est désactivé », sans aucun souvenir.
+- **Réactivé :** une copie à jour est réécrite immédiatement.
+
+Sous l'interrupteur, une ligne indique l'état réel : nombre de souvenirs partagés, date de la dernière copie, ou pont non installé.
+L'interrupteur ne touche pas à la **sauvegarde automatique**, qui continue dans les deux cas.
+
 ## Sauvegarde automatique
 
 Dès que le pont est installé, l'extension écrit une **copie complète** de tes souvenirs, images comprises, **une minute après le dernier changement** :

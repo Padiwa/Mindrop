@@ -6,6 +6,7 @@ import { createMap } from './map.js';
 import { icon } from './icons.js';
 import { renderMarkdown, toggleTask } from './markdown.js';
 import { runBackup, getBackupStatus, listBackups, readBackup, STATUS_KEY } from './backup.js';
+import { isAgentEnabled, setAgentEnabled, syncAgent, getAgentSync, SYNC_KEY } from './agent.js';
 
 const $ = s => document.querySelector(s);
 let savedView = 'grid';
@@ -423,6 +424,38 @@ async function load() {
 
 onItemsChanged(load);
 
+// ---------- accès des agents (MCP) ----------
+async function showAgentStatus(st) {
+  const enabled = await isAgentEnabled();
+  st ??= await getAgentSync();
+  const toggle = $('#agent-toggle'), el = $('#agent-status');
+  toggle.checked = enabled;
+  el.classList.toggle('is-error', !!st && !st.ok && !st.notInstalled);
+  if (!enabled) {
+    el.textContent = st?.ok === false && !st.notInstalled
+      ? 'Désactivé, mais la copie n’a pas pu être effacée : ' + st.error
+      : 'Désactivé : les agents n’ont accès à aucun souvenir.';
+  } else if (st?.notInstalled) {
+    el.textContent = 'Activé, mais le pont local n’est pas installé (voir MCP.md, étape 2).';
+  } else if (st && !st.ok) {
+    el.textContent = 'Activé, dernière mise à jour en échec : ' + st.error;
+  } else if (st?.enabled) {
+    el.textContent = `Activé : les agents lisent tes ${st.count} souvenir${st.count > 1 ? 's' : ''}, sans les images enregistrées. Copie à jour ${ago(st.at)}.`;
+  } else {
+    el.textContent = 'Activé : en attente de la première copie.';
+  }
+}
+
+$('#agent-toggle').addEventListener('change', async e => {
+  const t = e.currentTarget;
+  t.disabled = true;
+  await setAgentEnabled(t.checked);
+  const st = await syncAgent();
+  t.disabled = false;
+  showAgentStatus(st);
+  toast(t.checked ? 'Accès des agents activé' : 'Accès des agents désactivé');
+});
+
 // ---------- sauvegarde automatique ----------
 const dayFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' });
 const sizeOf = b => (b > 1048576 ? (b / 1048576).toFixed(1) + '\u00a0Mo' : Math.max(1, Math.round(b / 1024)) + '\u00a0ko');
@@ -488,9 +521,11 @@ function restoreRow(bk) {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && changes[STATUS_KEY]) showBackupStatus(changes[STATUS_KEY].newValue);
+  if (area === 'local' && changes[SYNC_KEY]) showAgentStatus(changes[SYNC_KEY].newValue);
 });
 showBackupStatus();
-setInterval(() => showBackupStatus(), 60000);
+showAgentStatus();
+setInterval(() => { showBackupStatus(); showAgentStatus(); }, 60000);
 
 // Une écriture qui échoue (disque plein, base indisponible) ne passe plus inaperçue.
 window.addEventListener('unhandledrejection', e => {
