@@ -67,6 +67,7 @@ console.log(`
 Ensuite :
   1. Recharge l'extension (bouton ↻ dans la page des extensions) : elle envoie sa première copie.
      Vérifie que ce fichier existe : ${snapshotPath()}
+     La sauvegarde automatique complète arrive une minute plus tard dans ${join(dataDir(), 'backups')}
   2. Branche le serveur MCP sur ton agent. Pour Claude Code :
        claude mcp add second-cerveau -- "${process.execPath}" "${server}"
      Pour un autre client MCP (stdio) :

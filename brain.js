@@ -1,10 +1,11 @@
 import {
-  onItemsChanged, getItems, putItems, addItem, updateItem, deleteItem,
-  domainOf, faviconUrl, guessType, imageFor, shrinkImage, normalizeTags,
+  onItemsChanged, getItems, mergeItems, addItem, updateItem, deleteItem,
+  domainOf, faviconUrl, guessType, imageFor, shrinkImage,
 } from './storage.js';
 import { createMap } from './map.js';
 import { icon } from './icons.js';
 import { renderMarkdown, toggleTask } from './markdown.js';
+import { runBackup, getBackupStatus, listBackups, readBackup, STATUS_KEY } from './backup.js';
 
 const $ = s => document.querySelector(s);
 let savedView = 'grid';
@@ -379,19 +380,7 @@ async function importJson(file) {
     const data = JSON.parse(await file.text());
     const incoming = Array.isArray(data) ? data : data.items;
     if (!Array.isArray(incoming)) throw new Error('format');
-    const current = await getItems();
-    const byId = new Map(current.map(x => [x.id, x]));
-    let added = 0;
-    const changed = [];
-    for (const raw of incoming) {
-      if (!raw?.id) continue;
-      const it = { ...raw, tags: normalizeTags(raw.tags) };
-      const ex = byId.get(it.id);
-      if (!ex) added++;
-      if (!ex || (it.updatedAt || 0) > (ex.updatedAt || 0)) changed.push(it);
-    }
-    // seuls les souvenirs nouveaux ou plus récents sont écrits : le reste n'est pas touché
-    await putItems(changed);
+    const { added } = await mergeItems(incoming);
     toast(`${added} souvenir${added > 1 ? 's' : ''} importé${added > 1 ? 's' : ''}`);
   } catch (e) {
     toast(e instanceof SyntaxError || e?.message === 'format' ? 'Fichier de sauvegarde invalide' : 'Échec de l’import : ' + (e?.message || e));
@@ -433,6 +422,75 @@ async function load() {
 }
 
 onItemsChanged(load);
+
+// ---------- sauvegarde automatique ----------
+const dayFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' });
+const sizeOf = b => (b > 1048576 ? (b / 1048576).toFixed(1) + '\u00a0Mo' : Math.max(1, Math.round(b / 1024)) + '\u00a0ko');
+
+async function showBackupStatus(st) {
+  st ??= await getBackupStatus();
+  const el = $('#backup-status');
+  el.classList.toggle('is-error', !!st && !st.ok && !st.notInstalled);
+  $('#backup-restore').disabled = !!st?.notInstalled;
+  if (!st) { el.textContent = 'Aucune pour l’instant. Elle se fait une minute après chaque changement.'; return; }
+  if (st.notInstalled) { el.textContent = 'Pas encore activée : installe le pont local (voir MCP.md, étape 2).'; return; }
+  if (!st.ok) { el.textContent = 'Dernier essai en échec : ' + st.error; return; }
+  el.textContent = `Dernière : ${ago(st.at)}, ${st.count} souvenir${st.count > 1 ? 's' : ''} (${sizeOf(st.bytes)}).`;
+}
+
+$('#backup-now').addEventListener('click', async e => {
+  const b = e.currentTarget;
+  b.disabled = true; b.setAttribute('aria-busy', 'true');
+  const empty = !state.items.length;
+  const st = await runBackup();
+  b.disabled = false; b.removeAttribute('aria-busy');
+  showBackupStatus(st);
+  toast(empty ? 'Rien à sauvegarder pour l’instant' : st?.ok ? 'Sauvegarde faite' : st?.notInstalled ? 'Pont local non installé' : 'Échec de la sauvegarde');
+});
+
+$('#backup-restore').addEventListener('click', async e => {
+  const b = e.currentTarget, list = $('#backup-list');
+  const open = list.hidden;
+  b.setAttribute('aria-expanded', String(open));
+  list.hidden = !open;
+  if (!open) return;
+  list.replaceChildren(h('li', { class: 'backup-empty' }, 'Chargement…'));
+  try {
+    const backups = await listBackups();
+    list.replaceChildren(...(backups.length ? backups.map(restoreRow) : [h('li', { class: 'backup-empty' }, 'Aucune sauvegarde sur le disque.')]));
+  } catch (err) {
+    list.replaceChildren(h('li', { class: 'backup-empty is-error' }, 'Lecture impossible : ' + err.message));
+  }
+});
+
+function restoreRow(bk) {
+  let armed = false;
+  const label = dayFmt.format(new Date(bk.date + 'T12:00:00')) + (bk.time ? `, version de ${bk.time}` : '');
+  const meta = bk.count != null ? `${bk.count} souvenirs, ${sizeOf(bk.bytes)}` : sizeOf(bk.bytes);
+  const btn = h('button', { type: 'button', class: 'backup-row', onclick: async () => {
+    if (!armed) {
+      armed = true; btn.classList.add('armed');
+      btn.querySelector('.when').textContent = 'Restaurer cette sauvegarde ?';
+      setTimeout(() => { armed = false; btn.classList.remove('armed'); btn.querySelector('.when').textContent = label; }, 4000);
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const { items, skippedImages } = await readBackup(bk.name);
+      const { added, updated } = await mergeItems(items);
+      toast(`${added} souvenir${added > 1 ? 's' : ''} restauré${added > 1 ? 's' : ''}, ${updated} mis à jour` + (skippedImages ? `, ${skippedImages} sans image` : ''));
+    } catch (err) {
+      toast('Échec de la restauration : ' + err.message);
+    } finally { btn.disabled = false; }
+  } }, h('span', { class: 'when' }, label), h('span', { class: 'what' }, meta));
+  return h('li', {}, btn);
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes[STATUS_KEY]) showBackupStatus(changes[STATUS_KEY].newValue);
+});
+showBackupStatus();
+setInterval(() => showBackupStatus(), 60000);
 
 // Une écriture qui échoue (disque plein, base indisponible) ne passe plus inaperçue.
 window.addEventListener('unhandledrejection', e => {

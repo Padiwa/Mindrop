@@ -50,11 +50,15 @@ Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou
 - Les pages internes du navigateur (`chrome://`, Web Store) ne peuvent pas être capturées : l'onglet Note reste disponible.
 - Les souvenirs sont rangés dans la base IndexedDB de l'extension, un par un : deux enregistrements simultanés ne peuvent plus s'écraser.
   Depuis la version 1.2, les souvenirs de l'ancien stockage y sont copiés au premier lancement ; l'ancien stockage est conservé tel quel, en secours.
-- Désinstaller l'extension efface ses données : exporte d'abord.
+- Désinstaller l'extension efface ses données : exporte d'abord, ou installe le pont local pour avoir des sauvegardes automatiques sur ton disque.
 - Les polices (Hanken Grotesk, Newsreader, IBM Plex Mono, licence SIL OFL) sont incluses dans `fonts/` : rien n'est chargé depuis Internet.
 - Pour les fichiers locaux (`file://`), active « Autoriser l'accès aux URL de fichier » dans les détails de l'extension.
 
-## Brancher un agent (serveur MCP)
+## Pont local : agent IA et sauvegarde automatique
 
-Le dossier `mcp/` permet à un agent IA (Claude Code ou tout client MCP) de chercher dans ton second cerveau, en lecture seule et sans passer par Internet.
-Installation, utilisation, dépannage : voir **[MCP.md](MCP.md)**.
+Le dossier `mcp/` installe un pont entre l'extension et ton ordinateur, sans passer par Internet. Il apporte :
+
+- la **sauvegarde automatique** de tous tes souvenirs, images comprises, sur ton disque (30 derniers jours), avec restauration depuis la page cerveau ;
+- un **serveur MCP** pour qu'un agent IA (Claude Code ou tout client MCP) cherche dans ton second cerveau, en lecture seule.
+
+Installation, utilisation, restauration, dépannage : voir **[MCP.md](MCP.md)**.

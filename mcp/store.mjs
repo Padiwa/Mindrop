@@ -11,6 +11,7 @@ export function dataDir() {
   return join(process.env.XDG_DATA_HOME || join(homedir(), '.local', 'share'), 'second-cerveau');
 }
 export const snapshotPath = () => join(dataDir(), 'brain.json');
+export const backupDir = () => join(dataDir(), 'backups');
 
 let cache = { mtime: 0, data: null };
 

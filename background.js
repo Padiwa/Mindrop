@@ -1,5 +1,6 @@
 import { onItemsChanged, getItems, addItem, guessType, domainOf, imageFor, shrinkImage } from './storage.js';
 import { buildPageItem } from './capture.js';
+import { runBackup, getBackupStatus } from './backup.js';
 
 const MENUS = [
   { id: 'save-page', title: 'Enregistrer cette page', contexts: ['page'] },
@@ -12,6 +13,7 @@ const MENUS = [
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => MENUS.forEach(m => chrome.contextMenus.create(m)));
   scheduleSync(0);
+  chrome.alarms.create('backup', { delayInMinutes: 1 });
 });
 
 // ---------- copie locale pour le serveur MCP (mcp/) ----------
@@ -29,8 +31,17 @@ async function syncToAgent() {
     await chrome.runtime.sendNativeMessage(HOST, { type: 'snapshot', syncedAt: new Date().toISOString(), items });
   } catch { /* hôte non installé */ }
 }
-onItemsChanged(() => scheduleSync());
-chrome.runtime.onStartup.addListener(() => scheduleSync(0));
+onItemsChanged(() => {
+  scheduleSync();
+  // sauvegarde complète une minute après le dernier changement (l'alarme survit à la mise en veille du service worker)
+  chrome.alarms.create('backup', { delayInMinutes: 1 });
+});
+chrome.alarms.onAlarm.addListener(a => { if (a.name === 'backup') runBackup(); });
+chrome.runtime.onStartup.addListener(async () => {
+  scheduleSync(0);
+  const last = await getBackupStatus();
+  if (!last?.ok || Date.now() - last.at > 864e5) chrome.alarms.create('backup', { delayInMinutes: 1 });
+});
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   try {

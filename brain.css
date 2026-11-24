@@ -60,6 +60,22 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-2xs); bord
 .chip.on .n { color: var(--color-ink); }
 .chip.tag.on .label { color: var(--color-accent-2); }
 
+/* ---------- sauvegarde ---------- */
+.backup { display: flex; flex-direction: column; gap: var(--space-xs); }
+.backup-status { color: var(--color-muted); font-size: var(--text-sm); line-height: 1.4; }
+.backup-status.is-error, .backup-empty.is-error { color: var(--color-error); }
+.backup-actions { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.backup-actions .ghost { min-height: 32px; padding: 0 var(--space-sm); }
+.ghost:disabled { opacity: 0.55; cursor: not-allowed; }
+.backup-list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.backup-empty { padding: var(--space-xs) 0; color: var(--color-muted); font-size: var(--text-sm); }
+.backup-row { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3xs); width: 100%; padding: var(--space-xs); border: 0; border-bottom: var(--rule-hair) solid var(--color-rule); background: none; color: var(--color-ink-2); font-size: var(--text-sm); text-align: left; transition: background-color var(--dur-micro) var(--ease-out); }
+.backup-row:hover { background: var(--color-paper-2); color: var(--color-ink); }
+.backup-row:active { background: var(--color-paper-3); }
+.backup-row:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.backup-row .what { color: var(--color-muted); font-size: var(--text-xs); }
+.backup-row.armed .when { color: var(--color-accent-2); font-weight: 600; }
+
 /* ---------- zone principale ---------- */
 .stage { min-width: 0; padding: var(--space-lg) var(--gutter) var(--space-3xl); }
 
@@ -258,6 +274,7 @@ body.map-mode .stage { display: flex; flex-direction: column; min-height: 0; pad
   .shell { grid-template-columns: minmax(0, 1fr); }
   .index { position: static; flex-direction: column; gap: var(--space-sm); max-height: none; padding: var(--space-sm) var(--gutter) 0; border-right: 0; }
   .index-group { display: flex; align-items: center; gap: var(--space-sm); min-width: 0; }
+  .index-group.backup { flex-wrap: wrap; align-items: flex-start; }
   .index-head { flex: none; padding: 0; border: 0; color: var(--color-muted); font-weight: 500; }
   .chips { flex-direction: row; gap: var(--space-2xs); overflow-x: auto; scrollbar-width: none; mask-image: linear-gradient(to right, var(--color-ink) 82%, transparent); }
   .chip { flex: none; width: auto; min-height: 32px; padding: 0 var(--space-sm); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-pill); }

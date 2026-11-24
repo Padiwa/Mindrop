@@ -116,5 +116,4 @@ createInterface({ input: process.stdin }).on('line', line => {
     try { handle(m); } catch (e) { if (m?.id != null) fail(m.id, -32603, String(e.message || e)); }
   }
 });
-process.stdin.on('end', () => process.exit(0));
 console.error(`[second-cerveau] serveur MCP prêt (${SERVER.version})`);

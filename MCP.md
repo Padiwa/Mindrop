@@ -1,7 +1,11 @@
-# Brancher un agent sur Second Cerveau (serveur MCP)
+# Pont local : agent IA (MCP) et sauvegarde automatique
 
-Ce guide permet à un agent IA (Claude Code ou tout client MCP) de **chercher dans ton second cerveau** : liens, notes, citations, images, vidéos et leurs tags.
-L'accès est en **lecture seule** : l'agent ne peut rien modifier ni supprimer.
+Le pont local relie l'extension à ton ordinateur. Une fois installé (une seule fois, voir « Installation »), il apporte deux choses :
+
+- **un serveur MCP** : un agent IA (Claude Code ou tout client MCP) peut **chercher dans ton second cerveau**, en **lecture seule** ;
+- **la sauvegarde automatique** : une copie complète, images comprises, écrite sur ton disque après chaque changement.
+
+Rien ne passe par Internet.
 
 ## Comment ça marche
 
@@ -128,11 +132,32 @@ node mcp/install.mjs --uninstall
 claude mcp remove second-cerveau
 ```
 
-La copie des données reste sur le disque ; supprime le dossier `~/.local/share/second-cerveau/` si tu n'en veux plus.
+La copie et les sauvegardes restent sur le disque ; supprime le dossier `~/.local/share/second-cerveau/` si tu n'en veux plus.
+
+## Sauvegarde automatique
+
+Dès que le pont est installé, l'extension écrit une **copie complète** de tes souvenirs, images comprises, **une minute après le dernier changement** :
+
+- Linux : `~/.local/share/second-cerveau/backups/AAAA-MM-JJ.json`
+- macOS : `~/Library/Application Support/second-cerveau/backups/AAAA-MM-JJ.json`
+
+Un fichier par jour, réécrit à chaque sauvegarde de la journée ; **les 30 fichiers les plus récents** sont gardés. Garde-fous :
+
+- si une sauvegarde contient **moins de souvenirs** que celle du jour (suppressions, extension réinstallée), l'ancienne n'est pas écrasée : elle est gardée sous le nom `AAAA-MM-JJ-HHMMSS.json` et apparaît dans la liste comme « version de HH:MM » ;
+- une base vide n'est jamais sauvegardée ;
+- une sauvegarde interrompue (navigateur fermé en plein envoi) ne remplace jamais la précédente.
+Au démarrage du navigateur, une sauvegarde est refaite si la dernière date de plus d'un jour.
+
+Dans la page « cerveau », le bloc **Sauvegarde** en bas de la colonne de gauche montre la dernière sauvegarde et permet de :
+
+- **Sauvegarder maintenant** ;
+- **Restaurer** : choisis une date, puis clique une seconde fois pour confirmer. La restauration ajoute les souvenirs absents et remet à jour ceux qui sont plus anciens que dans la sauvegarde ; **elle ne supprime jamais rien**.
+
+Les fichiers de sauvegarde ont le même format que l'export : le bouton **Importer** les accepte aussi, par exemple pour passer sur un autre ordinateur.
 
 ## Confidentialité
 
 - Tout reste sur ta machine : ni l'extension ni le serveur n'envoient quoi que ce soit sur Internet.
-- Le fichier `brain.json` et son dossier ne sont lisibles que par ton compte.
+- Le fichier `brain.json`, les sauvegardes et leur dossier ne sont lisibles que par ton compte.
 - Seule ton extension, désignée par son id, peut parler au pont.
 - **Ce que l'agent lit est transmis au modèle d'IA qu'il utilise.** Si ton agent tourne avec un modèle en ligne, les souvenirs qu'il consulte partent vers ce service, comme tout ce que tu lui montres.

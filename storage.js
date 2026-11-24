@@ -151,6 +151,25 @@ export async function deleteItem(id) {
   await notify();
 }
 
+// Fusionne des souvenirs (import, restauration) : ajoute les absents, remplace ceux qui sont
+// plus anciens que la version reçue, ne supprime jamais rien. Tout est vérifié et écrit
+// dans une seule transaction.
+export async function mergeItems(incoming) {
+  const result = await tx('readwrite', async s => {
+    let added = 0, updated = 0;
+    for (const raw of incoming) {
+      if (!raw?.id) continue;
+      const it = { ...raw, tags: normalizeTags(raw.tags) };
+      const ex = await req(s.get(it.id));
+      if (!ex) { added++; s.put(it); }
+      else if ((it.updatedAt || 0) > (ex.updatedAt || 0)) { updated++; s.put(it); }
+    }
+    return { added, updated };
+  });
+  if (result.added || result.updated) await notify();
+  return result;
+}
+
 export async function findByUrl(url) {
   if (!url) return null;
   const list = await tx('readonly', s => req(s.index('url').getAll(url)));

@@ -50,6 +50,15 @@
         <h2 class="index-head">Tags</h2>
         <div id="tags" class="chips tags"></div>
       </div>
+      <section class="index-group backup" aria-labelledby="backup-head">
+        <h2 class="index-head" id="backup-head">Sauvegarde</h2>
+        <p class="backup-status" id="backup-status" role="status">Vérification…</p>
+        <div class="backup-actions">
+          <button type="button" class="ghost" id="backup-now">Sauvegarder maintenant</button>
+          <button type="button" class="ghost" id="backup-restore" aria-expanded="false" aria-controls="backup-list">Restaurer</button>
+        </div>
+        <ul class="backup-list" id="backup-list" hidden></ul>
+      </section>
     </nav>
 
     <div class="stage">
