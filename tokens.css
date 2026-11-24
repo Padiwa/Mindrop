@@ -42,6 +42,7 @@
     --color-ink: oklch(94% 0.009 70); --color-ink-2: oklch(84% 0.01 70); --color-muted: oklch(70% 0.012 65);
     --color-rule: oklch(30% 0.012 60); --color-rule-2: oklch(82% 0.01 70);
     --color-accent: oklch(71% 0.155 40); --color-accent-2: oklch(76% 0.14 42); --color-accent-hover: oklch(76% 0.14 42); --color-accent-ink: oklch(18% 0.03 40); --color-focus: oklch(74% 0.16 40);
+    --color-error: oklch(72% 0.15 27);
     --color-scrim: oklch(8% 0.01 60 / 0.72); --color-on-ink: oklch(17% 0.01 60);
     --shadow-lift: 0 0 0 1px oklch(36% 0.012 60); --shadow-sheet: 0 0 0 1px oklch(34% 0.012 60);
   }

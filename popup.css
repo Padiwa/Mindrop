@@ -61,6 +61,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 .link:hover { text-decoration-thickness: 2px; }
 .link:active { color: var(--color-ink-2); }
 .link:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.error { margin: 0 var(--space-md) var(--space-sm); padding: var(--space-xs) var(--space-sm); border: var(--rule-hair) solid var(--color-error); border-radius: var(--radius-input); color: var(--color-error); font-size: var(--text-xs); }
 .hint { color: var(--color-muted); font-size: var(--text-xs); white-space: nowrap; }
 kbd { display: inline-block; padding: 0 var(--space-2xs); border: var(--rule-hair) solid var(--color-rule); border-bottom-width: var(--rule-bar); border-radius: var(--radius-input); background: var(--color-sheet); color: var(--color-ink-2); font: 400 var(--text-xs)/1.5 var(--font-outlier); }
 

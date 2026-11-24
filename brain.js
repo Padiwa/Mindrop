@@ -1,5 +1,5 @@
 import {
-  KEY, getItems, saveItems, addItem, updateItem, deleteItem,
+  onItemsChanged, getItems, putItems, addItem, updateItem, deleteItem,
   domainOf, faviconUrl, guessType, imageFor, shrinkImage, normalizeTags,
 } from './storage.js';
 import { createMap } from './map.js';
@@ -159,7 +159,7 @@ function card(it) {
 
   if (it.type === 'note') {
     c.append(h('div', { class: 'note-text md md-clamp' }, renderMarkdown(it.text, {
-      onToggle: (line, on) => updateItem(it.id, { text: toggleTask(it.text, line, on) }),
+      onToggle: (line, on) => updateItem(it.id, cur => ({ text: toggleTask(cur.text, line, on) })),
     })));
   } else if (it.type === 'quote') {
     c.append(h('blockquote', {}, it.text));
@@ -227,10 +227,10 @@ function openModal(id) {
   const swatches = h('div', { class: 'swatches' }, COLORS.map(col =>
     h('button', {
       class: 'sw' + ((it.color || '') === col ? ' on' : ''), style: `--sw:${col || 'var(--surface)'}`,
-      type: 'button', title: col ? 'Couleur' : 'Aucune', 'aria-label': col ? 'Couleur ' + col : 'Aucune couleur', 'aria-pressed': String((it.color || '') === col), onclick: async () => { await updateItem(id, { color: col }); openModal(id); },
+      type: 'button', title: col ? 'Couleur' : 'Aucune', 'aria-label': col ? 'Couleur ' + col : 'Aucune couleur', 'aria-pressed': String((it.color || '') === col), onclick: () => patchAndReopen(id, { color: col }),
     })));
 
-  const pin = h('button', { type: 'button', class: 'ghost' + (it.pinned ? ' on' : ''), 'aria-pressed': String(!!it.pinned), onclick: async () => { await updateItem(id, { pinned: !it.pinned }); openModal(id); } },
+  const pin = h('button', { type: 'button', class: 'ghost' + (it.pinned ? ' on' : ''), 'aria-pressed': String(!!it.pinned), onclick: () => patchAndReopen(id, cur => ({ pinned: !cur.pinned })) },
     icon('star', { filled: it.pinned }), it.pinned ? 'Épinglé' : 'Épingler');
 
   let armed = false;
@@ -285,6 +285,17 @@ function noteEditor(media, ta, save) {
   view.addEventListener('dblclick', () => setMode('write'));
   media.append(tabs, ta, view);
   setMode(ta.value.trim() ? 'view' : 'write');
+}
+
+// Écrit puis réaffiche la fiche avec le souvenir renvoyé par l'écriture,
+// sans attendre que la page ait rechargé toute la liste.
+async function patchAndReopen(id, patch) {
+  const fresh = await updateItem(id, patch);
+  if (fresh) {
+    const i = state.items.findIndex(x => x.id === id);
+    if (i >= 0) state.items[i] = { ...state.items[i], ...fresh };
+  }
+  openModal(id);
 }
 
 function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
@@ -371,17 +382,19 @@ async function importJson(file) {
     const current = await getItems();
     const byId = new Map(current.map(x => [x.id, x]));
     let added = 0;
+    const changed = [];
     for (const raw of incoming) {
       if (!raw?.id) continue;
       const it = { ...raw, tags: normalizeTags(raw.tags) };
       const ex = byId.get(it.id);
       if (!ex) added++;
-      if (!ex || (it.updatedAt || 0) > (ex.updatedAt || 0)) byId.set(it.id, it);
+      if (!ex || (it.updatedAt || 0) > (ex.updatedAt || 0)) changed.push(it);
     }
-    await saveItems([...byId.values()]);
+    // seuls les souvenirs nouveaux ou plus récents sont écrits : le reste n'est pas touché
+    await putItems(changed);
     toast(`${added} souvenir${added > 1 ? 's' : ''} importé${added > 1 ? 's' : ''}`);
-  } catch {
-    toast('Fichier de sauvegarde invalide');
+  } catch (e) {
+    toast(e instanceof SyntaxError || e?.message === 'format' ? 'Fichier de sauvegarde invalide' : 'Échec de l’import : ' + (e?.message || e));
   }
 }
 
@@ -419,8 +432,11 @@ async function load() {
   render();
 }
 
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes[KEY]) load();
+onItemsChanged(load);
+
+// Une écriture qui échoue (disque plein, base indisponible) ne passe plus inaperçue.
+window.addEventListener('unhandledrejection', e => {
+  toast('Échec de l’enregistrement : ' + (e.reason?.message || e.reason || 'erreur inconnue'));
 });
 
 $('#q').addEventListener('input', debounce(e => { state.q = e.target.value; render(); }, 120));

@@ -48,6 +48,8 @@ Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou
 - Si un raccourci ne marche pas, c'est souvent qu'il est déjà pris par le navigateur : choisis-en un autre dans la page des raccourcis.
 - Les raccourcis se modifient dans `chrome://extensions/shortcuts` (ou `brave://extensions/shortcuts`).
 - Les pages internes du navigateur (`chrome://`, Web Store) ne peuvent pas être capturées : l'onglet Note reste disponible.
+- Les souvenirs sont rangés dans la base IndexedDB de l'extension, un par un : deux enregistrements simultanés ne peuvent plus s'écraser.
+  Depuis la version 1.2, les souvenirs de l'ancien stockage y sont copiés au premier lancement ; l'ancien stockage est conservé tel quel, en secours.
 - Désinstaller l'extension efface ses données : exporte d'abord.
 - Les polices (Hanken Grotesk, Newsreader, IBM Plex Mono, licence SIL OFL) sont incluses dans `fonts/` : rien n'est chargé depuis Internet.
 - Pour les fichiers locaux (`file://`), active « Autoriser l'accès aux URL de fichier » dans les détails de l'extension.

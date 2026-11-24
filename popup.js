@@ -64,26 +64,49 @@ function setMode(m) {
 async function savePage() {
   if (!pageItem || $('#save-page').disabled) return;
   $('#save-page').disabled = true;
+  $('#save-page').setAttribute('aria-busy', 'true');
   const asQuote = meta.selection && $('#use-quote').checked;
-  await addItem({
-    ...pageItem,
-    type: asQuote ? 'quote' : pageItem.type,
-    text: asQuote ? meta.selection : '',
-    title: $('#p-title').value.trim() || pageItem.title,
-    note: $('#p-note').value.trim(),
-    tags: $('#p-tags').value,
-  });
-  done();
+  try {
+    await addItem({
+      ...pageItem,
+      type: asQuote ? 'quote' : pageItem.type,
+      text: asQuote ? meta.selection : '',
+      title: $('#p-title').value.trim() || pageItem.title,
+      note: $('#p-note').value.trim(),
+      tags: $('#p-tags').value,
+    });
+    done();
+  } catch (e) {
+    failed(e);
+    $('#save-page').disabled = false;
+  } finally {
+    $('#save-page').removeAttribute('aria-busy');
+  }
 }
 
 async function saveNote() {
   const text = $('#n-text').value.trim();
   if (!text) return $('#n-text').focus();
-  await addItem({ type: 'note', text, tags: $('#n-tags').value });
-  done();
+  $('#save-note').disabled = true;
+  try {
+    await addItem({ type: 'note', text, tags: $('#n-tags').value });
+    done();
+  } catch (e) {
+    failed(e);
+  } finally {
+    $('#save-note').disabled = false;
+  }
+}
+
+// Rien n'a été gardé : on le dit, et le texte saisi reste dans les champs pour réessayer.
+function failed(e) {
+  const box = $('#error');
+  box.textContent = 'Rien n’a été enregistré : ' + (e?.message || e || 'erreur inconnue') + '. Réessaie.';
+  box.hidden = false;
 }
 
 function done() {
+  $('#error').hidden = true;
   $('#done').hidden = false;
   setTimeout(() => window.close(), 750);
 }

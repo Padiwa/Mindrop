@@ -1,4 +1,4 @@
-import { KEY, getItems, addItem, guessType, domainOf, imageFor, shrinkImage } from './storage.js';
+import { onItemsChanged, getItems, addItem, guessType, domainOf, imageFor, shrinkImage } from './storage.js';
 import { buildPageItem } from './capture.js';
 
 const MENUS = [
@@ -29,7 +29,7 @@ async function syncToAgent() {
     await chrome.runtime.sendNativeMessage(HOST, { type: 'snapshot', syncedAt: new Date().toISOString(), items });
   } catch { /* hôte non installé */ }
 }
-chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' && changes[KEY]) scheduleSync(); });
+onItemsChanged(() => scheduleSync());
 chrome.runtime.onStartup.addListener(() => scheduleSync(0));
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
