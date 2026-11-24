@@ -27,16 +27,20 @@ Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou
 
 - **Mosaïque** de tous tes souvenirs : captures des pages, notes colorées, citations, images, vidéos YouTube.
 - **Recherche** instantanée (touche `/`), insensible aux accents ; `#design` filtre par tag.
-- **Filtres** par type (liens, notes, citations, images, vidéos, épinglés) et par tag.
-- **Carte mentale** (bouton « ◎ Carte mentale ») : chaque #tag est une bulle reliée à « Mon cerveau ».
+- **Index** dans la marge gauche : filtres par type (liens, notes, citations, images, vidéos, épinglés) et par tag, avec le nombre de souvenirs de chacun.
+- **Carte mentale** (bouton « Carte mentale ») : chaque #tag est une bulle reliée à « Mon cerveau ».
   Les pointillés relient les tags qui partagent des souvenirs. Zoome (molette, pavé tactile ou +/−) :
   les souvenirs apparaissent autour de leur premier tag, avec un fil vers chacun de leurs autres tags.
-  Clic sur un tag = zoom dessus ; glisser un tag = le déplacer (sa position est retenue) ; ↻ = réorganiser ;
-  ⤢ ou touche 0 = tout voir. Survoler un tag ou une carte met ses liens en évidence.
+  Clic sur un tag = zoom dessus ; glisser un tag = le déplacer (sa position est retenue) ; bouton « Réorganiser » = nouvelle disposition ;
+  bouton « Tout voir » ou touche 0 = tout voir. Survoler un tag ou une carte met ses liens en évidence.
+- **Notes en Markdown** : `# titre`, `**gras**`, `*italique*`, `~~barré~~`, `` `code` ``, listes (`-`, `1.`), cases à cocher (`- [ ] tâche`),
+  citations (`>`), blocs de code et liens `[texte](https://…)`. Les cases se cochent directement sur la carte.
+  Dans la fiche d'une note, onglets **Écrire / Aperçu** (`Ctrl+E` pour basculer, double-clic sur l'aperçu pour écrire).
+  Les notes perso des liens et images sont aussi rendues en Markdown sur les cartes.
 - **Fiche détaillée** au clic : modifier le titre, la note, les tags, la couleur, épingler, supprimer.
 - **Écrire directement** une idée dans la barre en haut ; coller une URL l'enregistre comme lien.
 - **Glisser-déposer** ou **coller** (`Ctrl+V`) une image, un lien ou un texte sur la page.
-- **✦ Redécouvrir** ressort un souvenir au hasard.
+- **Redécouvrir** ressort un souvenir au hasard.
 - **Exporter / Importer** : sauvegarde JSON, à faire de temps en temps (et pour passer d'un navigateur à l'autre).
 
 ## Bon à savoir
@@ -45,4 +49,5 @@ Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou
 - Les raccourcis se modifient dans `chrome://extensions/shortcuts` (ou `brave://extensions/shortcuts`).
 - Les pages internes du navigateur (`chrome://`, Web Store) ne peuvent pas être capturées : l'onglet Note reste disponible.
 - Désinstaller l'extension efface ses données : exporte d'abord.
+- Les polices (Hanken Grotesk, Newsreader, IBM Plex Mono, licence SIL OFL) sont incluses dans `fonts/` : rien n'est chargé depuis Internet.
 - Pour les fichiers locaux (`file://`), active « Autoriser l'accès aux URL de fichier » dans les détails de l'extension.

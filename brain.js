@@ -3,6 +3,8 @@ import {
   domainOf, faviconUrl, guessType, imageFor, shrinkImage, normalizeTags,
 } from './storage.js';
 import { createMap } from './map.js';
+import { icon } from './icons.js';
+import { renderMarkdown, toggleTask } from './markdown.js';
 
 const $ = s => document.querySelector(s);
 let savedView = 'grid';
@@ -11,7 +13,7 @@ const state = { items: [], q: '', type: 'all', tag: '', openId: null, view: save
 
 const TYPES = [
   ['all', 'Tout'], ['link', 'Liens'], ['note', 'Notes'], ['quote', 'Citations'],
-  ['image', 'Images'], ['video', 'Vidéos'], ['pinned', '★ Épinglés'],
+  ['image', 'Images'], ['video', 'Vidéos'], ['pinned', 'Épinglés'],
 ];
 const COLORS = ['', '#fff1b8', '#ffd9cc', '#d9f0dc', '#d6e6fb', '#e9defc', '#26241f'];
 const DARK = '#26241f';
@@ -82,8 +84,8 @@ function render() {
   $('#types').replaceChildren(...TYPES.map(([id, label]) => {
     const c = id === 'all' ? n : id === 'pinned' ? state.items.filter(x => x.pinned).length : state.items.filter(x => x.type === id).length;
     if (id !== 'all' && !c) return '';
-    return h('button', { class: 'chip' + (state.type === id ? ' on' : ''), onclick: () => { state.type = id; render(); } },
-      label, h('span', { class: 'n' }, c));
+    return h('button', { type: 'button', class: 'chip' + (state.type === id ? ' on' : ''), 'aria-pressed': String(state.type === id), onclick: () => { state.type = id; render(); } },
+      h('span', { class: 'label' }, label), h('span', { class: 'n' }, c));
   }).filter(Boolean));
 
   // tags
@@ -91,20 +93,26 @@ function render() {
   state.items.forEach(it => it.tags.forEach(t => { counts[t] = (counts[t] || 0) + 1; }));
   const tags = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 40);
   $('#tags').replaceChildren(...tags.map(([t, c]) =>
-    h('button', { class: 'chip tag' + (state.tag === t ? ' on' : ''), onclick: () => {
+    h('button', { type: 'button', class: 'chip tag' + (state.tag === t ? ' on' : ''), 'aria-pressed': String(state.tag === t), onclick: () => {
         state.tag = state.tag === t ? '' : t;
         render();
         if (state.view === 'map' && state.tag) map.focusTag(t);
       } },
-      '#' + t, h('span', { class: 'n' }, c))));
+      h('span', { class: 'label' }, '#' + t), h('span', { class: 'n' }, c))));
 
-  document.querySelectorAll('.views button').forEach(b => b.classList.toggle('on', b.dataset.view === state.view));
+  document.querySelectorAll('.views button').forEach(b => {
+    b.classList.toggle('on', b.dataset.view === state.view);
+    b.setAttribute('aria-selected', String(b.dataset.view === state.view));
+  });
   if (state.view === 'map') {
     map.setData(state.items, matches);
     $('#empty').hidden = true;
     return;
   }
   $('#grid').replaceChildren(...list.map(card));
+  requestAnimationFrame(() => document.querySelectorAll('#grid .md-clamp').forEach(el => {
+    el.classList.toggle('is-clipped', el.scrollHeight > el.clientHeight + 1);
+  }));
 
   const empty = $('#empty');
   empty.hidden = list.length > 0;
@@ -114,9 +122,10 @@ function render() {
       : h('div', {},
           h('h2', {}, 'Ton second cerveau t’attend.'),
           h('p', {}, 'Clique sur l’icône de l’extension sur n’importe quelle page, fais un clic droit sur une image, un lien ou un texte sélectionné, ou dépose quelque chose ici.'),
-          h('p', { class: 'kbd' }, h('kbd', {}, 'Alt'), '+', h('kbd', {}, 'Shift'), '+', h('kbd', {}, 'S'), ' ouvrir · ',
-            h('kbd', {}, 'Alt'), '+', h('kbd', {}, 'Shift'), '+', h('kbd', {}, 'D'), ' enregistrer direct · ',
-            h('kbd', {}, 'Alt'), '+', h('kbd', {}, 'Shift'), '+', h('kbd', {}, 'M'), ' ce cerveau')));
+          h('dl', { class: 'kbd' },
+            [['S', 'ouvrir'], ['D', 'enregistrer direct'], ['M', 'ce cerveau']].map(([k, what]) => h('div', {},
+              h('dt', {}, h('kbd', {}, 'Alt'), ' ', h('kbd', {}, 'Shift'), ' ', h('kbd', {}, k)),
+              h('dd', {}, what))))));
   }
 }
 
@@ -146,23 +155,25 @@ function card(it) {
     onclick: () => openModal(it.id),
     onkeydown: e => { if (e.key === 'Enter') openModal(it.id); },
   });
-  if (it.pinned) c.append(h('span', { class: 'pin', title: 'Épinglé' }, '★'));
+  if (it.pinned) c.append(h('span', { class: 'pin', title: 'Épinglé' }, icon('star', { filled: true })));
 
   if (it.type === 'note') {
-    c.append(h('div', { class: 'note-text' }, it.text));
+    c.append(h('div', { class: 'note-text md md-clamp' }, renderMarkdown(it.text, {
+      onToggle: (line, on) => updateItem(it.id, { text: toggleTask(it.text, line, on) }),
+    })));
   } else if (it.type === 'quote') {
     c.append(h('blockquote', {}, it.text));
     c.append(h('div', { class: 'body' }, h('div', { class: 'meta' }, source(it) || h('span', {}, it.title))));
   } else if (it.type === 'image') {
     const img = mediaImg(it, 'media');
     if (img) c.append(img);
-    if (it.note) c.append(h('div', { class: 'body' }, h('p', { class: 'note' }, it.note)));
+    if (it.note) c.append(h('div', { class: 'body' }, h('div', { class: 'note md md-clamp' }, renderMarkdown(it.note))));
   } else {
     const img = mediaImg(it, 'media');
-    if (img) c.append(h('div', { class: 'media-wrap' }, img, it.type === 'video' && h('span', { class: 'play' }, '▶')));
+    if (img) c.append(h('div', { class: 'media-wrap' }, img, it.type === 'video' && h('span', { class: 'play' }, icon('play', { filled: true }))));
     c.append(h('div', { class: 'body' },
-      h('h3', {}, it.title || it.url),
-      it.note && h('p', { class: 'note' }, it.note),
+      h('h3', {}, String(it.title || it.url).replace(/ ([:;!?»])/g, '\u00a0$1')),
+      it.note && h('div', { class: 'note md md-clamp' }, renderMarkdown(it.note)),
       h('div', { class: 'meta' }, source(it))));
   }
 
@@ -191,8 +202,8 @@ function openModal(id) {
     const ta = h('textarea', { class: it.type === 'quote' ? 'quote-edit' : 'note-edit', placeholder: 'Écris…' });
     ta.value = it.text;
     ta.addEventListener('input', () => save({ text: ta.value }));
-    media.append(ta);
-    setTimeout(() => ta.focus(), 30);
+    if (it.type === 'note') noteEditor(media, ta, save);
+    else { media.append(ta); setTimeout(() => ta.focus(), 30); }
   } else {
     const img = mediaImg(it, 'big');
     if (img) media.append(it.url ? h('a', { href: it.url, target: '_blank', rel: 'noopener' }, img) : img);
@@ -216,33 +227,64 @@ function openModal(id) {
   const swatches = h('div', { class: 'swatches' }, COLORS.map(col =>
     h('button', {
       class: 'sw' + ((it.color || '') === col ? ' on' : ''), style: `--sw:${col || 'var(--surface)'}`,
-      title: col ? 'Couleur' : 'Aucune', onclick: async () => { await updateItem(id, { color: col }); openModal(id); },
+      type: 'button', title: col ? 'Couleur' : 'Aucune', 'aria-label': col ? 'Couleur ' + col : 'Aucune couleur', 'aria-pressed': String((it.color || '') === col), onclick: async () => { await updateItem(id, { color: col }); openModal(id); },
     })));
 
-  const pin = h('button', { class: 'ghost' + (it.pinned ? ' on' : ''), onclick: async () => { await updateItem(id, { pinned: !it.pinned }); openModal(id); } },
-    it.pinned ? '★ Épinglé' : '☆ Épingler');
+  const pin = h('button', { type: 'button', class: 'ghost' + (it.pinned ? ' on' : ''), 'aria-pressed': String(!!it.pinned), onclick: async () => { await updateItem(id, { pinned: !it.pinned }); openModal(id); } },
+    icon('star', { filled: it.pinned }), it.pinned ? 'Épinglé' : 'Épingler');
 
   let armed = false;
-  const del = h('button', { class: 'ghost danger', onclick: async () => {
+  const del = h('button', { type: 'button', class: 'ghost danger', onclick: async () => {
     if (!armed) { armed = true; del.textContent = 'Confirmer la suppression ?'; setTimeout(() => { armed = false; del.textContent = 'Supprimer'; }, 3000); return; }
     await deleteItem(id); closeModal(); toast('Souvenir supprimé');
   } }, 'Supprimer');
 
   const side = $('#m-side');
   side.replaceChildren(...[
-    h('div', { class: 'm-type' }, ({ link: 'Lien', note: 'Note', quote: 'Citation', image: 'Image', video: 'Vidéo' })[it.type] || it.type),
     it.type !== 'note' ? title : null,
-    it.url && h('a', { class: 'm-url', href: it.url, target: '_blank', rel: 'noopener' }, source(it), h('span', { class: 'arrow' }, '↗')),
+    it.url && h('a', { class: 'm-url', href: it.url, target: '_blank', rel: 'noopener' }, source(it), icon('external', { cls: 'ico arrow' })),
     it.description && h('p', { class: 'm-desc' }, it.description),
     h('label', {}, 'Notes'), note,
     h('label', {}, 'Tags'), tags,
     h('label', {}, 'Couleur'), swatches,
     h('div', { class: 'm-actions' }, pin, del),
-    h('p', { class: 'm-date' }, 'Gardé le ' + fullDate(it.createdAt)),
+    h('p', { class: 'm-date' }, (({ link: 'Lien gardé', note: 'Note gardée', quote: 'Citation gardée', image: 'Image gardée', video: 'Vidéo gardée' })[it.type] || 'Gardé') + ' le ' + fullDate(it.createdAt)),
   ].filter(Boolean));
   $('#modal').hidden = false;
   document.body.classList.add('locked');
   autoGrow(title);
+}
+
+// Note en Markdown : onglets Écrire / Aperçu (Ctrl+E pour basculer).
+function noteEditor(media, ta, save) {
+  media.classList.add('has-tabs');
+  const view = h('div', { class: 'md note-view', tabindex: 0, 'aria-label': 'Aperçu de la note' });
+  const draw = () => view.replaceChildren(renderMarkdown(ta.value, {
+    onToggle: (line, on) => { ta.value = toggleTask(ta.value, line, on); save({ text: ta.value }); draw(); },
+  }));
+  const tab = (m, label) => h('button', { type: 'button', role: 'tab', 'data-mode': m, onclick: () => setMode(m) }, label);
+  const tabs = h('div', { class: 'md-bar' },
+    h('div', { class: 'md-tabs', role: 'tablist', 'aria-label': 'Mode de la note' }, tab('write', 'Écrire'), tab('view', 'Aperçu')),
+    h('p', { class: 'md-help' }, h('code', {}, '# titre'), h('code', {}, '**gras**'), h('code', {}, '*italique*'), h('code', {}, '- liste'), h('code', {}, '- [ ] tâche'), h('code', {}, '[lien](url)')));
+  const help = tabs.querySelector('.md-help');
+  function setMode(m) {
+    ta.hidden = m !== 'write';
+    view.hidden = m !== 'view';
+    help.hidden = m !== 'write';
+    tabs.querySelectorAll('[role=tab]').forEach(b => {
+      const on = b.dataset.mode === m;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-selected', String(on));
+    });
+    if (m === 'view') draw();
+    if (m === 'write') setTimeout(() => ta.focus(), 30);
+  }
+  media.onkeydown = e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); setMode(ta.hidden ? 'write' : 'view'); }
+  };
+  view.addEventListener('dblclick', () => setMode('write'));
+  media.append(tabs, ta, view);
+  setMode(ta.value.trim() ? 'view' : 'write');
 }
 
 function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
@@ -264,14 +306,14 @@ async function saveText(text, tags = '') {
   } else {
     await addItem({ type: 'note', text, tags });
   }
-  toast('Gardé en mémoire ✓');
+  toast('Gardé en mémoire');
 }
 
 async function saveFile(file) {
   if (!file.type.startsWith('image/')) return toast('Seules les images peuvent être déposées');
   const image = await shrinkImage(file, 1400, 0.82);
   await addItem({ type: 'image', image, title: file.name.replace(/\.[^.]+$/, '') });
-  toast('Image gardée ✓');
+  toast('Image gardée');
 }
 
 function setupComposer() {

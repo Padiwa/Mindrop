@@ -27,7 +27,7 @@ async function init() {
   $('#p-title').value = tab.title || '';
   $('#p-domain').textContent = domainOf(tab.url);
   const fav = faviconUrl(tab.url);
-  if (fav) $('#p-fav').src = fav; else $('#p-fav').hidden = true;
+  if (fav) $('.source').prepend(Object.assign(document.createElement('img'), { id: 'p-fav', src: fav, alt: '', width: 14, height: 14 }));
   $('#p-note').focus();
 
   findByUrl(tab.url).then(x => { if (x) $('#dupe').hidden = false; });
@@ -44,7 +44,8 @@ async function init() {
 }
 
 function showPreview(src, fallback) {
-  const img = $('#p-img');
+  const img = Object.assign(document.createElement('img'), { id: 'p-img', alt: '', hidden: true });
+  $('#preview').append(img);
   $('#shimmer').hidden = true;
   if (!src) { $('#preview').classList.add('empty'); return; }
   img.onerror = () => { if (fallback && img.src !== fallback) img.src = fallback; else $('#preview').classList.add('empty'); };

@@ -2,71 +2,92 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mon second cerveau</title>
+<meta name="description" content="Tous les liens, notes, citations et images gardés dans ton second cerveau, en mosaïque ou en carte des tags.">
 <link rel="icon" href="icons/icon32.png">
 <link rel="stylesheet" href="brain.css">
 </head>
 <body>
   <header class="top">
     <div class="brand">
-      <img src="icons/icon48.png" alt="">
-      <div><h1>Second Cerveau</h1><p id="count"></p></div>
+      <img src="icons/icon48.png" alt="" width="28" height="28">
+      <div class="brand-text"><h1>Second Cerveau</h1><p id="count"></p></div>
     </div>
     <div class="search">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Rechercher dans ta mémoire…  (/ pour chercher, #tag pour filtrer)" autocomplete="off">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Rechercher dans ta mémoire, ou #tag pour filtrer" aria-label="Rechercher dans ta mémoire (touche /, #tag pour filtrer)" autocomplete="off">
+      <kbd aria-hidden="true">/</kbd>
+    </div>
+    <div class="views" role="tablist" aria-label="Affichage">
+      <button type="button" data-view="grid">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="9" rx="1"/><rect x="13.5" y="3.5" width="7" height="5" rx="1"/><rect x="13.5" y="11.5" width="7" height="9" rx="1"/><rect x="3.5" y="15.5" width="7" height="5" rx="1"/></svg>
+        <span class="v-label">Mosaïque</span>
+      </button>
+      <button type="button" data-view="map">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="4.5" cy="5" r="2"/><circle cx="19.5" cy="6" r="2"/><circle cx="18" cy="19" r="2"/><path d="m6.1 6.4 3.8 3.6M17.9 7.2l-3.6 3.1M16.8 17.4l-2.6-3.4"/></svg>
+        <span class="v-label">Carte mentale</span>
+      </button>
     </div>
     <div class="actions">
-      <button id="random" title="Ressortir un souvenir au hasard">✦ Redécouvrir</button>
-      <button id="export" title="Télécharger une sauvegarde JSON">Exporter</button>
-      <button id="import" title="Restaurer une sauvegarde JSON">Importer</button>
+      <button type="button" id="random" title="Ressortir un souvenir au hasard">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17h1.6c1.3 0 2.5-.6 3.2-1.7l5.4-7.6c.8-1.1 2-1.7 3.3-1.7H21"/><path d="m18 3 3 3-3 3"/><path d="M3 7h1.8c1.4 0 2.7.8 3.4 2"/><path d="M21 17h-4.7c-1.3 0-2.5-.6-3.2-1.7l-.4-.6"/><path d="m18 14 3 3-3 3"/></svg>
+        Redécouvrir
+      </button>
+      <button type="button" id="export" title="Télécharger une sauvegarde JSON">Exporter</button>
+      <button type="button" id="import" title="Restaurer une sauvegarde JSON">Importer</button>
       <input id="import-file" type="file" accept="application/json,.json" hidden>
     </div>
   </header>
 
-  <nav class="filters">
-    <div class="filter-row">
-      <div id="types" class="chips"></div>
-      <div class="views" role="tablist">
-        <button data-view="grid">▦ Mosaïque</button>
-        <button data-view="map">◎ Carte mentale</button>
+  <div class="shell">
+    <nav class="filters index" aria-label="Filtres">
+      <div class="index-group">
+        <h2 class="index-head">Types</h2>
+        <div id="types" class="chips"></div>
       </div>
-    </div>
-    <div id="tags" class="chips tags"></div>
-  </nav>
+      <div class="index-group">
+        <h2 class="index-head">Tags</h2>
+        <div id="tags" class="chips tags"></div>
+      </div>
+    </nav>
 
-  <section class="composer">
-    <textarea id="c-text" rows="1" placeholder="Une idée, une pensée, un lien… (Ctrl+Entrée)"></textarea>
-    <div class="composer-row" id="c-row" hidden>
-      <input id="c-tags" placeholder="#tags">
-      <button id="c-save" class="primary">Garder</button>
-    </div>
-  </section>
+    <div class="stage">
+      <section class="composer" aria-label="Écrire une idée">
+        <textarea id="c-text" rows="1" placeholder="Une idée, une pensée, un lien… (Markdown accepté)" aria-label="Une idée, une pensée, un lien, en Markdown (Ctrl+Entrée pour garder)"></textarea>
+        <div class="composer-row" id="c-row" hidden>
+          <input id="c-tags" placeholder="#tags" aria-label="Tags de la note">
+          <span class="hint"><kbd>Ctrl</kbd> <kbd>Entrée</kbd></span>
+          <button type="button" id="c-save" class="primary">Garder</button>
+        </div>
+      </section>
 
-  <main id="grid" class="grid"></main>
-  <section id="map" class="map" hidden>
-    <div class="map-ui">
-      <button id="z-in" title="Zoomer (+)">+</button>
-      <button id="z-out" title="Dézoomer (−)">−</button>
-      <button id="z-fit" title="Tout voir (0)">⤢</button>
-      <button id="z-reset" title="Réorganiser la carte">↻</button>
+      <main id="grid" class="grid"></main>
+      <section id="map" class="map" aria-label="Carte mentale des tags" hidden>
+        <div class="map-ui">
+          <button type="button" id="z-in" title="Zoomer (+)" aria-label="Zoomer"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button type="button" id="z-out" title="Dézoomer (−)" aria-label="Dézoomer"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+          <button type="button" id="z-fit" title="Tout voir (0)" aria-label="Tout voir"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+          <button type="button" id="z-reset" title="Réorganiser la carte" aria-label="Réorganiser la carte"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 0 1 14.6-5.9L20.5 8.5"/><path d="M20.5 3.5v5h-5"/><path d="M20.5 12a8.5 8.5 0 0 1-14.6 5.9L3.5 15.5"/><path d="M3.5 20.5v-5h5"/></svg></button>
+        </div>
+        <p class="map-hint" id="map-hint"></p>
+      </section>
+      <div id="empty" class="empty" hidden></div>
     </div>
-    <div class="map-hint" id="map-hint"></div>
-  </section>
-  <div id="empty" class="empty" hidden></div>
+  </div>
 
   <div id="drop" class="drop" hidden><div>Dépose ici pour garder en mémoire</div></div>
 
   <div id="modal" class="modal" hidden>
     <div class="backdrop" data-close></div>
-    <div class="sheet" role="dialog" aria-modal="true">
-      <button class="close" data-close aria-label="Fermer">×</button>
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Souvenir">
+      <button type="button" class="close" data-close aria-label="Fermer"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       <div class="sheet-media" id="m-media"></div>
       <div class="sheet-side" id="m-side"></div>
     </div>
   </div>
 
-  <div id="toast" class="toast" hidden></div>
+  <div id="toast" class="toast" role="status" hidden></div>
   <script type="module" src="brain.js"></script>
 </body>
 </html>

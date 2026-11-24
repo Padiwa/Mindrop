@@ -1,20 +1,23 @@
 // Carte mentale : chaque #tag est un nœud ; en zoomant, les souvenirs liés et leurs liens apparaissent.
 import { domainOf } from './storage.js';
+import { plainText } from './markdown.js';
 
 const CARD_W = 150;
 const IMG_H = 84;
 const RING = { gap: 115, step: 165, arc: 205 };
 const NOTAG = '∅';
 const DARK = '#26241f';
+// Jetons lus dans tokens.css : couleurs de la carte et polices du canvas.
+const TOKENS = { bg: 'paper', surface: 'sheet', ink: 'ink', muted: 'muted', line: 'rule', accent: 'accent', noteInk: 'note-ink', noteInkDark: 'note-ink-dark' };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const ramp = (v, a, b) => clamp((v - a) / (b - a), 0, 1);
 
 function hash(s) { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; }
-function tagColor(id) { return id === NOTAG ? 'hsl(30 8% 55%)' : `hsl(${hash(id) % 360} 62% 52%)`; }
+function tagColor(id) { return id === NOTAG ? 'oklch(60% 0.012 60)' : `oklch(62% 0.13 ${hash(id) % 360})`; }
 function sizeOf(it) {
   const img = !!(it.image || it.thumb) && it.type !== 'note' && it.type !== 'quote';
   const per = it.type === 'quote' ? 17 : 20;
-  const lines = Math.min(5, Math.max(1, Math.ceil(String(it.text || '').length / per)));
+  const lines = Math.min(5, Math.max(1, Math.ceil((it.type === 'note' ? plainText(it.text) : String(it.text || '')).length / per)));
   const h = it.type === 'note' || it.type === 'quote' ? 24 + lines * 15.5 : img ? IMG_H + 52 : 62;
   return { w: CARD_W, h, img };
 }
@@ -37,9 +40,14 @@ export function createMap(root, { onOpen, onZoom }) {
 
   function readColors() {
     const cs = getComputedStyle(document.documentElement);
-    for (const k of ['bg', 'surface', 'ink', 'muted', 'line', 'accent']) colors[k] = cs.getPropertyValue('--' + k).trim();
+    for (const [k, v] of Object.entries(TOKENS)) colors[k] = cs.getPropertyValue('--color-' + v).trim();
+    fonts.ui = cs.getPropertyValue('--font-ui').trim() || 'sans-serif';
+    fonts.body = cs.getPropertyValue('--font-body').trim() || 'serif';
+    fonts.num = cs.getPropertyValue('--font-outlier').trim() || 'monospace';
   }
+  const fonts = {};
   readColors();
+  document.fonts?.ready.then(() => { nodes.forEach(n => { delete n._title; delete n._dom; delete n._body; }); requestDraw(); });
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); requestDraw(); });
 
   // ---------- mise en page ----------
@@ -205,14 +213,14 @@ export function createMap(root, { onOpen, onZoom }) {
     if (!nodes.length) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = colors.muted; ctx.textAlign = 'center';
-      ctx.font = '16px Georgia, serif';
+      ctx.font = `18px ${fonts.body}`;
       ctx.fillText('Ajoute des #tags à tes souvenirs pour faire pousser la carte.', W / 2, H / 2 + 110);
     }
   }
 
   function drawTag(t, a, lw, k) {
     const fs = Math.min(14 / k, 15 + t.cloud * 0.22);
-    ctx.font = `600 ${fs}px -apple-system, "Segoe UI", Inter, sans-serif`;
+    ctx.font = `600 ${fs}px ${fonts.ui}`;
     const tw = ctx.measureText(t.label).width;
     const r = Math.max(t.r, tw / 2 + fs * 0.7);
     t.br = r;
@@ -225,15 +233,15 @@ export function createMap(root, { onOpen, onZoom }) {
     ctx.strokeStyle = t.color; ctx.lineWidth = (hover?.t === t ? 3.5 : 2.2) * lw; ctx.stroke();
     ctx.fillStyle = colors.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(t.label, t.x, t.y - fs * 0.18);
-    ctx.font = `${fs * 0.62}px -apple-system, "Segoe UI", sans-serif`;
+    ctx.font = `${fs * 0.6}px ${fonts.num}`;
     ctx.fillStyle = colors.muted;
-    ctx.fillText(`${t.count} souvenir${t.count > 1 ? 's' : ''}`, t.x, t.y + fs * 0.72);
+    ctx.fillText(String(t.count), t.x, t.y + fs * 0.72);
   }
 
   function drawCenter(lw, k) {
     const fs = Math.max(18, 15 / k);
     ctx.globalAlpha = 1;
-    ctx.font = `${fs}px "Iowan Old Style", Georgia, serif`;
+    ctx.font = `600 ${fs}px ${fonts.ui}`;
     const tw = ctx.measureText('Mon cerveau').width;
     const w = tw + fs * 1.6, h = fs * 2.2;
     ctx.fillStyle = colors.ink;
@@ -248,7 +256,7 @@ export function createMap(root, { onOpen, onZoom }) {
     const x = n.x - w / 2, y = n.y - h / 2;
     ctx.globalAlpha = a * (n.match ? 1 : 0.15);
     const bg = it.color || colors.surface;
-    const fg = it.color ? (it.color === DARK ? '#f1ede6' : '#1d1b18') : colors.ink;
+    const fg = it.color ? (it.color === DARK ? colors.noteInkDark : colors.noteInk) : colors.ink;
     const mut = it.color ? fg : colors.muted;
     ctx.fillStyle = bg;
     ctx.beginPath(); ctx.roundRect(x, y, w, h, 10); ctx.fill();
@@ -268,23 +276,23 @@ export function createMap(root, { onOpen, onZoom }) {
       } else { ctx.fillStyle = colors.line; ctx.fillRect(x, y, w, IMG_H); }
       ctx.restore();
       if (it.type === 'video') {
-        ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.beginPath(); ctx.arc(n.x, y + IMG_H / 2, 14, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(n.x - 4, y + IMG_H / 2 - 7); ctx.lineTo(n.x + 7, y + IMG_H / 2); ctx.lineTo(n.x - 4, y + IMG_H / 2 + 7); ctx.fill();
+        ctx.fillStyle = colors.ink; ctx.beginPath(); ctx.arc(n.x, y + IMG_H / 2, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = colors.bg; ctx.beginPath(); ctx.moveTo(n.x - 4, y + IMG_H / 2 - 7); ctx.lineTo(n.x + 7, y + IMG_H / 2); ctx.lineTo(n.x - 4, y + IMG_H / 2 + 7); ctx.fill();
       }
       if (legible) {
-        text(n, 'title', it.title || it.url, '600 11.5px -apple-system, "Segoe UI", sans-serif', fg, x + 9, y + IMG_H + 7, w - 18, 2, 14);
+        text(n, 'title', it.title || it.url, `600 11.5px ${fonts.ui}`, fg, x + 9, y + IMG_H + 7, w - 18, 2, 14);
         if (!it.image && it.type === 'image') return;
         ctx.globalAlpha *= 0.8;
-        text(n, 'dom', domainOf(it.url), '10px -apple-system, sans-serif', mut, x + 9, y + h - 15, w - 18, 1, 12);
+        text(n, 'dom', domainOf(it.url), `10px ${fonts.ui}`, mut, x + 9, y + h - 15, w - 18, 1, 12);
       }
     } else if (it.type === 'note' || it.type === 'quote') {
       if (!legible) return;
       const italic = it.type === 'quote' ? 'italic ' : '';
-      if (it.type === 'quote') { ctx.fillStyle = colors.accent; ctx.font = '26px Georgia, serif'; ctx.fillText('“', x + 7, y + 4); }
-      text(n, 'body', it.text, `${italic}13px "Iowan Old Style", Georgia, serif`, fg, x + (it.type === 'quote' ? 22 : 11), y + 11, w - (it.type === 'quote' ? 32 : 22), 5, 15.5);
+      if (it.type === 'quote') { ctx.fillStyle = colors.accent; ctx.font = `26px ${fonts.body}`; ctx.fillText('“', x + 7, y + 4); }
+      text(n, 'body', it.type === 'note' ? plainText(it.text) : it.text, `${italic}14px ${fonts.body}`, fg, x + (it.type === 'quote' ? 22 : 11), y + 11, w - (it.type === 'quote' ? 32 : 22), 5, 15.5);
     } else if (legible) {
-      text(n, 'title', it.title || it.url, '600 11.5px -apple-system, "Segoe UI", sans-serif', fg, x + 10, y + 10, w - 20, 2, 14);
-      text(n, 'dom', domainOf(it.url), '10px -apple-system, sans-serif', mut, x + 10, y + h - 16, w - 20, 1, 12);
+      text(n, 'title', it.title || it.url, `600 11.5px ${fonts.ui}`, fg, x + 10, y + 10, w - 20, 2, 14);
+      text(n, 'dom', domainOf(it.url), `10px ${fonts.ui}`, mut, x + 10, y + h - 16, w - 20, 1, 12);
     }
   }
 
