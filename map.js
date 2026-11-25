@@ -1,6 +1,7 @@
 // Carte mentale : chaque #tag est un nœud ; en zoomant, les souvenirs liés et leurs liens apparaissent.
 import { domainOf } from './storage.js';
 import { plainText } from './markdown.js';
+import { buildLinkGraph } from './links.js';
 
 const CARD_W = 150;
 const IMG_H = 84;
@@ -28,7 +29,7 @@ export function createMap(root, { onOpen, onZoom }) {
   const ctx = canvas.getContext('2d');
   let W = 0, H = 0, dpr = 1;
   const view = { x: 0, y: 0, k: 0.5 };
-  let tags = [], tagById = new Map(), nodes = [], links = [];
+  let tags = [], tagById = new Map(), nodes = [], links = [], itemLinks = [];
   const center = { x: 0, y: 0, r: 70 };
   const saved = new Map();
   const imgs = new Map();
@@ -66,6 +67,9 @@ export function createMap(root, { onOpen, onZoom }) {
       }
     }
     links = [...co].map(([k, w]) => { const [a, b] = k.split('\u0001'); return { a, b, w }; });
+    // liens [[titre]] entre souvenirs
+    const nodeById = new Map(nodes.map(n => [n.it.id, n]));
+    itemLinks = buildLinkGraph(items).edges.map(([a, b]) => ({ a: nodeById.get(a), b: nodeById.get(b) })).filter(l => l.a && l.b);
 
     const prev = new Map(tags.map(t => [t.id, t]));
     tags = [...groups].sort((a, b) => b[1].length - a[1].length).map(([id, list]) => {
@@ -195,6 +199,18 @@ export function createMap(root, { onOpen, onZoom }) {
         });
       }
     }
+    // liens [[titre]] entre souvenirs : courbe orange, point près du souvenir cité
+    ctx.strokeStyle = colors.accent; ctx.fillStyle = colors.accent;
+    for (const { a, b } of itemLinks) {
+      const on = focus && focus.has(a) && focus.has(b) ? 1 : 0;
+      ctx.globalAlpha = (0.3 + 0.35 * linkA + 0.35 * on) * Math.min(dim(a), dim(b)) * (a.match && b.match ? 1 : 0.25);
+      ctx.lineWidth = (1.6 + on * 1.2) * lw;
+      const mx = (a.x + b.x) / 2 - (b.y - a.y) * 0.12, my = (a.y + b.y) / 2 + (b.x - a.x) * 0.12;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.quadraticCurveTo(mx, my, b.x, b.y); ctx.stroke();
+      const t = 0.8, u = 1 - t;
+      ctx.beginPath(); ctx.arc(u * u * a.x + 2 * u * t * mx + t * t * b.x, u * u * a.y + 2 * u * t * my + t * t * b.y, Math.max(3.5, 2 * lw), 0, Math.PI * 2); ctx.fill();
+    }
+
     // points (vue éloignée)
     if (dotA > 0.02) {
       for (const n of nodes) {
@@ -345,7 +361,10 @@ export function createMap(root, { onOpen, onZoom }) {
     if (!hover) return null;
     const s = new Set();
     if (hover.t) { s.add(hover.t); hover.t.members.forEach(n => s.add(n)); links.forEach(l => { if (l.a === hover.t.id) s.add(tagById.get(l.b)); if (l.b === hover.t.id) s.add(tagById.get(l.a)); }); }
-    if (hover.n) { s.add(hover.n); hover.n.tagIds.forEach(id => s.add(tagById.get(id))); }
+    if (hover.n) {
+      s.add(hover.n); hover.n.tagIds.forEach(id => s.add(tagById.get(id)));
+      for (const l of itemLinks) { if (l.a === hover.n) s.add(l.b); if (l.b === hover.n) s.add(l.a); }
+    }
     return s;
   }
 

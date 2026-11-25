@@ -43,20 +43,24 @@ function normalize(x) {
 }
 
 import { fold, stem, editDistance, buildIndex, search as searchIndex, parseQuery } from '../search.js';
+import { buildLinkGraph, displayTitle } from '../links.js';
 
 export { fold };
-
-// Index de recherche, calculé une fois par liste de souvenirs.
-const SEARCH_FIELDS = [['title', 3], [it => it.tags.join(' '), 3], ['text', 1.5], ['note', 1.5], ['description', 0.75], ['content', 0.5], ['url', 0.5]];
-const indexes = new WeakMap();
-const indexOf = items => { if (!indexes.has(items)) indexes.set(items, buildIndex(items, SEARCH_FIELDS)); return indexes.get(items); };
 const iso = ts => (ts ? new Date(ts).toISOString() : null);
+
+// Index de recherche et graphe des liens, calculés une fois par liste de souvenirs.
+const SEARCH_FIELDS = [['title', 3], [it => it.tags.join(' '), 3], ['text', 1.5], ['note', 1.5], ['description', 0.75], ['content', 0.5], ['url', 0.5]];
+const indexes = new WeakMap(), graphs = new WeakMap();
+const indexOf = items => { if (!indexes.has(items)) indexes.set(items, buildIndex(items, SEARCH_FIELDS)); return indexes.get(items); };
+export const graphOf = items => { if (!graphs.has(items)) graphs.set(items, buildLinkGraph(items)); return graphs.get(items); };
+
+const ref = it => ({ id: it.id, type: it.type, title: displayTitle(it) });
 
 // Résumé d'un souvenir pour une liste de résultats.
 export function brief(it, terms = []) {
   return {
     id: it.id, type: it.type,
-    title: it.title || firstLine(it.text) || it.url,
+    title: displayTitle(it),
     url: it.url || undefined,
     tags: it.tags,
     pinned: it.pinned || undefined,
@@ -65,11 +69,13 @@ export function brief(it, terms = []) {
   };
 }
 
-// Le souvenir complet (notes en Markdown, telles qu'écrites).
+// Le souvenir complet (notes en Markdown, telles qu'écrites), avec ses liens [[titre]] dans les deux sens.
 export const CONTENT_LIMIT = 30000;
 
-export function full(it, { contentOffset = 0 } = {}) {
+export function full(it, { contentOffset = 0, graph } = {}) {
   const content = it.content ? it.content.slice(contentOffset, contentOffset + CONTENT_LIMIT) : '';
+  const out = graph ? graph.links(it.id) : [];
+  const back = graph ? graph.backlinks(it.id) : [];
   return {
     id: it.id, type: it.type, title: it.title || undefined, url: it.url || undefined,
     text: it.text || undefined, note: it.note || undefined, description: it.description || undefined,
@@ -79,12 +85,10 @@ export function full(it, { contentOffset = 0 } = {}) {
     image: /^https?:/.test(it.image) ? it.image : undefined,
     tags: it.tags, pinned: it.pinned, color: it.color || undefined,
     createdAt: iso(it.createdAt), updatedAt: iso(it.updatedAt),
+    linksTo: out.filter(l => l.item).map(l => ref(l.item)),
+    unresolvedLinks: out.filter(l => !l.item).map(l => l.target),
+    linkedFrom: back.map(ref),
   };
-}
-
-function firstLine(s) {
-  const l = String(s || '').split('\n').find(x => x.trim());
-  return l ? l.replace(/^#+\s*/, '').trim().slice(0, 120) : '';
 }
 
 // Position du premier mot cherché dans un texte (exact, sinon même racine ou à une faute près).
@@ -155,17 +159,23 @@ export function tagIndex(items) {
   }));
 }
 
-// Souvenirs qui partagent le plus de tags avec celui donné.
+// Souvenirs reliés : d'abord par un lien [[titre]] (dans un sens ou l'autre), puis par les tags partagés.
 export function related(items, id, limit = 10) {
   const it = items.find(x => x.id === id);
   if (!it) return null;
+  const g = graphOf(items);
+  const linked = new Map();
+  for (const l of g.links(id)) if (l.item && l.item.id !== id) linked.set(l.item.id, { x: l.item, relation: 'cite' });
+  for (const x of g.backlinks(id)) if (!linked.has(x.id)) linked.set(x.id, { x, relation: 'cité par' });
   const mine = new Set(it.tags);
-  const results = items.filter(x => x.id !== id)
+  const byTags = items.filter(x => x.id !== id && !linked.has(x.id))
     .map(x => ({ x, shared: x.tags.filter(t => mine.has(t)) }))
     .filter(r => r.shared.length)
-    .sort((a, b) => (b.shared.length - a.shared.length) || (b.x.createdAt - a.x.createdAt))
-    .slice(0, limit)
-    .map(r => ({ ...brief(r.x), sharedTags: r.shared }));
+    .sort((a, b) => (b.shared.length - a.shared.length) || (b.x.createdAt - a.x.createdAt));
+  const results = [
+    ...[...linked.values()].map(r => ({ ...brief(r.x), relation: r.relation })),
+    ...byTags.map(r => ({ ...brief(r.x), relation: 'tags', sharedTags: r.shared })),
+  ].slice(0, limit);
   return { of: brief(it), results };
 }
 

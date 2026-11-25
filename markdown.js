@@ -1,7 +1,8 @@
 // Markdown minimal et sûr : construit des nœuds DOM, jamais de innerHTML.
 // Blocs : titres, paragraphes (retours à la ligne conservés), listes (imbriquées,
 // numérotées, cases à cocher), citations, code, séparateurs.
-// En ligne : **gras**, *italique*, ~~barré~~, `code`, [lien](https://…), URL nues.
+// En ligne : **gras**, *italique*, ~~barré~~, `code`, [lien](https://…), URL nues,
+// [[Titre]] et [[Titre|texte]] (liens entre souvenirs : opts.wikilink(cible, texte) → nœuds).
 
 const FENCE = /^\s*(```|~~~)\s*([\w+-]*)\s*$/;
 const HEADING = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/;
@@ -26,9 +27,18 @@ function link(url, kids) {
 }
 
 // ---------- en ligne ----------
+// Options du rendu en cours (renderMarkdown est synchrone).
+let ctx = {};
+
+function wikilink(target, label) {
+  if (ctx.wikilink) return ctx.wikilink(target, label);
+  return [el('span', { class: 'wikilink' }, [label])];
+}
+
 const INLINE = [
   { re: /\\([\\`*_{}[\]()#+\-.!~>|])/, make: m => [m[1]] },
   { re: /`([^`\n]+)`/, make: m => [el('code', null, [m[1]])] },
+  { re: /\[\[([^[\]\n|]+?)(?:\|([^[\]\n]+?))?\]\]/, make: m => (m[1].trim() ? wikilink(m[1].trim(), (m[2] || m[1]).trim()) : [m[0]]) },
   { re: /\[([^\]\n]+)\]\(\s*<?([^)\s>]+)>?\s*\)/, make: m => link(m[2], inline(m[1])) },
   { re: /https?:\/\/[^\s<>()]+[^\s<>().,;:!?'"»]/, make: m => link(m[0], [m[0]]) },
   { re: /(\*\*|__)(?=\S)([\s\S]*?\S)\1/, make: m => [el('strong', null, inline(m[2]))] },
@@ -153,7 +163,10 @@ function list(src, i, base, out, opts) {
 
 export function renderMarkdown(text, opts = {}) {
   const frag = document.createDocumentFragment();
-  blocks(String(text || '').replace(/\r\n?/g, '\n').split('\n'), 0, frag, opts);
+  const prev = ctx;
+  ctx = opts;
+  try { blocks(String(text || '').replace(/\r\n?/g, '\n').split('\n'), 0, frag, opts); }
+  finally { ctx = prev; }
   return frag;
 }
 
@@ -167,6 +180,7 @@ export function toggleTask(text, lineNo, checked) {
 // Texte brut sans la syntaxe (carte mentale, aperçus).
 export function plainText(text) {
   return String(text || '')
+    .replace(/\[\[([^[\]\n|]+?)(?:\|([^[\]\n]+?))?\]\]/g, (all, t, l) => (l || t).trim() || all)
     .replace(/^\s*(```|~~~).*$/gm, '')
     .replace(/^\s{0,3}#{1,6}\s+/gm, '')
     .replace(/^\s{0,3}>\s?/gm, '')

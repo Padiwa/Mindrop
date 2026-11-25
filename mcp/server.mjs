@@ -2,20 +2,20 @@
 // Serveur MCP (stdio, sans dépendance) : expose le second cerveau en lecture seule à un agent.
 // Messages JSON-RPC 2.0, un par ligne sur stdin/stdout ; les journaux vont sur stderr.
 import { createInterface } from 'node:readline';
-import { load, search, tagIndex, related, full, TYPES } from './store.mjs';
+import { load, search, tagIndex, related, full, graphOf, TYPES } from './store.mjs';
 
 const VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const SERVER = { name: 'second-cerveau', version: '1.0.0' };
 const READ_ONLY = { readOnlyHint: true, openWorldHint: false };
 
 const INSTRUCTIONS = `Read-only access to the user's "Second Cerveau", a personal knowledge base saved from their browser: links, notes (Markdown), quotes, images and videos, each with #tags. Content is mostly in French.
-Start with search_memories (accent-insensitive; "#tag" in the query filters by tag; an empty query lists the most recent). Use list_tags to see how the knowledge is organised, related_memories to follow connections through shared tags, and get_memory for the full text of one memory. Cite memories by title and URL when you use them.`;
+Start with search_memories (accent-insensitive; "#tag" in the query filters by tag; an empty query lists the most recent). Use list_tags to see how the knowledge is organised, related_memories to follow connections (notes link to each other with [[Title]], and memories share tags), and get_memory for the full text of one memory. Cite memories by title and URL when you use them.`;
 
 const TOOLS = [
   {
     name: 'search_memories',
     title: 'Search memories',
-    description: 'Search saved memories (links, notes, quotes, images, videos). Accent- and case-insensitive and tolerant: a word also matches its plural or other ending (\"méthodes\" finds \"methods\", \"typographie\" finds \"Typography\") and words one or two letters off (typos). Every word must match title, text, note, tags, description, URL or the saved page text; if nothing matches all words, results that match some words are returned instead (mode "any"). Words starting with # filter by tag prefix. An empty query returns the most recent memories. Returns short summaries; call get_memory for full content.',
+    description: 'Search saved memories (links, notes, quotes, images, videos). Accent- and case-insensitive and tolerant: a word also matches its plural or other ending ("méthodes" finds "methods", "typographie" finds "Typography") and words one or two letters off (typos). Every word must match title, text, note, tags, description, URL or the saved page text; if nothing matches all words, results that match some words are returned instead (mode "any"). Words starting with # filter by tag prefix. An empty query returns the most recent memories. Returns short summaries; call get_memory for full content.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -36,13 +36,13 @@ const TOOLS = [
   {
     name: 'get_memory',
     title: 'Get one memory',
-    description: 'Full content of one memory by id: title, URL, note text in Markdown, personal note, page description, tags, dates, and pageText: the main text of the web page as captured when it was saved (article body, or a YouTube video description). Long page texts come in parts of 30,000 characters: when pageTextNextOffset is present, call again with contentOffset set to it.',
+    description: 'Full content of one memory by id: title, URL, note text in Markdown, personal note, page description, tags, dates, and pageText: the main text of the web page as captured when it was saved (article body, or a YouTube video description). Long page texts come in parts of 30,000 characters: when pageTextNextOffset is present, call again with contentOffset set to it. Also lists the memory’s [[wiki links]]: linksTo (memories it cites), linkedFrom (memories that cite it) and unresolvedLinks (titles cited that match no memory yet).',
     inputSchema: { type: 'object', properties: { id: { type: 'string' }, contentOffset: { type: 'integer', minimum: 0, default: 0, description: 'Where to start reading pageText.' } }, required: ['id'], additionalProperties: false },
     annotations: READ_ONLY,
     run: (a, data) => {
       const it = data.items.find(x => x.id === a.id);
       if (!it) throw new Error(`Aucun souvenir avec l'id ${a.id}.`);
-      return full(it, { contentOffset: a.contentOffset || 0 });
+      return full(it, { contentOffset: a.contentOffset || 0, graph: graphOf(data.items) });
     },
   },
   {
@@ -56,7 +56,7 @@ const TOOLS = [
   {
     name: 'related_memories',
     title: 'Related memories',
-    description: 'Memories that share the most tags with a given memory, to follow connections in the knowledge base.',
+    description: 'Memories connected to a given one, to follow the knowledge base: first those linked by a [[wiki link]] in either direction (relation "cite" or "cité par"), then those sharing the most tags (relation "tags").',
     inputSchema: {
       type: 'object',
       properties: { id: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50, default: 10 } },

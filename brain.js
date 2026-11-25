@@ -6,6 +6,8 @@ import { createMap } from './map.js';
 import { icon } from './icons.js';
 import { renderMarkdown, toggleTask } from './markdown.js';
 import { buildIndex, search, parseQuery } from './search.js';
+import { buildLinkGraph, displayTitle } from './links.js';
+import { attachLinkSuggest } from './link-suggest.js';
 import { withVideoInfo } from './video.js';
 import { attachTagSuggest, tagCounts } from './tag-suggest.js';
 import { runBackup, getBackupStatus, listBackups, readBackup, STATUS_KEY } from './backup.js';
@@ -14,7 +16,7 @@ import { isAgentEnabled, setAgentEnabled, syncAgent, getAgentSync, SYNC_KEY } fr
 const $ = s => document.querySelector(s);
 let savedView = 'grid';
 try { savedView = localStorage.getItem('view') || 'grid'; } catch {}
-const state = { items: [], q: '', type: 'all', tag: '', openId: null, view: savedView, hits: null };
+const state = { items: [], q: '', type: 'all', tag: '', openId: null, view: savedView, graph: buildLinkGraph([]), hits: null };
 
 const TYPES = [
   ['all', 'Tout'], ['link', 'Liens'], ['note', 'Notes'], ['quote', 'Citations'],
@@ -172,12 +174,13 @@ function card(it) {
     style: it.color ? `--card:${it.color}` : null,
     tabindex: 0,
     onclick: () => openModal(it.id),
-    onkeydown: e => { if (e.key === 'Enter') openModal(it.id); },
+    onkeydown: e => { if (e.key === 'Enter' && e.target === e.currentTarget) openModal(it.id); },
   });
   if (it.pinned) c.append(h('span', { class: 'pin', title: 'Épinglé' }, icon('star', { filled: true })));
 
   if (it.type === 'note') {
     c.append(h('div', { class: 'note-text md md-clamp' }, renderMarkdown(it.text, {
+      wikilink,
       onToggle: (line, on) => updateItem(it.id, cur => ({ text: toggleTask(cur.text, line, on) })),
     })));
   } else if (it.type === 'quote') {
@@ -186,13 +189,13 @@ function card(it) {
   } else if (it.type === 'image') {
     const img = mediaImg(it, 'media');
     if (img) c.append(img);
-    if (it.note) c.append(h('div', { class: 'body' }, h('div', { class: 'note md md-clamp' }, renderMarkdown(it.note))));
+    if (it.note) c.append(h('div', { class: 'body' }, h('div', { class: 'note md md-clamp' }, renderMarkdown(it.note, { wikilink }))));
   } else {
     const img = mediaImg(it, 'media');
     if (img) c.append(h('div', { class: 'media-wrap' }, img, it.type === 'video' && h('span', { class: 'play' }, icon('play', { filled: true }))));
     c.append(h('div', { class: 'body' },
       h('h3', {}, String(it.title || it.url).replace(/ ([:;!?»])/g, '\u00a0$1')),
-      it.note && h('div', { class: 'note md md-clamp' }, renderMarkdown(it.note)),
+      it.note && h('div', { class: 'note md md-clamp' }, renderMarkdown(it.note, { wikilink })),
       h('div', { class: 'meta' }, source(it))));
   }
 
@@ -204,7 +207,7 @@ function card(it) {
 }
 
 // ---------- détail / édition ----------
-function openModal(id) {
+function openModal(id, { write = false } = {}) {
   const it = state.items.find(x => x.id === id);
   if (!it) return;
   state.openId = id;
@@ -221,8 +224,9 @@ function openModal(id) {
     const ta = h('textarea', { class: it.type === 'quote' ? 'quote-edit' : 'note-edit', placeholder: 'Écris…' });
     ta.value = it.text;
     ta.addEventListener('input', () => save({ text: ta.value }));
-    if (it.type === 'note') noteEditor(media, ta, save);
+    if (it.type === 'note') noteEditor(media, ta, save, write);
     else { media.append(ta); setTimeout(() => ta.focus(), 30); }
+    attachLinkSuggest(ta, () => linkEntries(id));
   } else {
     const img = mediaImg(it, 'big');
     if (img) media.append(it.url ? h('a', { href: it.url, target: '_blank', rel: 'noopener' }, img) : img);
@@ -237,6 +241,7 @@ function openModal(id) {
   const note = h('textarea', { class: 'm-note', rows: 5, placeholder: 'Mes notes, pourquoi je garde ça…' });
   note.value = it.note;
   note.addEventListener('input', () => save({ note: note.value }));
+  attachLinkSuggest(note, () => linkEntries(id));
 
   const tags = h('input', { class: 'm-tags', placeholder: '#tags séparés par des espaces', 'aria-label': 'Tags' });
   tags.value = it.tags.map(t => '#' + t).join(' ');
@@ -266,6 +271,8 @@ function openModal(id) {
     it.url && h('a', { class: 'm-url', href: it.url, target: '_blank', rel: 'noopener' }, source(it), icon('external', { cls: 'ico arrow' })),
     it.description && h('p', { class: 'm-desc' }, it.description),
     it.content && pageText(it.content),
+    linkSection('Renvoie vers', state.graph.links(id).map(l => l.item ? { item: l.item } : { missing: l.target })),
+    linkSection('Cité par', state.graph.backlinks(id).map(item => ({ item }))),
     h('label', {}, 'Notes'), note,
     h('label', {}, 'Tags'), tagField.el,
     h('label', {}, 'Couleur'), swatches,
@@ -278,10 +285,11 @@ function openModal(id) {
 }
 
 // Note en Markdown : onglets Écrire / Aperçu (Ctrl+E pour basculer).
-function noteEditor(media, ta, save) {
+function noteEditor(media, ta, save, write = false) {
   media.classList.add('has-tabs');
   const view = h('div', { class: 'md note-view', tabindex: 0, 'aria-label': 'Aperçu de la note' });
   const draw = () => view.replaceChildren(renderMarkdown(ta.value, {
+    wikilink,
     onToggle: (line, on) => { ta.value = toggleTask(ta.value, line, on); save({ text: ta.value }); draw(); },
   }));
   const tab = (m, label) => h('button', { type: 'button', role: 'tab', 'data-mode': m, onclick: () => setMode(m) }, label);
@@ -306,7 +314,7 @@ function noteEditor(media, ta, save) {
   };
   view.addEventListener('dblclick', () => setMode('write'));
   media.append(tabs, ta, view);
-  setMode(ta.value.trim() ? 'view' : 'write');
+  setMode(ta.value.trim() && !write ? 'view' : 'write');
 }
 
 // Texte de la page gardé à l'enregistrement, replié par défaut.
@@ -324,9 +332,53 @@ async function patchAndReopen(id, patch) {
   if (fresh) {
     const i = state.items.findIndex(x => x.id === id);
     if (i >= 0) state.items[i] = { ...state.items[i], ...fresh };
-    indexedItems = null; // l'index de recherche est à recalculer
+    itemsChanged();
   }
   openModal(id);
+}
+
+// La liste a changé sur place : l'index de recherche et les liens sont à recalculer.
+function itemsChanged() {
+  indexedItems = null;
+  state.graph = buildLinkGraph(state.items);
+}
+
+// ---------- liens [[titre]] ----------
+const TYPE_LABEL = { link: 'Lien', note: 'Note', quote: 'Citation', image: 'Image', video: 'Vidéo' };
+
+// Rendu d'un [[lien]] : ouvre le souvenir visé, ou crée la note s'il n'existe pas encore.
+function wikilink(target, label) {
+  const hit = state.graph?.resolve(target);
+  if (hit) {
+    return [h('a', { class: 'wikilink', href: '#', title: 'Ouvrir « ' + displayTitle(hit) + ' »',
+      onclick: e => { e.preventDefault(); e.stopPropagation(); openModal(hit.id); } }, label)];
+  }
+  return [h('button', { type: 'button', class: 'wikilink missing', title: 'Créer la note « ' + target + ' »',
+    onclick: e => { e.stopPropagation(); createLinkedNote(target); } }, label)];
+}
+
+async function createLinkedNote(title) {
+  const it = await addItem({ type: 'note', text: `# ${title}\n\n` });
+  state.items = [{ ...ITEM_DEFAULTS, ...it }, ...state.items];
+  itemsChanged();
+  openModal(it.id, { write: true });
+  toast('Note « ' + title + ' » créée');
+}
+
+// Titres proposés après « [[ » (sauf le souvenir en cours d'édition).
+function linkEntries(exceptId) {
+  return state.items.filter(x => x.id !== exceptId).map(x => ({ id: x.id, title: displayTitle(x), kind: TYPE_LABEL[x.type] || '' }));
+}
+
+function linkSection(heading, rows) {
+  if (!rows.length) return null;
+  return h('section', { class: 'm-links' },
+    h('h3', {}, `${heading} (${rows.length})`),
+    h('ul', {}, rows.map(r => h('li', {}, r.item
+      ? h('button', { type: 'button', class: 'm-link', onclick: () => openModal(r.item.id) },
+          h('span', { class: 'm-link-title' }, displayTitle(r.item)), h('span', { class: 'm-link-kind' }, TYPE_LABEL[r.item.type] || ''))
+      : h('button', { type: 'button', class: 'm-link missing', title: 'Créer cette note', onclick: () => createLinkedNote(r.missing) },
+          h('span', { class: 'm-link-title' }, r.missing), h('span', { class: 'm-link-kind' }, 'à créer'))))));
 }
 
 function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
@@ -361,6 +413,7 @@ async function saveFile(file) {
 function setupComposer() {
   const ta = $('#c-text'), row = $('#c-row');
   attachTagSuggest($('#c-tags'), () => tagCounts(state.items));
+  attachLinkSuggest(ta, () => linkEntries(null));
   const grow = () => { autoGrow(ta); row.hidden = !ta.value.trim(); };
   ta.addEventListener('input', grow);
   const submit = async () => {
@@ -448,9 +501,11 @@ $('#z-fit').addEventListener('click', () => map.fit());
 $('#z-reset').addEventListener('click', () => map.resetLayout());
 
 // ---------- démarrage ----------
+const ITEM_DEFAULTS = { type: 'note', title: '', url: '', text: '', note: '', description: '', content: '', image: '', thumb: '', color: '', pinned: false, createdAt: 0, tags: [] };
+
 async function load() {
-  const defaults = { type: 'note', title: '', url: '', text: '', note: '', description: '', content: '', image: '', thumb: '', color: '', pinned: false, createdAt: 0 };
-  state.items = (await getItems()).map(x => ({ ...defaults, ...x, tags: Array.isArray(x.tags) ? x.tags : [] }));
+  state.items = (await getItems()).map(x => ({ ...ITEM_DEFAULTS, ...x, tags: Array.isArray(x.tags) ? x.tags : [] }));
+  state.graph = buildLinkGraph(state.items);
   render();
 }
 

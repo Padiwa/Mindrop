@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>link-suggest.js</title>
+<textarea id="t" rows="4" cols="40"></textarea>
+<script src="chrome-shim.js"></script>
+<script type="module">
+import { attachLinkSuggest, openLinkAt, suggestTitles } from '../../link-suggest.js';
+
+const entries = [
+  { id: 'a', title: 'Zettelkasten', kind: 'Note' },
+  { id: 'b', title: 'Mes méthodes de travail', kind: 'Note' },
+  { id: 'c', title: 'Practical Typography', kind: 'Lien' },
+];
+const ta = document.getElementById('t');
+const { list } = attachLinkSuggest(ta, () => entries);
+const type = text => { ta.focus(); ta.value = text; ta.setSelectionRange(text.length, text.length); ta.dispatchEvent(new Event('input')); };
+const key = (k, opts = {}) => ta.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...opts }));
+const titles = () => [...list.querySelectorAll('.link-title')].map(x => x.textContent);
+
+test('openLinkAt : seulement dans un [[ non fermé', () => {
+  assert(JSON.stringify(openLinkAt('Voir [[zet', 10)) === JSON.stringify({ start: 5, query: 'zet' }));
+  assert(openLinkAt('Voir [[zet]] ici', 16) === null);
+  assert(openLinkAt('[pas', 4) === null);
+});
+
+test('suggestTitles : début d’abord, sans accents, puis « contient »', () => {
+  assert(suggestTitles(entries, 'me').map(e => e.id).join() === 'b');
+  assert(suggestTitles(entries, 'typo').map(e => e.id).join() === 'c');
+  assert(suggestTitles(entries, 'methodes').map(e => e.id).join() === 'b');
+  assert(suggestTitles(entries, '').length === 3);
+});
+
+test('taper [[ ouvre la liste près du curseur', () => {
+  type('Une idée : [[');
+  assert(!list.hidden && titles().length === 3);
+  assert(ta.getAttribute('aria-expanded') === 'true');
+  const r = list.getBoundingClientRect(), tr = ta.getBoundingClientRect();
+  assert(r.top >= tr.top && r.top <= tr.bottom + 40, `liste à ${r.top}, zone ${tr.top}-${tr.bottom}`);
+});
+
+test('Entrée insère [[Titre]] complet', () => {
+  type('Une idée : [[zet');
+  key('Enter');
+  assert(ta.value === 'Une idée : [[Zettelkasten]]', JSON.stringify(ta.value));
+  assert(list.hidden);
+});
+
+test('flèches puis Tab, avec ]] déjà tapé', () => {
+  type('Voir [[');
+  ta.value = 'Voir [[]] fin'; ta.setSelectionRange(7, 7); ta.dispatchEvent(new Event('input'));
+  key('ArrowDown');
+  key('Tab');
+  assert(ta.value === 'Voir [[Mes méthodes de travail]] fin', JSON.stringify(ta.value));
+});
+
+test('Échap ferme seulement la liste', () => {
+  type('[[');
+  let reached = 0;
+  document.addEventListener('keydown', () => reached++, { once: true });
+  key('Escape');
+  assert(list.hidden && reached === 0);
+});
+
+test('Ctrl+Entrée passe, et rien ne s’ouvre sans [[', () => {
+  type('[[z');
+  let passed = false;
+  ta.addEventListener('keydown', e => { if (e.ctrlKey) passed = true; }, { once: true });
+  key('Enter', { ctrlKey: true });
+  assert(passed);
+  type('texte ordinaire');
+  assert(list.hidden);
+});
+
+run();
+</script>

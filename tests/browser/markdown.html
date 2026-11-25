@@ -73,5 +73,25 @@ test('snake_case et échappements', () => {
   assert(b.textContent === 'snake_case_name et *pas italique*');
 });
 
+test('[[liens]] : texte simple par défaut', () => {
+  const b = html('Voir [[Zettelkasten]] et [[Luhmann|le sociologue]].');
+  const spans = [...b.querySelectorAll('.wikilink')].map(x => x.textContent);
+  assert(JSON.stringify(spans) === JSON.stringify(['Zettelkasten', 'le sociologue']), JSON.stringify(spans));
+  assert(b.textContent === 'Voir Zettelkasten et le sociologue.');
+});
+
+test('[[liens]] : rendu confié à la page (cible, texte affiché)', () => {
+  const seen = [];
+  const b = html('- [[Index|mon index]] dans une liste\n\n**[[Gras]]**', { wikilink: (t, l) => { seen.push([t, l]); const a = document.createElement('a'); a.className = 'wl'; a.textContent = l; return [a]; } });
+  assert(JSON.stringify(seen) === JSON.stringify([['Index', 'mon index'], ['Gras', 'Gras']]), JSON.stringify(seen));
+  assert(b.querySelector('li a.wl') && b.querySelector('strong a.wl'));
+});
+
+test('[[liens]] : rien de cassé hors liens, crochets simples ignorés', () => {
+  const b = html('[pas un lien] et [[ ]] et `[[code]]`');
+  assert(!b.querySelector('.wikilink'), b.innerHTML);
+  assert(b.querySelector('code').textContent === '[[code]]');
+});
+
 run();
 </script>

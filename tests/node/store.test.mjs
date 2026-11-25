@@ -1,7 +1,7 @@
 // Recherche du serveur MCP (mcp/store.mjs).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { search, tagIndex, related, fold, full } from '../../mcp/store.mjs';
+import { search, tagIndex, related, fold, full, graphOf } from '../../mcp/store.mjs';
 
 const day = 864e5, now = Date.UTC(2026, 10, 24);
 const items = [
@@ -40,6 +40,21 @@ test('sans correspondance complète, bascule en « au moins un mot »', () => {
   assert.deepEqual(r.results.map(x => x.id), ['l2']);
 });
 
+test('liens [[titre]] : get_memory dans les deux sens, related les met en tête', () => {
+  const linked = [
+    ...items,
+    { id: 'n2', type: 'note', title: '', text: '# Mon index\nVoir [[Relire Zettelkasten]] et [[practical typography|ce site]], puis [[Pas encore écrite]].', note: '', description: '', url: '', image: '', tags: ['index'], pinned: false, createdAt: now },
+  ];
+  const g = graphOf(linked);
+  const idx = full(linked.at(-1), { graph: g });
+  assert.deepEqual(idx.linksTo.map(x => x.id), ['n1', 'l2']);
+  assert.deepEqual(idx.unresolvedLinks, ['Pas encore écrite']);
+  assert.deepEqual(full(items[0], { graph: g }).linkedFrom.map(x => x.id), ['n2']);
+  const r = related(linked, 'n1');
+  assert.equal(r.results[0].id, 'n2');
+  assert.equal(r.results[0].relation, 'cité par');
+  assert.ok(r.results.slice(1).every(x => x.relation === 'tags'));
+});
 
 test('requête vide : les plus récents d’abord', () => {
   const r = search(items, { query: '' });

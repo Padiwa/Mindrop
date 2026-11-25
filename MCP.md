@@ -102,9 +102,9 @@ Demande simplement à l'agent, par exemple :
 | Outil | Ce qu'il fait | Paramètres |
 |---|---|---|
 | `search_memories` | Recherche dans titres, textes, notes, tags, descriptions, URL et texte des pages. Insensible aux accents et à la casse, tolérante aux pluriels, variantes et fautes de frappe (la même recherche que dans l'extension). | `query` (`#tag` filtre par tag ; vide = les plus récents), `type` (`link`, `note`, `quote`, `image`, `video`), `tags`, `pinned`, `since`, `until` (dates ISO), `limit`, `offset` |
-| `get_memory` | Contenu complet d'un souvenir : texte en Markdown, note perso, description, tags, dates, et le texte de la page gardé à l'enregistrement (par tranches de 30 000 caractères). | `id`, `contentOffset` |
+| `get_memory` | Contenu complet d'un souvenir : texte en Markdown, note perso, description, tags, dates, le texte de la page gardé à l'enregistrement (par tranches de 30 000 caractères), et ses liens `[[titre]]` dans les deux sens. | `id`, `contentOffset` |
 | `list_tags` | Tous les tags avec leur nombre de souvenirs, et pour chacun les tags qui reviennent le plus souvent avec lui. | aucun |
-| `related_memories` | Souvenirs qui partagent le plus de tags avec un souvenir donné. | `id`, `limit` |
+| `related_memories` | Souvenirs reliés à un souvenir donné : d'abord par un lien `[[titre]]` (dans un sens ou l'autre), puis par les tags partagés. | `id`, `limit` |
 
 Bon à savoir sur la recherche :
 - Tous les mots doivent être présents. Si aucun souvenir ne les contient tous, la recherche renvoie ceux qui en contiennent au moins un et l'indique (`"mode": "any"`).

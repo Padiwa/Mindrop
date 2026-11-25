@@ -40,6 +40,9 @@ Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou
   citations (`>`), blocs de code et liens `[texte](https://…)`. Les cases se cochent directement sur la carte.
   Dans la fiche d'une note, onglets **Écrire / Aperçu** (`Ctrl+E` pour basculer, double-clic sur l'aperçu pour écrire).
   Les notes perso des liens et images sont aussi rendues en Markdown sur les cartes.
+- **Liens entre souvenirs** : écris `[[Titre]]` (ou `[[Titre|texte affiché]]`) dans une note ou une note perso pour citer un autre souvenir ; le titre d'une note est sa première ligne.
+  Taper `[[` propose les titres existants. Un lien s'ouvre d'un clic ; un lien vers un titre qui n'existe pas encore (souligné en pointillés) crée la note.
+  La fiche montre « Renvoie vers » et « Cité par » ; la carte mentale trace ces liens en orange.
 - **Tags** : en tapant dans un champ de tags (popup, zone d'écriture, fiche), les tags déjà utilisés sont proposés, les plus fréquents d'abord. Flèches pour choisir, Entrée ou Tab pour valider, Échap pour fermer.
 - **Fiche détaillée** au clic : modifier le titre, la note, les tags, la couleur, épingler, supprimer.
 - **Écrire directement** une idée dans la barre en haut ; coller une URL l'enregistre comme lien.
