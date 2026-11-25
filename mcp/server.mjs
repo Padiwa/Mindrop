@@ -15,7 +15,7 @@ const TOOLS = [
   {
     name: 'search_memories',
     title: 'Search memories',
-    description: 'Search saved memories (links, notes, quotes, images, videos). Accent- and case-insensitive. Every word must match title, text, note, tags, description, URL or the saved page text; if nothing matches all words, results that match some words are returned instead (mode "any"). Words starting with # filter by tag prefix. An empty query returns the most recent memories. Returns short summaries; call get_memory for full content.',
+    description: 'Search saved memories (links, notes, quotes, images, videos). Accent- and case-insensitive and tolerant: a word also matches its plural or other ending (\"méthodes\" finds \"methods\", \"typographie\" finds \"Typography\") and words one or two letters off (typos). Every word must match title, text, note, tags, description, URL or the saved page text; if nothing matches all words, results that match some words are returned instead (mode "any"). Words starting with # filter by tag prefix. An empty query returns the most recent memories. Returns short summaries; call get_memory for full content.',
     inputSchema: {
       type: 'object',
       properties: {

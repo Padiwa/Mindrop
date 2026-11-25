@@ -42,7 +42,14 @@ function normalize(x) {
   };
 }
 
-export const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+import { fold, stem, editDistance, buildIndex, search as searchIndex, parseQuery } from '../search.js';
+
+export { fold };
+
+// Index de recherche, calculé une fois par liste de souvenirs.
+const SEARCH_FIELDS = [['title', 3], [it => it.tags.join(' '), 3], ['text', 1.5], ['note', 1.5], ['description', 0.75], ['content', 0.5], ['url', 0.5]];
+const indexes = new WeakMap();
+const indexOf = items => { if (!indexes.has(items)) indexes.set(items, buildIndex(items, SEARCH_FIELDS)); return indexes.get(items); };
 const iso = ts => (ts ? new Date(ts).toISOString() : null);
 
 // Résumé d'un souvenir pour une liste de résultats.
@@ -80,53 +87,54 @@ function firstLine(s) {
   return l ? l.replace(/^#+\s*/, '').trim().slice(0, 120) : '';
 }
 
+// Position du premier mot cherché dans un texte (exact, sinon même racine ou à une faute près).
+function locate(flat, terms) {
+  const f = fold(flat);
+  const exact = terms.map(t => f.indexOf(t)).filter(i => i >= 0).sort((a, b) => a - b)[0];
+  if (exact != null) return exact;
+  const stems = terms.map(t => stem(t));
+  for (const m of f.matchAll(/[\p{L}\p{N}]+/gu)) {
+    const w = stem(m[0]);
+    if (stems.some(s => w === s || (s.length >= 4 && w.startsWith(s)) || (s.length >= 4 && editDistance(w, s, s.length >= 8 ? 2 : 1) <= (s.length >= 8 ? 2 : 1)))) return m.index;
+  }
+  return -1;
+}
+
 function snippet(it, terms) {
   // le premier champ qui contient un des mots cherchés, sinon le premier champ rempli
   const fields = [it.text, it.note, it.description, it.content].filter(Boolean).map(s => s.replace(/\s+/g, ' ').trim());
-  const flat = fields.find(s => terms.some(t => fold(s).includes(t))) || fields[0] || '';
-  if (!flat) return '';
-  const f = fold(flat);
-  const hit = terms.map(t => f.indexOf(t)).filter(i => i >= 0).sort((a, b) => a - b)[0] ?? 0;
+  if (!fields.length) return '';
+  let flat = fields[0], hit = 0;
+  for (const f of fields) { const i = terms.length ? locate(f, terms) : -1; if (i >= 0) { flat = f; hit = i; break; } }
   const start = Math.max(0, hit - 60);
   return (start ? '…' : '') + flat.slice(start, start + 220) + (start + 220 < flat.length ? '…' : '');
 }
 
 const TYPES = ['link', 'note', 'quote', 'image', 'video'];
 
-// Recherche comme dans l'extension (insensible aux accents, #tag pour filtrer),
-// classée par pertinence ; si aucun souvenir ne contient tous les mots, bascule en « au moins un mot ».
+// Recherche tolérante (search.js, la même que dans l'extension), classée par pertinence ;
+// si aucun souvenir ne contient tous les mots, bascule en « au moins un mot ».
 export function search(items, { query = '', type, tags = [], pinned, since, until, limit = 20, offset = 0 } = {}) {
-  const words = fold(query).split(/\s+/).filter(Boolean);
-  const tagTerms = [...words.filter(w => w.startsWith('#')).map(w => w.slice(1)), ...tags.map(t => fold(t).replace(/^#/, ''))].filter(Boolean);
-  const terms = words.filter(w => !w.startsWith('#'));
+  const q = parseQuery(query);
+  const tagTerms = [...q.tags, ...tags.map(t => fold(t).replace(/^#/, ''))].filter(Boolean);
+  const terms = q.terms;
   const t0 = since ? Date.parse(since) : null, t1 = until ? Date.parse(until) : null;
-
-  const pool = items.filter(it =>
+  const keep = it =>
     (!type || type === 'all' || it.type === type) &&
     (pinned == null || it.pinned === pinned) &&
     (t0 == null || it.createdAt >= t0) && (t1 == null || it.createdAt <= t1) &&
-    tagTerms.every(t => it.tags.some(x => fold(x).startsWith(t))));
-
-  const score = it => {
-    const fields = [[it.title, 3], [it.tags.join(' '), 3], [it.text, 1.5], [it.note, 1.5], [it.description, 0.75], [it.content, 0.5], [it.url, 0.5]]
-      .map(([v, w]) => [fold(v), w]);
-    let s = 0, matched = 0;
-    for (const t of terms) {
-      let hit = false;
-      for (const [v, w] of fields) if (v.includes(t)) { s += w; hit = true; }
-      if (hit) matched++;
-    }
-    return { s: s + (it.pinned ? 0.25 : 0), matched };
-  };
+    tagTerms.every(t => it.tags.some(x => fold(x).startsWith(t)));
 
   let mode = 'all', ranked;
   if (!terms.length) {
-    ranked = pool.map(it => ({ it, s: 0 }));
     mode = 'recent';
+    ranked = items.filter(keep).map(it => ({ it, s: 0 }));
   } else {
-    const scored = pool.map(it => ({ it, ...score(it) }));
+    const scored = [...searchIndex(indexOf(items), terms)]
+      .map(([i, r]) => ({ it: items[i], s: r.score + (items[i].pinned ? 0.25 : 0), matched: r.matched }))
+      .filter(x => keep(x.it));
     ranked = scored.filter(x => x.matched === terms.length);
-    if (!ranked.length) { mode = 'any'; ranked = scored.filter(x => x.matched > 0).map(x => ({ ...x, s: x.s + x.matched * 10 })); }
+    if (!ranked.length) { mode = 'any'; ranked = scored.map(x => ({ ...x, s: x.s + x.matched * 10 })); }
   }
   ranked.sort((a, b) => (b.s - a.s) || (b.it.createdAt - a.it.createdAt));
   return { mode, total: ranked.length, results: ranked.slice(offset, offset + limit).map(x => brief(x.it, terms)) };

@@ -5,6 +5,7 @@ import {
 import { createMap } from './map.js';
 import { icon } from './icons.js';
 import { renderMarkdown, toggleTask } from './markdown.js';
+import { buildIndex, search, parseQuery } from './search.js';
 import { withVideoInfo } from './video.js';
 import { attachTagSuggest, tagCounts } from './tag-suggest.js';
 import { runBackup, getBackupStatus, listBackups, readBackup, STATUS_KEY } from './backup.js';
@@ -13,7 +14,7 @@ import { isAgentEnabled, setAgentEnabled, syncAgent, getAgentSync, SYNC_KEY } fr
 const $ = s => document.querySelector(s);
 let savedView = 'grid';
 try { savedView = localStorage.getItem('view') || 'grid'; } catch {}
-const state = { items: [], q: '', type: 'all', tag: '', openId: null, view: savedView };
+const state = { items: [], q: '', type: 'all', tag: '', openId: null, view: savedView, hits: null };
 
 const TYPES = [
   ['all', 'Tout'], ['link', 'Liens'], ['note', 'Notes'], ['quote', 'Citations'],
@@ -65,22 +66,35 @@ function debounce(fn, ms) {
 }
 
 // ---------- rendu ----------
+// Recherche tolérante (search.js) : mêmes champs et mêmes poids que le serveur MCP.
+const SEARCH_FIELDS = [['title', 3], [it => it.tags.join(' '), 3], ['text', 1.5], ['note', 1.5], ['description', 0.75], ['content', 0.5], ['url', 0.5]];
+let searchIndex = null, indexedItems = null;
+
+// Map(id → score) des souvenirs qui contiennent tous les mots cherchés, ou null sans recherche.
+function searchHits() {
+  const { terms } = parseQuery(state.q);
+  if (!terms.length) return null;
+  if (indexedItems !== state.items) { searchIndex = buildIndex(state.items, SEARCH_FIELDS); indexedItems = state.items; }
+  const hits = new Map();
+  for (const [i, r] of search(searchIndex, terms)) if (r.matched === terms.length) hits.set(state.items[i].id, r.score);
+  return hits;
+}
+
 function matches(it) {
   if (state.type === 'pinned') { if (!it.pinned) return false; }
   else if (state.type !== 'all' && it.type !== state.type) return false;
   if (state.tag && !it.tags.includes(state.tag)) return false;
-  const terms = fold(state.q).split(/\s+/).filter(Boolean);
-  if (!terms.length) return true;
-  // texte normalisé calculé une fois par chargement (le texte des pages peut être long)
-  const hay = it._hay ??= fold([it.title, it.text, it.note, it.url, it.description, it.tags.join(' '), it.content].join(' '));
-  return terms.every(t => t.startsWith('#')
-    ? it.tags.some(x => fold(x).startsWith(t.slice(1)))
-    : hay.includes(t));
+  const { tags } = parseQuery(state.q);
+  if (!tags.every(t => it.tags.some(x => fold(x).startsWith(t)))) return false;
+  return !state.hits || state.hits.has(it.id);
 }
 
 function render() {
-  const list = state.items.filter(matches)
-    .sort((a, b) => (b.pinned - a.pinned) || (b.createdAt - a.createdAt));
+  state.hits = searchHits();
+  // en recherche : les plus pertinents d'abord ; sinon les épinglés puis les plus récents
+  const list = state.items.filter(matches).sort((a, b) => state.hits
+    ? (state.hits.get(b.id) - state.hits.get(a.id)) || (b.createdAt - a.createdAt)
+    : (b.pinned - a.pinned) || (b.createdAt - a.createdAt));
 
   const n = state.items.length;
   $('#count').textContent = n ? `${n} souvenir${n > 1 ? 's' : ''}` : 'Vide pour l’instant';
@@ -309,7 +323,8 @@ async function patchAndReopen(id, patch) {
   const fresh = await updateItem(id, patch);
   if (fresh) {
     const i = state.items.findIndex(x => x.id === id);
-    if (i >= 0) state.items[i] = { ...state.items[i], ...fresh, _hay: undefined };
+    if (i >= 0) state.items[i] = { ...state.items[i], ...fresh };
+    indexedItems = null; // l'index de recherche est à recalculer
   }
   openModal(id);
 }
@@ -384,7 +399,7 @@ function setupDropAndPaste() {
 
 // ---------- sauvegarde ----------
 function exportJson() {
-  // sans les champs de travail de la page (_hay…)
+  // sans les champs de travail de la page (préfixés par _)
   const items = state.items.map(it => Object.fromEntries(Object.entries(it).filter(([k]) => !k.startsWith('_'))));
   const data = { app: 'second-cerveau', version: 1, exportedAt: new Date().toISOString(), items };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });

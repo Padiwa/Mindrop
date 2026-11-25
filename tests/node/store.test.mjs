@@ -26,11 +26,20 @@ test('#tag filtre par préfixe de tag', () => {
   assert.deepEqual(r.results.map(x => x.id), ['q1']);
 });
 
-test('sans correspondance complète, bascule en « au moins un mot »', () => {
+test('recherche tolérante : autre langue, pluriel, faute de frappe', () => {
   const r = search(items, { query: 'typographie ligne' });
+  assert.equal(r.mode, 'all');
+  assert.deepEqual(r.results.map(x => x.id), ['l2']);
+  assert.deepEqual(search(items, { query: 'methodes' }).results.map(x => x.id).sort(), ['l1', 'n1']);
+  assert.deepEqual(search(items, { query: 'zetelkasten' }).results.map(x => x.id), ['n1']);
+});
+
+test('sans correspondance complète, bascule en « au moins un mot »', () => {
+  const r = search(items, { query: 'typographie qwxzk' });
   assert.equal(r.mode, 'any');
   assert.deepEqual(r.results.map(x => x.id), ['l2']);
 });
+
 
 test('requête vide : les plus récents d’abord', () => {
   const r = search(items, { query: '' });
