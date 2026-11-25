@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { videoInfo, withVideoInfo, cleanYoutubeTitle, needsVideoFix, hasPlaceholderTitle, bestThumbnail } from '../../video.js';
+import { setCurrent } from '../../i18n.js';
 
 const ID = 'dQw4w9WgXcQ';
 function fakeFetch({ maxres = true, oembed = { title: 'Never Gonna Give You Up', author_name: 'Rick Astley' }, offline = false } = {}) {
@@ -49,6 +50,7 @@ test('pas une vidéo YouTube : null, aucun appel réseau', async () => {
 });
 
 test('withVideoInfo complète un lien, garde le reste', async () => {
+  setCurrent('fr'); // le test ne dépend pas de la langue de la machine
   const it = await withVideoInfo({ type: 'link', url: `https://youtu.be/${ID}`, title: 'youtu.be', tags: 'musique' }, { fetchImpl: fakeFetch() });
   assert.equal(it.type, 'video');
   assert.equal(it.title, 'Never Gonna Give You Up');
@@ -56,6 +58,10 @@ test('withVideoInfo complète un lien, garde le reste', async () => {
   assert.equal(it.tags, 'musique');
   const other = { type: 'link', url: 'https://example.com', title: 'x' };
   assert.equal(await withVideoInfo(other, { fetchImpl: fakeFetch() }), other);
+  setCurrent('en');
+  const en = await withVideoInfo({ type: 'link', url: `https://youtu.be/${ID}` }, { fetchImpl: fakeFetch() });
+  assert.equal(en.description, 'Channel: Rick Astley');
+  setCurrent('auto');
 });
 
 test('titre d’onglet nettoyé', () => {
