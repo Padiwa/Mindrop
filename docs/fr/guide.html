@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide de Mindrop</title>
+<meta name="description" content="Mindrop garde tes pages, liens, notes Markdown, citations, images et vidéos dans ton navigateur, les relie par des tags et des [[liens]], et laisse un agent IA y chercher. Libre et 100 % local.">
+<link rel="icon" href="../assets/icon48.png">
+<link rel="alternate" hreflang="en" href="../en/guide.html">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="doc">
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="nav">
+  <div class="container nav-row">
+    <a class="wordmark" href="index.html"><img src="../assets/icon48.png" alt="" width="28" height="28">Mindrop</a>
+    <nav aria-label="Principale">
+      <a href="guide.html" aria-current="page">Guide</a>
+      <a href="pont-local.html">Pont local</a>
+      <a href="../en/guide.html" hreflang="en" lang="en" title="Read in English">English</a>
+      
+    </nav>
+  </div>
+</header>
+<div class="container doc-grid">
+  <nav class="toc" aria-label="Sur cette page">
+    <details open>
+      <summary class="toc-head">Sur cette page</summary>
+      <ol><li><a href="#installation">Installation</a></li><li><a href="#enregistrer">Enregistrer</a></li><li><a href="#la-page-mindrop">La page Mindrop</a></li><li><a href="#notes-en-markdown">Notes en Markdown</a></li><li><a href="#relier-tags-et-liens">Relier : tags et liens</a></li><li><a href="#carte-mentale">Carte mentale</a></li><li><a href="#pont-local-agent-ia-et-sauvegardes">Pont local : agent IA et sauvegardes</a></li><li><a href="#bon-a-savoir">Bon à savoir</a></li><li><a href="#developpement">Développement</a></li><li><a href="#licence">Licence</a></li></ol>
+    </details>
+  </nav>
+  <main id="main" class="prose">
+<h1>Guide de Mindrop</h1>
+<p>Mindrop est un second cerveau qui vit dans ton navigateur. Il garde les pages, les liens, les notes, les citations, les images et les vidéos qui comptent pour toi, et te laisse les relier par des #tags et des liens <code>[[titre]]</code>, puis les parcourir en mosaïque ou en carte mentale.</p>
+<p>Tout est stocké <strong>localement</strong> dans ton navigateur : pas de compte, pas de serveur, rien n’est envoyé sur Internet.</p>
+<h2 id="installation">Installation</h2>
+<p>Mindrop fonctionne dans les navigateurs basés sur Chromium : Chrome, Brave, Edge, Chromium, Vivaldi. Il n’est pas (encore) publié sur le Chrome Web Store : on l’installe depuis son dossier.</p>
+<ol><li>Récupère le dossier de l’extension depuis GitHub : bouton <strong>Code</strong>, puis <strong>Download ZIP</strong> (et dézippe-le), ou <code>git clone</code> du dépôt. Range-le à un endroit où il restera : le navigateur le lit à chaque démarrage.</li><li>Ouvre <code>chrome://extensions</code> (ou <code>brave://extensions</code>, <code>edge://extensions</code>).</li><li>Active le <strong>Mode développeur</strong> (en haut à droite).</li><li>Clique sur <strong>Charger l’extension non empaquetée</strong> et choisis le dossier de l’extension (celui qui contient <code>manifest.json</code>).</li><li>Épingle l’icône orange dans la barre d’outils (icône puzzle, puis épingle).</li></ol>
+<p>Pour mettre à jour : remplace le contenu du dossier par la nouvelle version (ou <code>git pull</code>), puis clique sur le bouton de rechargement de Mindrop dans la page des extensions. Tes souvenirs restent.</p>
+<h2 id="enregistrer">Enregistrer</h2>
+<div class="table"><table><thead><tr><th scope="col">Comment</th><th scope="col">Ce que ça fait</th></tr></thead><tbody><tr><td>Clic sur l’icône, ou <code>Alt+Shift+S</code></td><td>Fenêtre avec l’aperçu de la page, son titre, une note perso et des #tags. L’onglet <strong>Note</strong> sert à écrire une pensée rapide.</td></tr><tr><td><code>Alt+Shift+D</code></td><td>Enregistre la page en cours tout de suite, sans fenêtre (un ✓ s’affiche sur l’icône).</td></tr><tr><td>Clic droit sur un texte sélectionné</td><td>« Enregistrer la sélection comme citation ».</td></tr><tr><td>Clic droit sur un lien ou une image</td><td>« Enregistrer ce lien », « Enregistrer cette image ».</td></tr><tr><td>Texte sélectionné, puis clic sur l’icône</td><td>Propose de garder la sélection comme citation.</td></tr></tbody></table></div>
+<p>À l’enregistrement d’une page, Mindrop garde aussi son <strong>texte principal</strong> (l’article, sans les menus), pour pouvoir le retrouver par la recherche. Pour une vidéo YouTube, il récupère le vrai titre, la chaîne et la miniature.</p>
+<h2 id="la-page-mindrop">La page Mindrop</h2>
+<p>Ouvre-la avec <code>Alt+Shift+M</code>, le lien « Ouvrir Mindrop » de la fenêtre, ou un clic droit sur l’icône.</p>
+<ul><li><strong>Mosaïque</strong> de tous tes souvenirs : captures des pages, notes colorées, citations, images, vidéos.</li><li><strong>Index</strong> dans la marge gauche : filtres par type (liens, notes, citations, images, vidéos, épinglés) et par tag, avec le nombre de souvenirs de chacun.</li><li><strong>Recherche</strong> instantanée (touche <code>/</code>). Elle ignore les accents et la casse, et elle est tolérante : un mot trouve aussi ses pluriels et ses variantes (« méthodes » trouve « methods », « typographie » trouve « Typography »), et les mots à une ou deux lettres près. Elle porte aussi sur le texte des pages. <code>#design</code> filtre par tag.</li><li><strong>Fiche détaillée</strong> au clic : titre, note, tags, couleur, épingler, supprimer, et le texte de la page gardé à l’enregistrement.</li><li><strong>Écrire directement</strong> une idée dans la zone du haut (<code>Ctrl+Entrée</code> pour garder) ; coller une adresse l’enregistre comme lien.</li><li><strong>Glisser-déposer</strong> ou <strong>coller</strong> (<code>Ctrl+V</code>) une image, un lien ou un texte sur la page.</li><li><strong>Redécouvrir</strong> ressort un souvenir au hasard.</li><li><strong>Exporter et Importer</strong> : une sauvegarde JSON, utile aussi pour passer d’un navigateur à l’autre.</li></ul>
+<h2 id="notes-en-markdown">Notes en Markdown</h2>
+<p>Les notes s’écrivent en Markdown : <code># titre</code>, <code>**gras**</code>, <code>*italique*</code>, <code>~~barré~~</code>, <code>`code`</code>, listes (<code>-</code>, <code>1.</code>), cases à cocher (<code>- [ ] tâche</code>), citations (<code>&gt;</code>), blocs de code et liens <code>[texte](https://…)</code>.</p>
+<ul><li>Les cases se cochent directement sur la carte de la mosaïque.</li><li>Dans la fiche d’une note, deux onglets : <strong>Écrire</strong> et <strong>Aperçu</strong> (<code>Ctrl+E</code> pour passer de l’un à l’autre, double-clic sur l’aperçu pour écrire).</li><li>Les notes perso des liens et des images sont aussi affichées en Markdown.</li></ul>
+<h2 id="relier-tags-et-liens">Relier : tags et liens</h2>
+<ul><li><strong>Tags</strong> : en tapant dans un champ de tags (popup, zone d’écriture, fiche), les tags déjà utilisés sont proposés, les plus fréquents d’abord. Flèches pour choisir, Entrée ou Tab pour valider, Échap pour fermer.</li><li><strong>Liens entre souvenirs</strong> : écris <code>[[Titre]]</code>, ou <code>[[Titre|texte affiché]]</code>, dans une note ou une note perso pour citer un autre souvenir. Le titre d’une note est sa première ligne ; accents et majuscules n’ont pas d’importance.<ul><li>Taper <code>[[</code> propose les titres existants.</li><li>Un lien s’ouvre d’un clic. Un lien vers un titre qui n’existe pas encore est souligné en pointillés : un clic crée la note.</li><li>La fiche montre <strong>Renvoie vers</strong> et <strong>Cité par</strong>.</li></ul></li></ul>
+<h2 id="carte-mentale">Carte mentale</h2>
+<p>Le bouton <strong>Carte mentale</strong> montre tes souvenirs autour de leurs tags.</p>
+<ul><li>Chaque #tag est une bulle reliée à « Mindrop » ; les pointillés relient les tags qui partagent des souvenirs.</li><li>En zoomant (molette, pavé tactile, boutons + et −), les souvenirs apparaissent autour de leur premier tag, avec un fil vers chacun de leurs autres tags.</li><li>Les liens <code>[[titre]]</code> entre souvenirs sont tracés en orange.</li><li>Un clic sur un tag zoome dessus ; glisser un tag le déplace (sa position est retenue). <strong>Réorganiser</strong> propose une nouvelle disposition, <strong>Tout voir</strong> (ou la touche 0) recadre l’ensemble.</li><li>Survoler un tag ou une carte met ses liens en évidence.</li></ul>
+<h2 id="pont-local-agent-ia-et-sauvegardes">Pont local : agent IA et sauvegardes</h2>
+<p>Le dossier <code>mcp/</code> installe un pont entre l’extension et ton ordinateur, sans passer par Internet. Il apporte :</p>
+<ul><li>la <strong>sauvegarde automatique</strong> de tous tes souvenirs, images comprises, sur ton disque, avec restauration depuis la page Mindrop ;</li><li>un <strong>serveur MCP</strong>, pour qu’un agent IA (Claude Code, pi ou tout client MCP) cherche dans Mindrop, en lecture seule, avec un interrupteur pour couper l’accès.</li></ul>
+<p>Installation et utilisation : voir le guide <strong><a href="pont-local.html">Pont local</a></strong>.</p>
+<h2 id="bon-a-savoir">Bon à savoir</h2>
+<ul><li>Si un raccourci ne marche pas, il est sans doute déjà pris par le navigateur : choisis-en un autre dans <code>chrome://extensions/shortcuts</code>.</li><li>Les pages internes du navigateur (<code>chrome://</code>, Web Store) ne peuvent pas être capturées : l’onglet Note reste disponible.</li><li>Désinstaller l’extension efface ses données : exporte d’abord, ou installe le pont local pour avoir des sauvegardes automatiques sur ton disque.</li><li>Pour les fichiers locaux (<code>file://</code>), active « Autoriser l’accès aux URL de fichier » dans les détails de l’extension.</li><li>Les polices sont incluses dans <code>fonts/</code> : rien n’est chargé depuis Internet.</li></ul>
+<h2 id="developpement">Développement</h2>
+<p>Mindrop n’a aucune dépendance. Les tests demandent Node 22 ou plus, et un navigateur Chromium pour les tests navigateur (variable <code>CHROME_PATH</code> s’il n’est pas trouvé tout seul) :</p>
+<pre data-lang="sh"><code>npm test               # tout
+npm run test:node      # recherche, liens, pont local, serveur MCP
+npm run test:browser   # stockage IndexedDB, rendu Markdown, sauvegarde, suggestions
+npm run site           # régénère le site de documentation (dossier docs/)</code></pre>
+<h2 id="licence">Licence</h2>
+<p>Mindrop est un logiciel libre, distribué sous la <strong>GNU Affero General Public License, version 3 ou toute version ultérieure</strong> (AGPL-3.0-or-later) : voir le fichier <a href="../assets/LICENSE.txt">LICENSE</a>. Tu peux l’utiliser, l’étudier, le modifier et le redistribuer ; toute version modifiée que tu distribues, ou que tu proposes à d’autres à travers un réseau, doit rester sous la même licence, avec son code source.</p>
+<p>Les polices incluses dans <code>fonts/</code> gardent leur propre licence, la SIL Open Font License 1.1 : Hanken Grotesk (<a href="../assets/fonts/OFL-HankenGrotesk.txt">OFL-HankenGrotesk.txt</a>), Newsreader (<a href="../assets/fonts/OFL-Newsreader.txt">OFL-Newsreader.txt</a>) et IBM Plex Mono (<a href="../assets/fonts/OFL-IBMPlexMono.txt">OFL-IBMPlexMono.txt</a>).</p>
+  </main>
+</div>
+<footer class="foot">
+  <div class="container foot-grid">
+    <p class="foot-mark"><img src="../assets/icon48.png" alt="" width="32" height="32">Mindrop</p>
+    <p class="foot-line">Logiciel libre sous AGPL-3.0-or-later. Polices sous SIL Open Font License 1.1.</p>
+    <nav class="foot-links" aria-label="Documentation">
+      <a href="guide.html">Guide</a>
+      <a href="pont-local.html">Pont local</a>
+      <a href="../assets/LICENSE.txt">Licence</a>
+      <a href="../en/guide.html" hreflang="en" lang="en">English</a>
+      
+    </nav>
+    
+  </div>
+</footer>
+<script>/* sommaire replié sur petit écran (ouvert sans script) */ if (matchMedia('(max-width: 60rem)').matches) document.querySelector('.toc details').open = false;</script>
+</body>
+</html>

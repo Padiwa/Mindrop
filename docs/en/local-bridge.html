@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local bridge: AI agent (MCP) and automatic backups, Mindrop</title>
+<meta name="description" content="Mindrop keeps your pages, links, Markdown notes, quotes, images and videos in your browser, connects them with tags and [[links]], and lets an AI agent search them. Free and 100% local.">
+<link rel="icon" href="../assets/icon48.png">
+<link rel="alternate" hreflang="fr" href="../fr/pont-local.html">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="doc">
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav">
+  <div class="container nav-row">
+    <a class="wordmark" href="../index.html"><img src="../assets/icon48.png" alt="" width="28" height="28">Mindrop</a>
+    <nav aria-label="Main">
+      <a href="guide.html">Guide</a>
+      <a href="local-bridge.html" aria-current="page">Local bridge</a>
+      <a href="../fr/pont-local.html" hreflang="fr" lang="fr" title="Lire en français">Français</a>
+      
+    </nav>
+  </div>
+</header>
+<div class="container doc-grid">
+  <nav class="toc" aria-label="On this page">
+    <details open>
+      <summary class="toc-head">On this page</summary>
+      <ol><li><a href="#how-it-works">How it works</a></li><li><a href="#requirements">Requirements</a></li><li><a href="#setup">Setup</a></li><li><a href="#use">Use</a></li><li><a href="#turn-agent-access-on-or-off">Turn agent access on or off</a></li><li><a href="#automatic-backups">Automatic backups</a></li><li><a href="#update-troubleshooting-and-removal">Update, troubleshooting and removal</a></li><li><a href="#technical-names">Technical names</a></li><li><a href="#privacy">Privacy</a></li></ol>
+    </details>
+  </nav>
+  <main id="main" class="prose">
+<h1>Local bridge: AI agent (MCP) and automatic backups</h1>
+<p>The local bridge connects the extension to your computer. Once installed (only once, see “Setup”), it brings two things:</p>
+<ul><li><strong>an MCP server</strong>: an AI agent (Claude Code or any MCP client) can <strong>search Mindrop</strong>, <strong>read-only</strong>;</li><li><strong>automatic backups</strong>: a full copy, images included, written to your disk after each change.</li></ul>
+<p>Nothing goes over the Internet.</p>
+<h2 id="how-it-works">How it works</h2>
+<p>A program outside the browser cannot read an extension’s data. So a bridge connects them:</p>
+<pre><code>Extension  ──(native messaging)──▶  mcp/host.mjs  ──writes──▶  brain.json  ◀──reads──  mcp/server.mjs  ◀──MCP──  Agent</code></pre>
+<ol><li>On every addition, change or deletion, the extension sends a copy of your memories to <code>mcp/host.mjs</code>. It uses “native messaging”, Chrome’s official way to talk to a local program: <strong>nothing goes over the network</strong>.</li><li><code>host.mjs</code> writes that copy to a file only you can read:<ul><li>Linux: <code>~/.local/share/second-cerveau/brain.json</code></li><li>macOS: <code>~/Library/Application Support/second-cerveau/brain.json</code></li></ul></li><li>When the agent calls a tool, <code>mcp/server.mjs</code> reads that file, and reads it again whenever it has changed.</li></ol>
+<p>Images stored inside the extension (captures, dropped images) are not copied for the agent, only links to web images.</p>
+<h2 id="requirements">Requirements</h2>
+<ul><li><strong>Node.js 18 or later</strong> (<code>node --version</code>).</li><li>A Chromium browser: Chrome, Chromium, Brave, Edge or Vivaldi.</li><li><strong>Linux or macOS.</strong> On Windows, the native host is registered in the registry, which the setup script does not do.</li><li>The Mindrop extension loaded in the browser (see the <a href="guide.html">guide</a>).</li></ul>
+<h2 id="setup">Setup</h2>
+<h3 id="1-get-the-extension-id">1. Get the extension id</h3>
+<p>Open <code>chrome://extensions</code> (or <code>brave://extensions</code>, <code>edge://extensions</code>) and turn on <strong>Developer mode</strong>. The id is the 32-letter string under the extension’s name, for example <code>abcdefghijklmnopabcdefghijklmnop</code>.</p>
+<p>An unpacked extension’s id depends on its folder: if you move the folder, the id changes. You then need to run this setup again, and your data does not follow: export it first.</p>
+<h3 id="2-register-the-bridge">2. Register the bridge</h3>
+<p>From the project folder:</p>
+<pre data-lang="sh"><code>node mcp/install.mjs &lt;extension-id&gt;</code></pre>
+<p>The script:</p>
+<ul><li>creates a small <code>host.sh</code> launcher next to the data file, with the full path to your Node (the browser starts programs with a minimal <code>PATH</code>);</li><li>registers the bridge for every browser it finds, in its <code>NativeMessagingHosts</code> folder, allowing only your extension;</li><li>prints the exact command for step 4.</li></ul>
+<h3 id="3-reload-the-extension">3. Reload the extension</h3>
+<p>On the extensions page, click Mindrop’s reload button. Accept the new “communicate with cooperating native applications” permission if the browser asks.</p>
+<p>The first copy is sent at once. Check that it arrived:</p>
+<pre data-lang="sh"><code>ls -l ~/.local/share/second-cerveau/brain.json</code></pre>
+<h3 id="4-connect-your-agent">4. Connect your agent</h3>
+<p><strong>Claude Code:</strong></p>
+<pre data-lang="sh"><code>claude mcp add mindrop -- node /path/to/the-extension/mcp/server.mjs</code></pre>
+<p>Add <code>--scope user</code> to make it available in all your projects, not only the current folder. Check with <code>claude mcp list</code>, or <code>/mcp</code> in a session.</p>
+<p><strong>Another MCP client</strong> (Claude Desktop, Cursor, pi…): declare a stdio server in its configuration:</p>
+<pre data-lang="json"><code>{
+  &quot;mcpServers&quot;: {
+    &quot;mindrop&quot;: {
+      &quot;command&quot;: &quot;node&quot;,
+      &quot;args&quot;: [&quot;/path/to/the-extension/mcp/server.mjs&quot;]
+    }
+  }
+}</code></pre>
+<p>If the client cannot find <code>node</code>, put its full path in <code>command</code> (as given by <code>which node</code>).</p>
+<h2 id="use">Use</h2>
+<p>Just ask the agent, for example:</p>
+<ul><li>“Search Mindrop for what I saved about typography.”</li><li>“What are my main tags, and how do they relate?”</li><li>“Find the Luhmann quote and show me the related memories.”</li><li>“Summarise the links I saved this month with the #design tag.”</li></ul>
+<h3 id="tools">Tools</h3>
+<div class="table"><table><thead><tr><th scope="col">Tool</th><th scope="col">What it does</th><th scope="col">Parameters</th></tr></thead><tbody><tr><td><code>search_memories</code></td><td>Searches titles, texts, notes, tags, descriptions, URLs and page text. Accent- and case-insensitive, tolerant of plurals, variants and typos (the same search as in the extension).</td><td><code>query</code> (<code>#tag</code> filters by tag; empty = most recent), <code>type</code> (<code>link</code>, <code>note</code>, <code>quote</code>, <code>image</code>, <code>video</code>), <code>tags</code>, <code>pinned</code>, <code>since</code>, <code>until</code> (ISO dates), <code>limit</code>, <code>offset</code></td></tr><tr><td><code>get_memory</code></td><td>The full memory: Markdown text, personal note, description, tags, dates, the page text kept when it was saved (in 30,000-character parts), and its <code>[[title]]</code> links both ways.</td><td><code>id</code>, <code>contentOffset</code></td></tr><tr><td><code>list_tags</code></td><td>Every tag with its number of memories, and for each the tags it most often appears with.</td><td>none</td></tr><tr><td><code>related_memories</code></td><td>Memories connected to a given one: first by a <code>[[title]]</code> link (either way), then by shared tags.</td><td><code>id</code>, <code>limit</code></td></tr></tbody></table></div>
+<p>About search:</p>
+<ul><li>Every word must match. If no memory contains them all, the search returns those that contain at least one and says so (<code>&quot;mode&quot;: &quot;any&quot;</code>).</li><li>It tolerates plurals, variants (“typography” finds “typographie”) and typos, but knows no synonyms: the agent can rephrase.</li><li>Every answer gives <code>syncedAt</code>, the time of the last copy received from the extension.</li></ul>
+<h2 id="turn-agent-access-on-or-off">Turn agent access on or off</h2>
+<p>On the Mindrop page, left column, the <strong>Accès des agents</strong> (agent access) switch controls what the MCP server can read. It is on by default.</p>
+<ul><li><strong>On:</strong> the copy read by the MCP server is kept up to date after each change. It holds all your memories except images stored inside the extension; links to web images stay.</li><li><strong>Off:</strong> the copy is <strong>deleted</strong> at once and replaced by a simple marker. An agent that queries the server gets “agent access is disabled”, and no memory.</li><li><strong>On again:</strong> an up-to-date copy is written immediately.</li></ul>
+<p>A line under the switch shows the real state: how many memories are shared, when the last copy was made, or that the bridge is not installed. The switch does not affect <strong>automatic backups</strong>, which go on either way.</p>
+<h2 id="automatic-backups">Automatic backups</h2>
+<p>Once the bridge is installed, the extension writes a <strong>full copy</strong> of your memories, images included, <strong>one minute after the last change</strong>:</p>
+<ul><li>Linux: <code>~/.local/share/second-cerveau/backups/YYYY-MM-DD.json</code></li><li>macOS: <code>~/Library/Application Support/second-cerveau/backups/YYYY-MM-DD.json</code></li></ul>
+<p>One file per day, rewritten by each backup of the day; <strong>the 30 most recent files</strong> are kept. Safeguards:</p>
+<ul><li>if a backup holds <strong>fewer memories</strong> than the day’s file (deletions, a reinstalled extension), the previous one is not overwritten: it is kept as <code>YYYY-MM-DD-HHMMSS.json</code> and shows in the list as “version de HH:MM”;</li><li>an empty database is never backed up;</li><li>an interrupted backup (browser closed mid-way) never replaces the previous one.</li></ul>
+<p>When the browser starts, a backup is made again if the last one is more than a day old.</p>
+<p>On the Mindrop page, the <strong>Sauvegarde</strong> (backup) block at the bottom of the left column shows the last backup and lets you:</p>
+<ul><li><strong>Sauvegarder maintenant</strong> (back up now);</li><li><strong>Restaurer</strong> (restore): pick a date, then click a second time to confirm. Restoring adds missing memories and updates those that are older than in the backup; <strong>it never deletes anything</strong>.</li></ul>
+<p>Backup files use the same format as the export: the <strong>Importer</strong> button accepts them too, for example to move to another computer.</p>
+<h2 id="update-troubleshooting-and-removal">Update, troubleshooting and removal</h2>
+<p><strong>When to run <code>node mcp/install.mjs &lt;id&gt;</code> again:</strong> if you move the project folder, if the extension id changes or if you change Node versions.</p>
+<p><strong>The agent says no copy was found:</strong></p>
+<ol><li>Check that <code>brain.json</code> exists (command in step 3).</li><li>Reload the extension to force a copy.</li><li>Check that the bridge file exists for your browser, for example for Chrome: <code>~/.config/google-chrome/NativeMessagingHosts/com.second_cerveau.bridge.json</code>. Its <code>allowed_origins</code> field must contain the current extension id.</li><li>Start the launcher by hand: <code>~/.local/share/second-cerveau/host.sh</code> should start without errors (quit with Ctrl+C).</li></ol>
+<p><strong>Results look old:</strong> check <code>syncedAt</code> in the answer. The copy is sent about a second after each change; the extension must be running in an open browser.</p>
+<p><strong>Remove everything:</strong></p>
+<pre data-lang="sh"><code>node mcp/install.mjs --uninstall
+claude mcp remove mindrop</code></pre>
+<p>The copy and the backups stay on disk; delete the <code>~/.local/share/second-cerveau/</code> folder if you no longer want them.</p>
+<h2 id="technical-names">Technical names</h2>
+<p>The extension was called “Second Cerveau” before it became Mindrop. A few technical names kept the old name on purpose: the <code>~/.local/share/second-cerveau/</code> folder (copy and backups), the <code>com.second_cerveau.bridge</code> native host and the extension’s internal database. Renaming them would cut an installed bridge, lose the backups and make the memories disappear. They show nowhere in the extension.</p>
+<h2 id="privacy">Privacy</h2>
+<ul><li>Everything stays on your machine: neither the extension nor the server sends anything over the Internet.</li><li><code>brain.json</code>, the backups and their folder are readable by your account only.</li><li>Only your extension, identified by its id, can talk to the bridge.</li><li><strong>What the agent reads is sent to the AI model it uses.</strong> If your agent runs on an online model, the memories it looks at go to that service, like anything else you show it.</li></ul>
+  </main>
+</div>
+<footer class="foot">
+  <div class="container foot-grid">
+    <p class="foot-mark"><img src="../assets/icon48.png" alt="" width="32" height="32">Mindrop</p>
+    <p class="foot-line">Free software under the AGPL-3.0-or-later. Fonts under the SIL Open Font License 1.1.</p>
+    <nav class="foot-links" aria-label="Documentation">
+      <a href="guide.html">Guide</a>
+      <a href="local-bridge.html">Local bridge</a>
+      <a href="../assets/LICENSE.txt">License</a>
+      <a href="../fr/pont-local.html" hreflang="fr" lang="fr">Français</a>
+      
+    </nav>
+    
+  </div>
+</footer>
+<script>/* sommaire replié sur petit écran (ouvert sans script) */ if (matchMedia('(max-width: 60rem)').matches) document.querySelector('.toc details').open = false;</script>
+</body>
+</html>

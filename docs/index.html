@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mindrop, a second brain in your browser</title>
+<meta name="description" content="Mindrop keeps your pages, links, Markdown notes, quotes, images and videos in your browser, connects them with tags and [[links]], and lets an AI agent search them. Free and 100% local.">
+<link rel="icon" href="assets/icon48.png">
+<link rel="alternate" hreflang="fr" href="fr/index.html">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body class="home">
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav">
+  <div class="container nav-row">
+    <a class="wordmark" href="index.html"><img src="assets/icon48.png" alt="" width="28" height="28">Mindrop</a>
+    <nav aria-label="Main">
+      <a href="en/guide.html">Guide</a>
+      <a href="en/local-bridge.html">Local bridge</a>
+      <a href="fr/index.html" hreflang="fr" lang="fr" title="Lire en français">Français</a>
+      
+    </nav>
+  </div>
+</header>
+<main id="main">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-text">
+        <h1>Your second brain, in your browser.</h1>
+        <p class="lead">Keep pages, notes and quotes. Link them. Everything stays yours.</p>
+        <p class="actions"><a class="btn btn--primary" href="#install">Install Mindrop</a><a class="btn" href="en/guide.html">Read the guide</a></p>
+      </div>
+      <figure class="hero-shot shot" data-kind="product"><picture><source media="(max-width: 40rem)" srcset="assets/screens/grid-phone.webp" width="780" height="1200"><img src="assets/screens/grid.webp" alt="The Mindrop page: a mosaic of notes, quotes, links and photos, with the tag index on the left" width="2240" height="1680" fetchpriority="high"></picture></figure>
+    </div>
+  </section>
+
+  <section class="keep" aria-labelledby="keep-h">
+    <div class="container keep-grid">
+      <div>
+        <h2 id="keep-h">One click and it is kept.</h2>
+        <dl class="facts"><div><dt><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></dt><dd>The page, a note, your #tags, and the selection as a quote.</dd></div><div><dt><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></dt><dd>The page, saved at once, no window.</dd></div><div><dt>Right-click</dt><dd>A sentence, a link or an image, from any page.</dd></div><div><dt>The page text</dt><dd>Kept with it, so search finds the article itself.</dd></div></dl>
+      </div>
+      <figure class="keep-shot shot" data-kind="product"><img src="assets/screens/popup.webp" alt="The Mindrop popup saving a page, with the selected sentence kept as a quote" width="720" height="1150" loading="lazy"></figure>
+    </div>
+  </section>
+
+  <section class="links" aria-labelledby="links-h">
+    <div class="container links-grid">
+      <figure class="links-shot shot" data-kind="product"><img src="assets/screens/sheet.webp" alt="A Markdown note with two links, and its “links to” and “cited by” lists" width="2240" height="1440" loading="lazy"><figcaption>The sheet of a note: what it links to, and who cites it.</figcaption></figure>
+      <div>
+        <h2 id="links-h">Notes that cite each other.</h2>
+        <p class="lead">Write <code>[[Title]]</code>: the note links to the other one, and the other one knows who cites it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="map band" aria-labelledby="map-h">
+    <div class="container map-grid">
+      <div>
+        <h2 id="map-h">Every tag, every link, on one map.</h2>
+        <p class="lead">Zoom in and memories come out around their tags. Orange curves are the links between notes.</p>
+      </div>
+      <figure class="map-shot shot" data-kind="product"><img src="assets/screens/map.webp" alt="The mind map: tags as coloured bubbles around Mindrop, memories around their tags, orange curves for links between notes" width="2117" height="2010" loading="lazy"></figure>
+    </div>
+  </section>
+
+  <section class="agent band--ink" aria-labelledby="agent-h">
+    <div class="container agent-grid">
+      <div>
+        <h2 id="agent-h">An AI agent can search it.</h2>
+        <p class="lead">A read-only MCP server: tolerant search, page text, links and tags. A switch cuts access.</p>
+        <p><a class="link" href="en/local-bridge.html">Set up the local bridge</a></p>
+      </div>
+      <pre class="code" aria-label="MCP"><code><span class="c-dim">$</span> node mcp/install.mjs &lt;extension-id&gt;
+<span class="c-dim">$</span> claude mcp add mindrop \
+    -- node mcp/server.mjs
+
+<span class="c-dim">tools</span>
+  search_memories   get_memory
+  list_tags         related_memories</code></pre>
+    </div>
+  </section>
+
+  <section class="home-rows" aria-labelledby="home-h">
+    <div class="container rows-grid">
+      <h2 id="home-h">Your notes never leave this browser.</h2>
+      <dl class="rows"><div><dt>100% local</dt><dd>No account, no server: everything lives in your browser.</dd></div><div><dt>Backed up</dt><dd>A full copy on your disk after each change, thirty days kept.</dd></div><div><dt>Search that forgives</dt><dd>Accents, plurals, variants and typos, across the page text too.</dd></div><div><dt>Free software</dt><dd>AGPL-3.0: read it, change it, share it.</dd></div></dl>
+    </div>
+  </section>
+
+  <section class="install" id="install" aria-labelledby="install-h">
+    <div class="container install-grid">
+      <div>
+        <h2 id="install-h">Install it in four steps.</h2>
+        <ol class="steps"><li><strong>Download</strong> the repository from GitHub (Code, then Download ZIP) and unzip it somewhere it will stay.</li><li><strong>Open</strong> <code>chrome://extensions</code>, or <code>brave://extensions</code>, and turn on Developer mode.</li><li><strong>Load</strong> it with “Load unpacked”, then pick the folder that holds <code>manifest.json</code>.</li><li><strong>Pin</strong> the orange icon to your toolbar, then press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> on a page.</li></ol>
+        <p class="actions"><a class="btn btn--primary" href="en/guide.html#install">Installation guide</a><a class="btn" href="en/local-bridge.html">Set up the local bridge</a></p>
+      </div>
+      <figure class="install-shot shot" data-kind="product"><img src="assets/screens/grid-dark.webp" alt="The Mindrop page in dark mode" width="2240" height="1680" loading="lazy"><figcaption>It follows your system: light or dark.</figcaption></figure>
+    </div>
+  </section>
+</main>
+<footer class="foot">
+  <div class="container foot-grid">
+    <p class="foot-mark"><img src="assets/icon48.png" alt="" width="32" height="32">Mindrop</p>
+    <p class="foot-line">Free software under the AGPL-3.0-or-later. Fonts under the SIL Open Font License 1.1.</p>
+    <nav class="foot-links" aria-label="Documentation">
+      <a href="en/guide.html">Guide</a>
+      <a href="en/local-bridge.html">Local bridge</a>
+      <a href="assets/LICENSE.txt">License</a>
+      <a href="fr/index.html" hreflang="fr" lang="fr">Français</a>
+      
+    </nav>
+    <p class="foot-credits" data-credits>Photographs in the screenshots: <a href="https://commons.wikimedia.org/wiki/File:Lake_Kinney_mit_Mount_Whitehorn.jpg">Florian Fuchs</a> (CC BY 3.0), <a href="https://commons.wikimedia.org/wiki/File:Glass_door_of_the_library_at_Amantaka_luxury_Resort_%26_Hotel_in_Luang_Prabang_Laos.jpg">Basile Morin</a> (CC BY-SA 4.0), <a href="https://commons.wikimedia.org/wiki/File:Walbrzych_Palm_House_greenhouse_interior_2019.jpg">Adrian Tync</a> (CC BY-SA 4.0), <a href="https://commons.wikimedia.org/wiki/File:Sourdough_bread.jpg">Anasuyas</a> (CC BY-SA 4.0), Wikimedia Commons.</p>
+  </div>
+</footer>
+</body>
+</html>

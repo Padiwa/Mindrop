@@ -1,0 +1,49 @@
+@font-face { font-family: "Hanken Grotesk"; src: url("fonts/hanken-grotesk.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Newsreader"; src: url("fonts/newsreader.woff2") format("woff2"); font-weight: 200 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Newsreader"; src: url("fonts/newsreader-italic.woff2") format("woff2"); font-weight: 200 800; font-style: italic; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("fonts/plex-mono-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "IBM Plex Mono"; src: url("fonts/plex-mono-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+
+:root {
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
+  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
+  --text-display-s: 1.44rem; --text-display: 1.728rem; --text-section: 1.2rem; --text-title: 1rem; --text-lead: 1rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+  --color-error: oklch(50% 0.19 27); --color-success: oklch(50% 0.12 150);
+  --container: 1760px; --gutter: 32px; --gap-columns: 24px; --section-gap-s: 120px; --section-gap: 144px; --section-gap-l: 176px;
+  --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
+
+  /* Papier de carnet, encre brun-noir, l'orange de l'icône comme seul signal */
+  --color-paper: oklch(95.5% 0.007 70); --color-paper-2: oklch(92.5% 0.009 70); --color-paper-3: oklch(89% 0.011 68);
+  --color-sheet: oklch(98.6% 0.004 75);
+  --color-ink: oklch(21% 0.014 55); --color-ink-2: oklch(34% 0.013 55); --color-muted: oklch(47% 0.012 60);
+  --color-rule: oklch(87.5% 0.012 65); --color-rule-2: oklch(30% 0.013 55);
+  --color-accent: oklch(65.5% 0.178 38); --color-accent-2: oklch(51% 0.165 37); --color-accent-hover: oklch(61% 0.18 38); --color-accent-ink: oklch(19% 0.03 40); --color-focus: oklch(56% 0.19 38);
+  --color-scrim: oklch(20% 0.014 55 / 0.62); --color-on-ink: oklch(96% 0.006 70);
+  --color-note-ink: oklch(23% 0.014 55); --color-note-ink-dark: oklch(93% 0.01 70); --color-note-muted: oklch(23% 0.014 55 / 0.66);
+  --shadow-lift: 0 1px 2px oklch(25% 0.02 55 / 0.06), 0 8px 24px oklch(25% 0.02 55 / 0.08);
+  --shadow-sheet: 0 24px 64px oklch(20% 0.02 55 / 0.28);
+
+  --font-display: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Newsreader", ui-serif, Georgia, serif;
+  --font-ui: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-outlier: "IBM Plex Mono", ui-monospace, monospace;
+  --radius-card: 10px; --radius-input: 6px; --radius-pill: 999px; --rule-hair: 1px; --rule-bar: 2px; --shadow-card: none;
+  --tracking-display: -0.02em; --display-weight: 600;
+  --top-h: 64px; --index-w: 248px;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: oklch(17% 0.01 60); --color-paper-2: oklch(20.5% 0.011 60); --color-paper-3: oklch(24% 0.012 60);
+    --color-sheet: oklch(21.5% 0.011 60);
+    --color-ink: oklch(94% 0.009 70); --color-ink-2: oklch(84% 0.01 70); --color-muted: oklch(70% 0.012 65);
+    --color-rule: oklch(30% 0.012 60); --color-rule-2: oklch(82% 0.01 70);
+    --color-accent: oklch(71% 0.155 40); --color-accent-2: oklch(76% 0.14 42); --color-accent-hover: oklch(76% 0.14 42); --color-accent-ink: oklch(18% 0.03 40); --color-focus: oklch(74% 0.16 40);
+    --color-error: oklch(72% 0.15 27);
+    --color-scrim: oklch(8% 0.01 60 / 0.72); --color-on-ink: oklch(17% 0.01 60);
+    --shadow-lift: 0 0 0 1px oklch(36% 0.012 60); --shadow-sheet: 0 0 0 1px oklch(34% 0.012 60);
+  }
+}

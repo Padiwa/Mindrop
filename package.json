@@ -5,10 +5,13 @@
   "license": "AGPL-3.0-or-later",
   "description": "Mindrop : extension de navigateur, second cerveau local, avec pont MCP et sauvegarde automatique.",
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "npm run test:node && npm run test:browser",
     "test:node": "node --test \"tests/node/*.test.mjs\"",
-    "test:browser": "node tests/run-browser.mjs"
+    "test:browser": "node tests/run-browser.mjs",
+    "site": "node scripts/build-site.mjs"
   }
 }

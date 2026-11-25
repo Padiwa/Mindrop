@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mindrop guide</title>
+<meta name="description" content="Mindrop keeps your pages, links, Markdown notes, quotes, images and videos in your browser, connects them with tags and [[links]], and lets an AI agent search them. Free and 100% local.">
+<link rel="icon" href="../assets/icon48.png">
+<link rel="alternate" hreflang="fr" href="../fr/guide.html">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="doc">
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav">
+  <div class="container nav-row">
+    <a class="wordmark" href="../index.html"><img src="../assets/icon48.png" alt="" width="28" height="28">Mindrop</a>
+    <nav aria-label="Main">
+      <a href="guide.html" aria-current="page">Guide</a>
+      <a href="local-bridge.html">Local bridge</a>
+      <a href="../fr/guide.html" hreflang="fr" lang="fr" title="Lire en français">Français</a>
+      
+    </nav>
+  </div>
+</header>
+<div class="container doc-grid">
+  <nav class="toc" aria-label="On this page">
+    <details open>
+      <summary class="toc-head">On this page</summary>
+      <ol><li><a href="#install">Install</a></li><li><a href="#save">Save</a></li><li><a href="#the-mindrop-page">The Mindrop page</a></li><li><a href="#markdown-notes">Markdown notes</a></li><li><a href="#connect-tags-and-links">Connect: tags and links</a></li><li><a href="#mind-map">Mind map</a></li><li><a href="#local-bridge-ai-agent-and-backups">Local bridge: AI agent and backups</a></li><li><a href="#good-to-know">Good to know</a></li><li><a href="#development">Development</a></li><li><a href="#license">License</a></li></ol>
+    </details>
+  </nav>
+  <main id="main" class="prose">
+<h1>Mindrop guide</h1>
+<p>Mindrop is a second brain that lives in your browser. It keeps the pages, links, notes, quotes, images and videos that matter to you, lets you connect them with #tags and <code>[[title]]</code> links, and lets you browse them as a mosaic or a mind map.</p>
+<p>Everything is stored <strong>locally</strong> in your browser: no account, no server, nothing is sent over the Internet.</p>
+<h2 id="install">Install</h2>
+<p>Mindrop runs in Chromium-based browsers: Chrome, Brave, Edge, Chromium, Vivaldi. It is not on the Chrome Web Store (yet), so you install it from its folder.</p>
+<ol><li>Get the extension folder from GitHub: the <strong>Code</strong> button, then <strong>Download ZIP</strong> (and unzip it), or <code>git clone</code> the repository. Keep it somewhere it will stay: the browser reads it every time it starts.</li><li>Open <code>chrome://extensions</code> (or <code>brave://extensions</code>, <code>edge://extensions</code>).</li><li>Turn on <strong>Developer mode</strong> (top right).</li><li>Click <strong>Load unpacked</strong> and choose the extension folder (the one that contains <code>manifest.json</code>).</li><li>Pin the orange icon to the toolbar (puzzle icon, then the pin).</li></ol>
+<p>To update: replace the folder’s content with the new version (or <code>git pull</code>), then click Mindrop’s reload button on the extensions page. Your memories stay.</p>
+<h2 id="save">Save</h2>
+<div class="table"><table><thead><tr><th scope="col">How</th><th scope="col">What it does</th></tr></thead><tbody><tr><td>Click the icon, or <code>Alt+Shift+S</code></td><td>A window with the page preview, its title, a personal note and #tags. The <strong>Note</strong> tab is for a quick thought.</td></tr><tr><td><code>Alt+Shift+D</code></td><td>Saves the current page at once, without a window (a ✓ shows on the icon).</td></tr><tr><td>Right-click selected text</td><td>“Save the selection as a quote”.</td></tr><tr><td>Right-click a link or an image</td><td>“Save this link”, “Save this image”.</td></tr><tr><td>Select text, then click the icon</td><td>Offers to keep the selection as a quote.</td></tr></tbody></table></div>
+<p>The interface is in French for now: menus and buttons use their French labels (“Enregistrer la sélection comme citation”, “Enregistrer ce lien”…).</p>
+<p>When it saves a page, Mindrop also keeps its <strong>main text</strong> (the article, without the menus), so you can find it again by searching. For a YouTube video, it fetches the real title, channel and thumbnail.</p>
+<h2 id="the-mindrop-page">The Mindrop page</h2>
+<p>Open it with <code>Alt+Shift+M</code>, the “Ouvrir Mindrop” link in the window, or a right-click on the icon.</p>
+<ul><li><strong>A mosaic</strong> of all your memories: page captures, coloured notes, quotes, images, videos.</li><li><strong>An index</strong> in the left margin: filters by type (links, notes, quotes, images, videos, pinned) and by tag, with how many memories each has.</li><li><strong>Instant search</strong> (<code>/</code> key). It ignores accents and case, and it is tolerant: a word also finds its plurals and variants (“methods” finds “méthodes”, “typography” finds “typographie”) and words one or two letters off. It also covers the saved page text. <code>#design</code> filters by tag.</li><li><strong>A detail sheet</strong> on click: title, note, tags, colour, pin, delete, and the page text kept when it was saved.</li><li><strong>Write an idea directly</strong> in the top area (<code>Ctrl+Enter</code> to keep it); pasting an address saves it as a link.</li><li><strong>Drag and drop</strong> or <strong>paste</strong> (<code>Ctrl+V</code>) an image, a link or some text onto the page.</li><li><strong>Redécouvrir</strong> (rediscover) brings back a random memory.</li><li><strong>Exporter and Importer</strong> (export and import): a JSON backup, also handy to move from one browser to another.</li></ul>
+<h2 id="markdown-notes">Markdown notes</h2>
+<p>Notes are written in Markdown: <code># title</code>, <code>**bold**</code>, <code>*italic*</code>, <code>~~strikethrough~~</code>, <code>`code`</code>, lists (<code>-</code>, <code>1.</code>), checkboxes (<code>- [ ] task</code>), quotes (<code>&gt;</code>), code blocks and <code>[text](https://…)</code> links.</p>
+<ul><li>Checkboxes can be ticked right on the mosaic card.</li><li>A note’s sheet has two tabs: <strong>Écrire</strong> (write) and <strong>Aperçu</strong> (preview). <code>Ctrl+E</code> switches between them; double-click the preview to write.</li><li>Personal notes on links and images are shown as Markdown too.</li></ul>
+<h2 id="connect-tags-and-links">Connect: tags and links</h2>
+<ul><li><strong>Tags</strong>: while you type in a tag field (popup, writing area, sheet), the tags you already use are suggested, most frequent first. Arrow keys to choose, Enter or Tab to accept, Escape to close.</li><li><strong>Links between memories</strong>: write <code>[[Title]]</code>, or <code>[[Title|label]]</code>, in a note or a personal note to cite another memory. A note’s title is its first line; accents and capitals do not matter.<ul><li>Typing <code>[[</code> suggests existing titles.</li><li>A link opens with a click. A link to a title that does not exist yet is dashed: a click creates the note.</li><li>The sheet lists <strong>Renvoie vers</strong> (links to) and <strong>Cité par</strong> (cited by).</li></ul></li></ul>
+<h2 id="mind-map">Mind map</h2>
+<p>The <strong>Carte mentale</strong> (mind map) button shows your memories around their tags.</p>
+<ul><li>Each #tag is a bubble connected to “Mindrop”; dotted lines connect tags that share memories.</li><li>As you zoom (wheel, trackpad, + and − buttons), memories appear around their first tag, with a thread to each of their other tags.</li><li><code>[[title]]</code> links between memories are drawn in orange.</li><li>Click a tag to zoom on it; drag a tag to move it (its position is remembered). <strong>Réorganiser</strong> (rearrange) lays the map out again, <strong>Tout voir</strong> (show all) or the 0 key fits everything.</li><li>Hovering a tag or a card highlights its links.</li></ul>
+<h2 id="local-bridge-ai-agent-and-backups">Local bridge: AI agent and backups</h2>
+<p>The <code>mcp/</code> folder installs a bridge between the extension and your computer, without going through the Internet. It brings:</p>
+<ul><li><strong>automatic backups</strong> of all your memories, images included, on your disk, with restore from the Mindrop page;</li><li>an <strong>MCP server</strong>, so an AI agent (Claude Code, pi or any MCP client) can search Mindrop, read-only, with a switch to cut access.</li></ul>
+<p>Setup and use: see the <strong><a href="local-bridge.html">Local bridge</a></strong> guide.</p>
+<h2 id="good-to-know">Good to know</h2>
+<ul><li>If a shortcut does not work, the browser probably already uses it: pick another one in <code>chrome://extensions/shortcuts</code>.</li><li>The browser’s internal pages (<code>chrome://</code>, the Web Store) cannot be captured: the Note tab still works.</li><li>Uninstalling the extension deletes its data: export first, or install the local bridge for automatic backups on your disk.</li><li>For local files (<code>file://</code>), turn on “Allow access to file URLs” in the extension’s details.</li><li>The fonts ship in <code>fonts/</code>: nothing is loaded from the Internet.</li></ul>
+<h2 id="development">Development</h2>
+<p>Mindrop has no dependencies. Tests need Node 22 or later, and a Chromium browser for the browser tests (set <code>CHROME_PATH</code> if it is not found on its own):</p>
+<pre data-lang="sh"><code>npm test               # everything
+npm run test:node      # search, links, local bridge, MCP server
+npm run test:browser   # IndexedDB storage, Markdown rendering, backups, suggestions
+npm run site           # rebuilds the documentation site (docs/ folder)</code></pre>
+<h2 id="license">License</h2>
+<p>Mindrop is free software, released under the <strong>GNU Affero General Public License, version 3 or any later version</strong> (AGPL-3.0-or-later): see the <a href="../assets/LICENSE.txt">LICENSE</a> file. You may use, study, change and share it; any modified version you distribute, or offer to others over a network, must stay under the same license, with its source code.</p>
+<p>The fonts in <code>fonts/</code> keep their own license, the SIL Open Font License 1.1: Hanken Grotesk (<a href="../assets/fonts/OFL-HankenGrotesk.txt">OFL-HankenGrotesk.txt</a>), Newsreader (<a href="../assets/fonts/OFL-Newsreader.txt">OFL-Newsreader.txt</a>) and IBM Plex Mono (<a href="../assets/fonts/OFL-IBMPlexMono.txt">OFL-IBMPlexMono.txt</a>).</p>
+  </main>
+</div>
+<footer class="foot">
+  <div class="container foot-grid">
+    <p class="foot-mark"><img src="../assets/icon48.png" alt="" width="32" height="32">Mindrop</p>
+    <p class="foot-line">Free software under the AGPL-3.0-or-later. Fonts under the SIL Open Font License 1.1.</p>
+    <nav class="foot-links" aria-label="Documentation">
+      <a href="guide.html">Guide</a>
+      <a href="local-bridge.html">Local bridge</a>
+      <a href="../assets/LICENSE.txt">License</a>
+      <a href="../fr/guide.html" hreflang="fr" lang="fr">Français</a>
+      
+    </nav>
+    
+  </div>
+</footer>
+<script>/* sommaire replié sur petit écran (ouvert sans script) */ if (matchMedia('(max-width: 60rem)').matches) document.querySelector('.toc details').open = false;</script>
+</body>
+</html>

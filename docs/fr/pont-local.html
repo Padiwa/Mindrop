@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pont local : agent IA (MCP) et sauvegarde automatique, Mindrop</title>
+<meta name="description" content="Mindrop garde tes pages, liens, notes Markdown, citations, images et vidéos dans ton navigateur, les relie par des tags et des [[liens]], et laisse un agent IA y chercher. Libre et 100 % local.">
+<link rel="icon" href="../assets/icon48.png">
+<link rel="alternate" hreflang="en" href="../en/local-bridge.html">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="doc">
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="nav">
+  <div class="container nav-row">
+    <a class="wordmark" href="index.html"><img src="../assets/icon48.png" alt="" width="28" height="28">Mindrop</a>
+    <nav aria-label="Principale">
+      <a href="guide.html">Guide</a>
+      <a href="pont-local.html" aria-current="page">Pont local</a>
+      <a href="../en/local-bridge.html" hreflang="en" lang="en" title="Read in English">English</a>
+      
+    </nav>
+  </div>
+</header>
+<div class="container doc-grid">
+  <nav class="toc" aria-label="Sur cette page">
+    <details open>
+      <summary class="toc-head">Sur cette page</summary>
+      <ol><li><a href="#comment-ca-marche">Comment ça marche</a></li><li><a href="#prerequis">Prérequis</a></li><li><a href="#installation">Installation</a></li><li><a href="#utilisation">Utilisation</a></li><li><a href="#mise-a-jour-depannage-et-desinstallation">Mise à jour, dépannage et désinstallation</a></li><li><a href="#activer-ou-desactiver-l-acces-des-agents">Activer ou désactiver l’accès des agents</a></li><li><a href="#sauvegarde-automatique">Sauvegarde automatique</a></li><li><a href="#noms-techniques">Noms techniques</a></li><li><a href="#confidentialite">Confidentialité</a></li></ol>
+    </details>
+  </nav>
+  <main id="main" class="prose">
+<h1>Pont local : agent IA (MCP) et sauvegarde automatique</h1>
+<p>Le pont local relie l’extension à ton ordinateur. Une fois installé (une seule fois, voir « Installation »), il apporte deux choses :</p>
+<ul><li><strong>un serveur MCP</strong> : un agent IA (Claude Code ou tout client MCP) peut <strong>chercher dans Mindrop</strong>, en <strong>lecture seule</strong> ;</li><li><strong>la sauvegarde automatique</strong> : une copie complète, images comprises, écrite sur ton disque après chaque changement.</li></ul>
+<p>Rien ne passe par Internet.</p>
+<h2 id="comment-ca-marche">Comment ça marche</h2>
+<p>Un programme extérieur au navigateur ne peut pas lire les données d’une extension. Un pont fait donc le lien :</p>
+<pre><code>Extension  ──(native messaging)──▶  mcp/host.mjs  ──écrit──▶  brain.json  ◀──lit──  mcp/server.mjs  ◀──MCP──  Agent</code></pre>
+<ol><li>À chaque ajout, modification ou suppression, l’extension envoie une copie de tes souvenirs à <code>mcp/host.mjs</code>. Elle passe par le « native messaging », le mécanisme officiel de Chrome pour parler à un programme local : <strong>rien ne passe par le réseau</strong>.</li><li><code>host.mjs</code> écrit cette copie dans un fichier lisible par toi seul :<ul><li>Linux : <code>~/.local/share/second-cerveau/brain.json</code></li><li>macOS : <code>~/Library/Application Support/second-cerveau/brain.json</code></li></ul></li><li>Quand l’agent appelle un outil, <code>mcp/server.mjs</code> lit ce fichier. Il le relit dès qu’il a changé.</li></ol>
+<p>Les images enregistrées directement dans l’extension (captures, images déposées) ne sont pas copiées, seulement les liens web vers des images.</p>
+<h2 id="prerequis">Prérequis</h2>
+<ul><li><strong>Node.js 18 ou plus</strong> (<code>node --version</code>).</li><li>Un navigateur Chromium : Chrome, Chromium, Brave, Edge ou Vivaldi.</li><li><strong>Linux ou macOS.</strong> Sous Windows, l’hôte natif s’enregistre dans le registre, ce que le script d’installation ne fait pas.</li><li>L’extension Mindrop chargée dans le navigateur (voir le <a href="guide.html">guide</a>).</li></ul>
+<h2 id="installation">Installation</h2>
+<h3 id="1-recuperer-l-id-de-l-extension">1. Récupérer l’id de l’extension</h3>
+<p>Ouvre <code>chrome://extensions</code> (ou <code>brave://extensions</code>, <code>edge://extensions</code>) et active le <strong>Mode développeur</strong>. L’id est la suite de 32 lettres affichée sous le nom de l’extension, par exemple <code>abcdefghijklmnopabcdefghijklmnop</code>.</p>
+<p>L’id d’une extension chargée « non empaquetée » dépend de son dossier : si tu déplaces le dossier, l’id change. Il faut alors refaire cette installation, et tes données ne suivent pas : exporte-les d’abord.</p>
+<h3 id="2-enregistrer-le-pont">2. Enregistrer le pont</h3>
+<p>Depuis le dossier du projet :</p>
+<pre data-lang="sh"><code>node mcp/install.mjs &lt;id-de-l-extension&gt;</code></pre>
+<p>Le script :</p>
+<ul><li>crée un petit lanceur <code>host.sh</code> à côté du fichier de données, avec le chemin complet de ton Node (le navigateur lance les programmes avec un <code>PATH</code> réduit) ;</li><li>enregistre le pont pour chaque navigateur trouvé, dans son dossier <code>NativeMessagingHosts</code>, en n’autorisant que ton extension ;</li><li>affiche la commande exacte à utiliser à l’étape 4.</li></ul>
+<h3 id="3-recharger-l-extension">3. Recharger l’extension</h3>
+<p>Dans la page des extensions, clique sur le bouton de rechargement de Mindrop. Accepte la nouvelle permission « communiquer avec des applications natives » si le navigateur la demande.</p>
+<p>La première copie part tout de suite. Vérifie qu’elle est arrivée :</p>
+<pre data-lang="sh"><code>ls -l ~/.local/share/second-cerveau/brain.json</code></pre>
+<h3 id="4-brancher-le-serveur-sur-ton-agent">4. Brancher le serveur sur ton agent</h3>
+<p><strong>Claude Code :</strong></p>
+<pre data-lang="sh"><code>claude mcp add mindrop -- node /chemin/vers/l-extension/mcp/server.mjs</code></pre>
+<p>Ajoute <code>--scope user</code> pour qu’il soit disponible dans tous tes projets, pas seulement dans le dossier courant. Vérifie avec <code>claude mcp list</code>, ou <code>/mcp</code> dans une session.</p>
+<p><strong>Autre client MCP</strong> (Claude Desktop, Cursor, pi…) : déclare un serveur stdio dans sa configuration :</p>
+<pre data-lang="json"><code>{
+  &quot;mcpServers&quot;: {
+    &quot;mindrop&quot;: {
+      &quot;command&quot;: &quot;node&quot;,
+      &quot;args&quot;: [&quot;/chemin/vers/l-extension/mcp/server.mjs&quot;]
+    }
+  }
+}</code></pre>
+<p>Si le client ne trouve pas <code>node</code>, mets son chemin complet dans <code>command</code> (donné par <code>which node</code>).</p>
+<h2 id="utilisation">Utilisation</h2>
+<p>Demande simplement à l’agent, par exemple :</p>
+<ul><li>« Cherche dans Mindrop ce que j’ai gardé sur la typographie. »</li><li>« Quels sont mes tags principaux, et comment sont-ils liés ? »</li><li>« Retrouve la citation de Luhmann et montre-moi les souvenirs proches. »</li><li>« Résume les liens que j’ai enregistrés ce mois-ci avec le tag #design. »</li></ul>
+<h3 id="outils-exposes">Outils exposés</h3>
+<div class="table"><table><thead><tr><th scope="col">Outil</th><th scope="col">Ce qu’il fait</th><th scope="col">Paramètres</th></tr></thead><tbody><tr><td><code>search_memories</code></td><td>Recherche dans titres, textes, notes, tags, descriptions, URL et texte des pages. Insensible aux accents et à la casse, tolérante aux pluriels, variantes et fautes de frappe (la même recherche que dans l’extension).</td><td><code>query</code> (<code>#tag</code> filtre par tag ; vide = les plus récents), <code>type</code> (<code>link</code>, <code>note</code>, <code>quote</code>, <code>image</code>, <code>video</code>), <code>tags</code>, <code>pinned</code>, <code>since</code>, <code>until</code> (dates ISO), <code>limit</code>, <code>offset</code></td></tr><tr><td><code>get_memory</code></td><td>Contenu complet d’un souvenir : texte en Markdown, note perso, description, tags, dates, le texte de la page gardé à l’enregistrement (par tranches de 30 000 caractères), et ses liens <code>[[titre]]</code> dans les deux sens.</td><td><code>id</code>, <code>contentOffset</code></td></tr><tr><td><code>list_tags</code></td><td>Tous les tags avec leur nombre de souvenirs, et pour chacun les tags qui reviennent le plus souvent avec lui.</td><td>aucun</td></tr><tr><td><code>related_memories</code></td><td>Souvenirs reliés à un souvenir donné : d’abord par un lien <code>[[titre]]</code> (dans un sens ou l’autre), puis par les tags partagés.</td><td><code>id</code>, <code>limit</code></td></tr></tbody></table></div>
+<p>Bon à savoir sur la recherche :</p>
+<ul><li>Tous les mots doivent être présents. Si aucun souvenir ne les contient tous, la recherche renvoie ceux qui en contiennent au moins un et l’indique (<code>&quot;mode&quot;: &quot;any&quot;</code>).</li><li>Elle tolère pluriels, variantes (« typographie » trouve « Typography ») et fautes de frappe, mais ne connaît pas les synonymes : l’agent peut reformuler.</li><li>Chaque réponse indique <code>syncedAt</code>, la date de la dernière copie reçue de l’extension.</li></ul>
+<h2 id="mise-a-jour-depannage-et-desinstallation">Mise à jour, dépannage et désinstallation</h2>
+<p><strong>Quand relancer <code>node mcp/install.mjs &lt;id&gt;</code> :</strong> si tu déplaces le dossier du projet, si l’id de l’extension change ou si tu changes de version de Node.</p>
+<p><strong>L’agent dit qu’aucune copie n’est trouvée :</strong></p>
+<ol><li>Vérifie que <code>brain.json</code> existe (commande de l’étape 3).</li><li>Recharge l’extension pour forcer une copie.</li><li>Vérifie que le fichier du pont existe pour ton navigateur, par exemple pour Chrome : <code>~/.config/google-chrome/NativeMessagingHosts/com.second_cerveau.bridge.json</code>. Son champ <code>allowed_origins</code> doit contenir l’id actuel de l’extension.</li><li>Teste le lanceur à la main : <code>~/.local/share/second-cerveau/host.sh</code> doit démarrer sans erreur (quitte avec Ctrl+C).</li></ol>
+<p><strong>Les résultats semblent anciens :</strong> regarde <code>syncedAt</code> dans la réponse. La copie part environ une seconde après chaque changement ; l’extension doit être active dans un navigateur ouvert.</p>
+<p><strong>Tout retirer :</strong></p>
+<pre data-lang="sh"><code>node mcp/install.mjs --uninstall
+claude mcp remove mindrop</code></pre>
+<p>La copie et les sauvegardes restent sur le disque ; supprime le dossier <code>~/.local/share/second-cerveau/</code> si tu n’en veux plus.</p>
+<h2 id="activer-ou-desactiver-l-acces-des-agents">Activer ou désactiver l’accès des agents</h2>
+<p>Dans la page Mindrop, colonne de gauche, l’interrupteur <strong>Accès des agents</strong> contrôle ce que le serveur MCP peut lire. Il est activé par défaut.</p>
+<ul><li><strong>Activé :</strong> la copie lue par le serveur MCP est tenue à jour après chaque changement. Elle contient tous tes souvenirs sauf les images enregistrées dans l’extension (captures, images déposées) ; les liens vers des images web restent.</li><li><strong>Désactivé :</strong> la copie est <strong>effacée</strong> sur-le-champ et remplacée par un simple marqueur. Un agent qui interroge le serveur reçoit le message « L’accès des agents est désactivé », sans aucun souvenir.</li><li><strong>Réactivé :</strong> une copie à jour est réécrite immédiatement.</li></ul>
+<p>Sous l’interrupteur, une ligne indique l’état réel : nombre de souvenirs partagés, date de la dernière copie, ou pont non installé. L’interrupteur ne touche pas à la <strong>sauvegarde automatique</strong>, qui continue dans les deux cas.</p>
+<h2 id="sauvegarde-automatique">Sauvegarde automatique</h2>
+<p>Dès que le pont est installé, l’extension écrit une <strong>copie complète</strong> de tes souvenirs, images comprises, <strong>une minute après le dernier changement</strong> :</p>
+<ul><li>Linux : <code>~/.local/share/second-cerveau/backups/AAAA-MM-JJ.json</code></li><li>macOS : <code>~/Library/Application Support/second-cerveau/backups/AAAA-MM-JJ.json</code></li></ul>
+<p>Un fichier par jour, réécrit à chaque sauvegarde de la journée ; <strong>les 30 fichiers les plus récents</strong> sont gardés. Garde-fous :</p>
+<ul><li>si une sauvegarde contient <strong>moins de souvenirs</strong> que celle du jour (suppressions, extension réinstallée), l’ancienne n’est pas écrasée : elle est gardée sous le nom <code>AAAA-MM-JJ-HHMMSS.json</code> et apparaît dans la liste comme « version de HH:MM » ;</li><li>une base vide n’est jamais sauvegardée ;</li><li>une sauvegarde interrompue (navigateur fermé en plein envoi) ne remplace jamais la précédente.</li></ul>
+<p>Au démarrage du navigateur, une sauvegarde est refaite si la dernière date de plus d’un jour.</p>
+<p>Dans la page Mindrop, le bloc <strong>Sauvegarde</strong> en bas de la colonne de gauche montre la dernière sauvegarde et permet de :</p>
+<ul><li><strong>Sauvegarder maintenant</strong> ;</li><li><strong>Restaurer</strong> : choisis une date, puis clique une seconde fois pour confirmer. La restauration ajoute les souvenirs absents et remet à jour ceux qui sont plus anciens que dans la sauvegarde ; <strong>elle ne supprime jamais rien</strong>.</li></ul>
+<p>Les fichiers de sauvegarde ont le même format que l’export : le bouton <strong>Importer</strong> les accepte aussi, par exemple pour passer sur un autre ordinateur.</p>
+<h2 id="noms-techniques">Noms techniques</h2>
+<p>L’extension s’appelait « Second Cerveau » avant de devenir Mindrop. Quelques noms techniques ont gardé l’ancien nom, exprès : le dossier <code>~/.local/share/second-cerveau/</code> (copie et sauvegardes), le pont <code>com.second_cerveau.bridge</code> et la base de données interne de l’extension. Les renommer couperait le pont déjà installé, égarerait les sauvegardes et ferait disparaître les souvenirs. Ils ne s’affichent nulle part dans l’extension.</p>
+<h2 id="confidentialite">Confidentialité</h2>
+<ul><li>Tout reste sur ta machine : ni l’extension ni le serveur n’envoient quoi que ce soit sur Internet.</li><li>Le fichier <code>brain.json</code>, les sauvegardes et leur dossier ne sont lisibles que par ton compte.</li><li>Seule ton extension, désignée par son id, peut parler au pont.</li><li><strong>Ce que l’agent lit est transmis au modèle d’IA qu’il utilise.</strong> Si ton agent tourne avec un modèle en ligne, les souvenirs qu’il consulte partent vers ce service, comme tout ce que tu lui montres.</li></ul>
+  </main>
+</div>
+<footer class="foot">
+  <div class="container foot-grid">
+    <p class="foot-mark"><img src="../assets/icon48.png" alt="" width="32" height="32">Mindrop</p>
+    <p class="foot-line">Logiciel libre sous AGPL-3.0-or-later. Polices sous SIL Open Font License 1.1.</p>
+    <nav class="foot-links" aria-label="Documentation">
+      <a href="guide.html">Guide</a>
+      <a href="pont-local.html">Pont local</a>
+      <a href="../assets/LICENSE.txt">Licence</a>
+      <a href="../en/local-bridge.html" hreflang="en" lang="en">English</a>
+      
+    </nav>
+    
+  </div>
+</footer>
+<script>/* sommaire replié sur petit écran (ouvert sans script) */ if (matchMedia('(max-width: 60rem)').matches) document.querySelector('.toc details').open = false;</script>
+</body>
+</html>
