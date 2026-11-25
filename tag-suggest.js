@@ -2,6 +2,8 @@
 // Le mot en cours de frappe est complété avec les tags déjà utilisés, les plus fréquents d'abord.
 // Flèches : choisir · Entrée ou Tab : valider · Échap : fermer. Ctrl/Cmd+Entrée n'est jamais intercepté.
 
+import { t } from './i18n.js';
+
 const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 let uid = 0;
 
@@ -41,7 +43,7 @@ export function attachTagSuggest(input, getCounts) {
   list.id = id;
   list.className = 'tag-suggest';
   list.setAttribute('role', 'listbox');
-  list.setAttribute('aria-label', 'Tags existants');
+  list.setAttribute('aria-label', t('suggest.tags'));
   list.hidden = true;
   wrap.append(list);
   input.setAttribute('role', 'combobox');

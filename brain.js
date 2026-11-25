@@ -12,19 +12,21 @@ import { withVideoInfo } from './video.js';
 import { attachTagSuggest, tagCounts } from './tag-suggest.js';
 import { runBackup, getBackupStatus, listBackups, readBackup, STATUS_KEY } from './backup.js';
 import { isAgentEnabled, setAgentEnabled, syncAgent, getAgentSync, SYNC_KEY } from './agent.js';
+import { t, lang, locale, loadLang, translatePage, getLangPref, setLangPref, onLangChange } from './i18n.js';
+
+// La langue est chargée avant le premier affichage ; le HTML statique est traduit tout de suite.
+await loadLang();
+translatePage();
 
 const $ = s => document.querySelector(s);
 let savedView = 'grid';
 try { savedView = localStorage.getItem('view') || 'grid'; } catch {}
 const state = { items: [], q: '', type: 'all', tag: '', openId: null, view: savedView, graph: buildLinkGraph([]), hits: null };
 
-const TYPES = [
-  ['all', 'Tout'], ['link', 'Liens'], ['note', 'Notes'], ['quote', 'Citations'],
-  ['image', 'Images'], ['video', 'Vidéos'], ['pinned', 'Épinglés'],
-];
+const TYPES = ['all', 'link', 'note', 'quote', 'image', 'video', 'pinned'];
 const COLORS = ['', '#fff1b8', '#ffd9cc', '#d9f0dc', '#d6e6fb', '#e9defc', '#26241f'];
 const DARK = '#26241f';
-const rtf = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' });
+const rtf = new Intl.RelativeTimeFormat(lang(), { numeric: 'auto' });
 
 // ---------- utilitaires ----------
 function h(tag, attrs = {}, ...kids) {
@@ -53,7 +55,7 @@ function ago(ts) {
     if (Math.abs(diff) < lim) return rtf.format(Math.round(diff / div[unit]), unit);
   }
 }
-const fullDate = ts => new Date(ts).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
+const fullDate = ts => new Date(ts).toLocaleString(locale(), { dateStyle: 'long', timeStyle: 'short' });
 
 let toastTimer;
 function toast(msg) {
@@ -99,10 +101,11 @@ function render() {
     : (b.pinned - a.pinned) || (b.createdAt - a.createdAt));
 
   const n = state.items.length;
-  $('#count').textContent = n ? `${n} souvenir${n > 1 ? 's' : ''}` : 'Vide pour l’instant';
+  $('#count').textContent = n ? t('count.memories', { n }) : t('count.empty');
 
   // types
-  $('#types').replaceChildren(...TYPES.map(([id, label]) => {
+  $('#types').replaceChildren(...TYPES.map(id => {
+    const label = t('filter.' + id);
     const c = id === 'all' ? n : id === 'pinned' ? state.items.filter(x => x.pinned).length : state.items.filter(x => x.type === id).length;
     if (id !== 'all' && !c) return '';
     return h('button', { type: 'button', class: 'chip' + (state.type === id ? ' on' : ''), 'aria-pressed': String(state.type === id), onclick: () => { state.type = id; render(); } },
@@ -139,12 +142,12 @@ function render() {
   empty.hidden = list.length > 0;
   if (!list.length) {
     empty.replaceChildren(n
-      ? h('p', {}, 'Rien ne correspond à cette recherche.')
+      ? h('p', {}, t('empty.noMatch'))
       : h('div', {},
-          h('h2', {}, 'Mindrop t’attend.'),
-          h('p', {}, 'Clique sur l’icône de l’extension sur n’importe quelle page, fais un clic droit sur une image, un lien ou un texte sélectionné, ou dépose quelque chose ici.'),
+          h('h2', {}, t('empty.title')),
+          h('p', {}, t('empty.body')),
           h('dl', { class: 'kbd' },
-            [['S', 'ouvrir'], ['D', 'enregistrer direct'], ['M', 'cette page']].map(([k, what]) => h('div', {},
+            [['S', t('empty.kOpen')], ['D', t('empty.kSave')], ['M', t('empty.kPage')]].map(([k, what]) => h('div', {},
               h('dt', {}, h('kbd', {}, 'Alt'), ' ', h('kbd', {}, 'Shift'), ' ', h('kbd', {}, k)),
               h('dd', {}, what))))));
   }
@@ -176,7 +179,7 @@ function card(it) {
     onclick: () => openModal(it.id),
     onkeydown: e => { if (e.key === 'Enter' && e.target === e.currentTarget) openModal(it.id); },
   });
-  if (it.pinned) c.append(h('span', { class: 'pin', title: 'Épinglé' }, icon('star', { filled: true })));
+  if (it.pinned) c.append(h('span', { class: 'pin', title: t('card.pinned') }, icon('star', { filled: true })));
 
   if (it.type === 'note') {
     c.append(h('div', { class: 'note-text md md-clamp' }, renderMarkdown(it.text, {
@@ -221,7 +224,7 @@ function openModal(id, { write = false } = {}) {
     media.classList.add('text');
     if (it.color) { media.style.setProperty('--card', it.color); media.classList.toggle('dark', it.color === DARK); }
     else media.style.removeProperty('--card');
-    const ta = h('textarea', { class: it.type === 'quote' ? 'quote-edit' : 'note-edit', placeholder: 'Écris…' });
+    const ta = h('textarea', { class: it.type === 'quote' ? 'quote-edit' : 'note-edit', placeholder: t('sheet.write') });
     ta.value = it.text;
     ta.addEventListener('input', () => save({ text: ta.value }));
     if (it.type === 'note') noteEditor(media, ta, save, write);
@@ -234,16 +237,16 @@ function openModal(id, { write = false } = {}) {
   }
 
   // panneau latéral
-  const title = h('textarea', { class: 'm-title', rows: 1, placeholder: 'Titre' });
+  const title = h('textarea', { class: 'm-title', rows: 1, placeholder: t('sheet.title'), 'aria-label': t('sheet.title') });
   title.value = it.title;
   title.addEventListener('input', () => { autoGrow(title); save({ title: title.value }); });
 
-  const note = h('textarea', { class: 'm-note', rows: 5, placeholder: 'Mes notes, pourquoi je garde ça…' });
+  const note = h('textarea', { class: 'm-note', rows: 5, placeholder: t('sheet.notePlaceholder'), 'aria-label': t('sheet.notes') });
   note.value = it.note;
   note.addEventListener('input', () => save({ note: note.value }));
   attachLinkSuggest(note, () => linkEntries(id));
 
-  const tags = h('input', { class: 'm-tags', placeholder: '#tags séparés par des espaces', 'aria-label': 'Tags' });
+  const tags = h('input', { class: 'm-tags', placeholder: t('sheet.tagsPlaceholder'), 'aria-label': t('sheet.tags') });
   tags.value = it.tags.map(t => '#' + t).join(' ');
   // branché avant la touche Entrée ci-dessous : Entrée choisit d'abord un tag proposé
   const tagField = attachTagSuggest(tags, () => tagCounts(state.items));
@@ -253,17 +256,17 @@ function openModal(id, { write = false } = {}) {
   const swatches = h('div', { class: 'swatches' }, COLORS.map(col =>
     h('button', {
       class: 'sw' + ((it.color || '') === col ? ' on' : ''), style: `--sw:${col || 'var(--surface)'}`,
-      type: 'button', title: col ? 'Couleur' : 'Aucune', 'aria-label': col ? 'Couleur ' + col : 'Aucune couleur', 'aria-pressed': String((it.color || '') === col), onclick: () => patchAndReopen(id, { color: col }),
+      type: 'button', title: col ? t('sheet.color') : t('sheet.noColor'), 'aria-label': col ? t('sheet.colorN', { c: col }) : t('sheet.noColor'), 'aria-pressed': String((it.color || '') === col), onclick: () => patchAndReopen(id, { color: col }),
     })));
 
   const pin = h('button', { type: 'button', class: 'ghost' + (it.pinned ? ' on' : ''), 'aria-pressed': String(!!it.pinned), onclick: () => patchAndReopen(id, cur => ({ pinned: !cur.pinned })) },
-    icon('star', { filled: it.pinned }), it.pinned ? 'Épinglé' : 'Épingler');
+    icon('star', { filled: it.pinned }), it.pinned ? t('sheet.pinned') : t('sheet.pin'));
 
   let armed = false;
   const del = h('button', { type: 'button', class: 'ghost danger', onclick: async () => {
-    if (!armed) { armed = true; del.textContent = 'Confirmer la suppression ?'; setTimeout(() => { armed = false; del.textContent = 'Supprimer'; }, 3000); return; }
-    await deleteItem(id); closeModal(); toast('Souvenir supprimé');
-  } }, 'Supprimer');
+    if (!armed) { armed = true; del.textContent = t('sheet.confirmDelete'); setTimeout(() => { armed = false; del.textContent = t('sheet.delete'); }, 3000); return; }
+    await deleteItem(id); closeModal(); toast(t('sheet.deleted'));
+  } }, t('sheet.delete'));
 
   const side = $('#m-side');
   side.replaceChildren(...[
@@ -271,13 +274,13 @@ function openModal(id, { write = false } = {}) {
     it.url && h('a', { class: 'm-url', href: it.url, target: '_blank', rel: 'noopener' }, source(it), icon('external', { cls: 'ico arrow' })),
     it.description && h('p', { class: 'm-desc' }, it.description),
     it.content && pageText(it.content),
-    linkSection('Renvoie vers', state.graph.links(id).map(l => l.item ? { item: l.item } : { missing: l.target })),
-    linkSection('Cité par', state.graph.backlinks(id).map(item => ({ item }))),
-    h('label', {}, 'Notes'), note,
-    h('label', {}, 'Tags'), tagField.el,
-    h('label', {}, 'Couleur'), swatches,
+    linkSection(t('sheet.linksTo'), state.graph.links(id).map(l => l.item ? { item: l.item } : { missing: l.target })),
+    linkSection(t('sheet.citedBy'), state.graph.backlinks(id).map(item => ({ item }))),
+    h('label', {}, t('sheet.notes')), note,
+    h('label', {}, t('sheet.tags')), tagField.el,
+    h('label', {}, t('sheet.color')), swatches,
     h('div', { class: 'm-actions' }, pin, del),
-    h('p', { class: 'm-date' }, (({ link: 'Lien gardé', note: 'Note gardée', quote: 'Citation gardée', image: 'Image gardée', video: 'Vidéo gardée' })[it.type] || 'Gardé') + ' le ' + fullDate(it.createdAt)),
+    h('p', { class: 'm-date' }, t('sheet.savedOn', { type: it.type, date: fullDate(it.createdAt) })),
   ].filter(Boolean));
   $('#modal').hidden = false;
   document.body.classList.add('locked');
@@ -287,15 +290,15 @@ function openModal(id, { write = false } = {}) {
 // Note en Markdown : onglets Écrire / Aperçu (Ctrl+E pour basculer).
 function noteEditor(media, ta, save, write = false) {
   media.classList.add('has-tabs');
-  const view = h('div', { class: 'md note-view', tabindex: 0, 'aria-label': 'Aperçu de la note' });
+  const view = h('div', { class: 'md note-view', tabindex: 0, 'aria-label': t('note.preview') });
   const draw = () => view.replaceChildren(renderMarkdown(ta.value, {
     wikilink,
     onToggle: (line, on) => { ta.value = toggleTask(ta.value, line, on); save({ text: ta.value }); draw(); },
   }));
   const tab = (m, label) => h('button', { type: 'button', role: 'tab', 'data-mode': m, onclick: () => setMode(m) }, label);
   const tabs = h('div', { class: 'md-bar' },
-    h('div', { class: 'md-tabs', role: 'tablist', 'aria-label': 'Mode de la note' }, tab('write', 'Écrire'), tab('view', 'Aperçu')),
-    h('p', { class: 'md-help' }, h('code', {}, '# titre'), h('code', {}, '**gras**'), h('code', {}, '*italique*'), h('code', {}, '- liste'), h('code', {}, '- [ ] tâche'), h('code', {}, '[lien](url)')));
+    h('div', { class: 'md-tabs', role: 'tablist', 'aria-label': t('note.mode') }, tab('write', t('note.write')), tab('view', t('note.view'))),
+    h('p', { class: 'md-help' }, ...(lang() === 'fr' ? ['# titre', '**gras**', '*italique*', '- liste', '- [ ] tâche', '[lien](url)', '[[Titre]]'] : ['# title', '**bold**', '*italic*', '- list', '- [ ] task', '[link](url)', '[[Title]]']).map(c => h('code', {}, c))));
   const help = tabs.querySelector('.md-help');
   function setMode(m) {
     ta.hidden = m !== 'write';
@@ -321,7 +324,7 @@ function noteEditor(media, ta, save, write = false) {
 function pageText(content) {
   const words = content.split(/\s+/).filter(Boolean).length;
   return h('details', { class: 'm-content' },
-    h('summary', {}, `Texte de la page (${words.toLocaleString('fr-FR')}\u00a0mot${words > 1 ? 's' : ''})`),
+    h('summary', {}, t('sheet.pageText', { n: words.toLocaleString(locale()) })),
     h('div', { class: 'm-content-body' }, content));
 }
 
@@ -344,16 +347,16 @@ function itemsChanged() {
 }
 
 // ---------- liens [[titre]] ----------
-const TYPE_LABEL = { link: 'Lien', note: 'Note', quote: 'Citation', image: 'Image', video: 'Vidéo' };
+const typeLabel = type => (['link', 'note', 'quote', 'image', 'video'].includes(type) ? t('type.' + type) : '');
 
 // Rendu d'un [[lien]] : ouvre le souvenir visé, ou crée la note s'il n'existe pas encore.
 function wikilink(target, label) {
   const hit = state.graph?.resolve(target);
   if (hit) {
-    return [h('a', { class: 'wikilink', href: '#', title: 'Ouvrir « ' + displayTitle(hit) + ' »',
+    return [h('a', { class: 'wikilink', href: '#', title: t('link.open', { t: displayTitle(hit) }),
       onclick: e => { e.preventDefault(); e.stopPropagation(); openModal(hit.id); } }, label)];
   }
-  return [h('button', { type: 'button', class: 'wikilink missing', title: 'Créer la note « ' + target + ' »',
+  return [h('button', { type: 'button', class: 'wikilink missing', title: t('link.create', { t: target }),
     onclick: e => { e.stopPropagation(); createLinkedNote(target); } }, label)];
 }
 
@@ -362,12 +365,12 @@ async function createLinkedNote(title) {
   state.items = [{ ...ITEM_DEFAULTS, ...it }, ...state.items];
   itemsChanged();
   openModal(it.id, { write: true });
-  toast('Note « ' + title + ' » créée');
+  toast(t('link.created', { t: title }));
 }
 
 // Titres proposés après « [[ » (sauf le souvenir en cours d'édition).
 function linkEntries(exceptId) {
-  return state.items.filter(x => x.id !== exceptId).map(x => ({ id: x.id, title: displayTitle(x), kind: TYPE_LABEL[x.type] || '' }));
+  return state.items.filter(x => x.id !== exceptId).map(x => ({ id: x.id, title: displayTitle(x), kind: typeLabel(x.type) }));
 }
 
 function linkSection(heading, rows) {
@@ -376,9 +379,9 @@ function linkSection(heading, rows) {
     h('h3', {}, `${heading} (${rows.length})`),
     h('ul', {}, rows.map(r => h('li', {}, r.item
       ? h('button', { type: 'button', class: 'm-link', onclick: () => openModal(r.item.id) },
-          h('span', { class: 'm-link-title' }, displayTitle(r.item)), h('span', { class: 'm-link-kind' }, TYPE_LABEL[r.item.type] || ''))
-      : h('button', { type: 'button', class: 'm-link missing', title: 'Créer cette note', onclick: () => createLinkedNote(r.missing) },
-          h('span', { class: 'm-link-title' }, r.missing), h('span', { class: 'm-link-kind' }, 'à créer'))))));
+          h('span', { class: 'm-link-title' }, displayTitle(r.item)), h('span', { class: 'm-link-kind' }, typeLabel(r.item.type)))
+      : h('button', { type: 'button', class: 'm-link missing', title: t('link.createThis'), onclick: () => createLinkedNote(r.missing) },
+          h('span', { class: 'm-link-title' }, r.missing), h('span', { class: 'm-link-kind' }, t('link.toCreate')))))));
 }
 
 function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
@@ -400,14 +403,14 @@ async function saveText(text, tags = '') {
   } else {
     await addItem({ type: 'note', text, tags });
   }
-  toast('Gardé en mémoire');
+  toast(t('toast.saved'));
 }
 
 async function saveFile(file) {
-  if (!file.type.startsWith('image/')) return toast('Seules les images peuvent être déposées');
+  if (!file.type.startsWith('image/')) return toast(t('toast.onlyImages'));
   const image = await shrinkImage(file, 1400, 0.82);
   await addItem({ type: 'image', image, title: file.name.replace(/\.[^.]+$/, '') });
-  toast('Image gardée');
+  toast(t('toast.imageSaved'));
 }
 
 function setupComposer() {
@@ -467,9 +470,9 @@ async function importJson(file) {
     const incoming = Array.isArray(data) ? data : data.items;
     if (!Array.isArray(incoming)) throw new Error('format');
     const { added } = await mergeItems(incoming);
-    toast(`${added} souvenir${added > 1 ? 's' : ''} importé${added > 1 ? 's' : ''}`);
+    toast(t('toast.imported', { n: added }));
   } catch (e) {
-    toast(e instanceof SyntaxError || e?.message === 'format' ? 'Fichier de sauvegarde invalide' : 'Échec de l’import : ' + (e?.message || e));
+    toast(e instanceof SyntaxError || e?.message === 'format' ? t('toast.badFile') : t('toast.importFailed', { e: e?.message || e }));
   }
 }
 
@@ -478,8 +481,8 @@ const map = createMap($('#map'), {
   onOpen: id => openModal(id),
   onZoom: k => {
     $('#map-hint').textContent = k < 0.4
-      ? 'Zoome (molette) sur un #tag pour voir les souvenirs qui y sont liés'
-      : 'Clique sur une carte pour l’ouvrir · glisse un #tag pour le déplacer';
+      ? t('map.hintFar')
+      : t('map.hintNear');
   },
 });
 
@@ -520,42 +523,42 @@ async function showAgentStatus(st) {
   el.classList.toggle('is-error', !!st && !st.ok && !st.notInstalled);
   if (!enabled) {
     el.textContent = st?.ok === false && !st.notInstalled
-      ? 'Désactivé, mais la copie n’a pas pu être effacée : ' + st.error
-      : 'Désactivé : les agents n’ont accès à aucun souvenir.';
+      ? t('agent.offFailed', { e: st.error })
+      : t('agent.off');
   } else if (st?.notInstalled) {
-    el.textContent = 'Activé, mais le pont local n’est pas installé (voir la documentation, « Pont local »).';
+    el.textContent = t('agent.notInstalled');
   } else if (st && !st.ok) {
-    el.textContent = 'Activé, dernière mise à jour en échec : ' + st.error;
+    el.textContent = t('agent.failed', { e: st.error });
   } else if (st?.enabled) {
-    el.textContent = `Activé : les agents lisent tes ${st.count} souvenir${st.count > 1 ? 's' : ''}, sans les images enregistrées. Copie à jour ${ago(st.at)}.`;
+    el.textContent = t('agent.on', { n: st.count, ago: ago(st.at) });
   } else {
-    el.textContent = 'Activé : en attente de la première copie.';
+    el.textContent = t('agent.waiting');
   }
 }
 
 $('#agent-toggle').addEventListener('change', async e => {
-  const t = e.currentTarget;
-  t.disabled = true;
-  await setAgentEnabled(t.checked);
+  const sw = e.currentTarget;
+  sw.disabled = true;
+  await setAgentEnabled(sw.checked);
   const st = await syncAgent();
-  t.disabled = false;
+  sw.disabled = false;
   showAgentStatus(st);
-  toast(t.checked ? 'Accès des agents activé' : 'Accès des agents désactivé');
+  toast(sw.checked ? t('agent.toastOn') : t('agent.toastOff'));
 });
 
 // ---------- sauvegarde automatique ----------
-const dayFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' });
-const sizeOf = b => (b > 1048576 ? (b / 1048576).toFixed(1) + '\u00a0Mo' : Math.max(1, Math.round(b / 1024)) + '\u00a0ko');
+const dayFmt = new Intl.DateTimeFormat(locale(), { dateStyle: 'long' });
+const sizeOf = b => (b > 1048576 ? (b / 1048576).toLocaleString(locale(), { maximumFractionDigits: 1 }) + '\u00a0' + t('size.mb') : Math.max(1, Math.round(b / 1024)) + '\u00a0' + t('size.kb'));
 
 async function showBackupStatus(st) {
   st ??= await getBackupStatus();
   const el = $('#backup-status');
   el.classList.toggle('is-error', !!st && !st.ok && !st.notInstalled);
   $('#backup-restore').disabled = !!st?.notInstalled;
-  if (!st) { el.textContent = 'Aucune pour l’instant. Elle se fait une minute après chaque changement.'; return; }
-  if (st.notInstalled) { el.textContent = 'Pas encore activée : installe le pont local (voir la documentation, « Pont local »).'; return; }
-  if (!st.ok) { el.textContent = 'Dernier essai en échec : ' + st.error; return; }
-  el.textContent = `Dernière : ${ago(st.at)}, ${st.count} souvenir${st.count > 1 ? 's' : ''} (${sizeOf(st.bytes)}).`;
+  if (!st) { el.textContent = t('backup.none'); return; }
+  if (st.notInstalled) { el.textContent = t('backup.notInstalled'); return; }
+  if (!st.ok) { el.textContent = t('backup.failed', { e: st.error }); return; }
+  el.textContent = t('backup.last', { ago: ago(st.at), n: st.count, size: sizeOf(st.bytes) });
 }
 
 $('#backup-now').addEventListener('click', async e => {
@@ -565,7 +568,7 @@ $('#backup-now').addEventListener('click', async e => {
   const st = await runBackup();
   b.disabled = false; b.removeAttribute('aria-busy');
   showBackupStatus(st);
-  toast(empty ? 'Rien à sauvegarder pour l’instant' : st?.ok ? 'Sauvegarde faite' : st?.notInstalled ? 'Pont local non installé' : 'Échec de la sauvegarde');
+  toast(empty ? t('backup.toastEmpty') : st?.ok ? t('backup.toastDone') : st?.notInstalled ? t('backup.toastNotInstalled') : t('backup.toastFailed'));
 });
 
 $('#backup-restore').addEventListener('click', async e => {
@@ -574,23 +577,24 @@ $('#backup-restore').addEventListener('click', async e => {
   b.setAttribute('aria-expanded', String(open));
   list.hidden = !open;
   if (!open) return;
-  list.replaceChildren(h('li', { class: 'backup-empty' }, 'Chargement…'));
+  list.replaceChildren(h('li', { class: 'backup-empty' }, t('backup.loading')));
   try {
     const backups = await listBackups();
-    list.replaceChildren(...(backups.length ? backups.map(restoreRow) : [h('li', { class: 'backup-empty' }, 'Aucune sauvegarde sur le disque.')]));
+    list.replaceChildren(...(backups.length ? backups.map(restoreRow) : [h('li', { class: 'backup-empty' }, t('backup.noneOnDisk'))]));
   } catch (err) {
-    list.replaceChildren(h('li', { class: 'backup-empty is-error' }, 'Lecture impossible : ' + err.message));
+    list.replaceChildren(h('li', { class: 'backup-empty is-error' }, t('backup.readFailed', { e: err.message })));
   }
 });
 
 function restoreRow(bk) {
   let armed = false;
-  const label = dayFmt.format(new Date(bk.date + 'T12:00:00')) + (bk.time ? `, version de ${bk.time}` : '');
-  const meta = bk.count != null ? `${bk.count} souvenirs, ${sizeOf(bk.bytes)}` : sizeOf(bk.bytes);
+  const day = dayFmt.format(new Date(bk.date + 'T12:00:00'));
+  const label = bk.time ? t('backup.version', { date: day, time: bk.time }) : day;
+  const meta = bk.count != null ? t('backup.meta', { n: bk.count, size: sizeOf(bk.bytes) }) : sizeOf(bk.bytes);
   const btn = h('button', { type: 'button', class: 'backup-row', onclick: async () => {
     if (!armed) {
       armed = true; btn.classList.add('armed');
-      btn.querySelector('.when').textContent = 'Restaurer cette sauvegarde ?';
+      btn.querySelector('.when').textContent = t('backup.confirm');
       setTimeout(() => { armed = false; btn.classList.remove('armed'); btn.querySelector('.when').textContent = label; }, 4000);
       return;
     }
@@ -598,9 +602,9 @@ function restoreRow(bk) {
     try {
       const { items, skippedImages } = await readBackup(bk.name);
       const { added, updated } = await mergeItems(items);
-      toast(`${added} souvenir${added > 1 ? 's' : ''} restauré${added > 1 ? 's' : ''}, ${updated} mis à jour` + (skippedImages ? `, ${skippedImages} sans image` : ''));
+      toast(t('backup.restored', { added, updated, skipped: skippedImages }));
     } catch (err) {
-      toast('Échec de la restauration : ' + err.message);
+      toast(t('backup.restoreFailed', { e: err.message }));
     } finally { btn.disabled = false; }
   } }, h('span', { class: 'when' }, label), h('span', { class: 'what' }, meta));
   return h('li', {}, btn);
@@ -618,16 +622,22 @@ const narrow = matchMedia('(max-width: 60rem)');
 const fitSettings = () => { $('#settings').open = !narrow.matches; };
 narrow.addEventListener('change', fitSettings);
 fitSettings();
+
+// Langue de l'interface : la changer recharge les pages ouvertes de l'extension.
+const langSelect = $('#lang-select');
+langSelect.value = await getLangPref();
+langSelect.addEventListener('change', () => setLangPref(langSelect.value));
+onLangChange(() => location.reload());
 setInterval(() => { showBackupStatus(); showAgentStatus(); }, 60000);
 
 // Une écriture qui échoue (disque plein, base indisponible) ne passe plus inaperçue.
 window.addEventListener('unhandledrejection', e => {
-  toast('Échec de l’enregistrement : ' + (e.reason?.message || e.reason || 'erreur inconnue'));
+  toast(t('toast.saveFailed', { e: e.reason?.message || e.reason || t('error.unknown') }));
 });
 
 $('#q').addEventListener('input', debounce(e => { state.q = e.target.value; render(); }, 120));
 $('#random').addEventListener('click', () => {
-  if (!state.items.length) return toast('Rien à redécouvrir pour l’instant');
+  if (!state.items.length) return toast(t('toast.nothingToRediscover'));
   openModal(state.items[Math.floor(Math.random() * state.items.length)].id);
 });
 $('#export').addEventListener('click', exportJson);

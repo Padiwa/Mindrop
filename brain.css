@@ -64,6 +64,15 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-2xs); bord
 .settings-head { display: none; }
 .settings-body { display: flex; flex-direction: column; gap: var(--space-xl); }
 
+/* ---------- langue ---------- */
+.lang { display: flex; flex-direction: column; gap: var(--space-xs); }
+.lang .index-head label { cursor: pointer; }
+.lang-select { width: 100%; min-height: 36px; padding: 0 var(--space-sm); border: var(--rule-hair) solid var(--color-muted); border-radius: var(--radius-input); background: var(--color-sheet); color: var(--color-ink); font: 400 var(--text-sm)/1.2 var(--font-ui); cursor: pointer; outline: 2px solid transparent; outline-offset: 1px; }
+.lang-select:hover { background: var(--color-paper-2); }
+.lang-select:focus-visible { outline-color: var(--color-focus); }
+.lang-select:active { background: var(--color-paper-3); }
+.lang-select:disabled { opacity: 0.55; cursor: not-allowed; }
+
 /* ---------- accès des agents ---------- */
 .agent { display: flex; flex-direction: column; gap: var(--space-xs); }
 .switch { display: flex; align-items: center; gap: var(--space-sm); min-height: 32px; color: var(--color-ink-2); font-size: var(--text-sm); cursor: pointer; }
@@ -329,7 +338,7 @@ body.map-mode .stage { display: flex; flex-direction: column; min-height: 0; pad
   .shell { grid-template-columns: minmax(0, 1fr); }
   .index { position: static; flex-direction: column; gap: var(--space-sm); max-height: none; padding: var(--space-sm) var(--gutter) 0; border-right: 0; }
   .index-group { display: flex; align-items: center; gap: var(--space-sm); min-width: 0; }
-  .index-group.backup, .index-group.agent { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
+  .index-group.backup, .index-group.agent, .index-group.lang { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
   .settings { border-top: var(--rule-hair) solid var(--color-rule); border-bottom: var(--rule-hair) solid var(--color-rule); }
   .settings-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); min-height: 40px; color: var(--color-ink-2); font-size: var(--text-sm); font-weight: 500; cursor: pointer; list-style: none; }
   .settings-head::-webkit-details-marker { display: none; }

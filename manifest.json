@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Mindrop",
-  "short_name": "Mindrop",
-  "version": "1.6.0",
-  "description": "Mindrop : ton second cerveau visuel. Garde pages, liens, notes, citations et images, 100 % local.",
+  "name": "__MSG_appName__",
+  "short_name": "__MSG_appShortName__",
+  "version": "1.7.0",
+  "description": "__MSG_appDesc__",
+  "default_locale": "en",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -11,7 +12,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "Enregistrer dans Mindrop",
+    "default_title": "__MSG_actionTitle__",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
@@ -34,16 +35,22 @@
   ],
   "commands": {
     "_execute_action": {
-      "suggested_key": { "default": "Alt+Shift+S" },
-      "description": "Ouvrir la fenêtre d'enregistrement"
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "__MSG_cmdAction__"
     },
     "quick-save": {
-      "suggested_key": { "default": "Alt+Shift+D" },
-      "description": "Enregistrer la page instantanément"
+      "suggested_key": {
+        "default": "Alt+Shift+D"
+      },
+      "description": "__MSG_cmdQuickSave__"
     },
     "open-brain": {
-      "suggested_key": { "default": "Alt+Shift+M" },
-      "description": "Ouvrir Mindrop"
+      "suggested_key": {
+        "default": "Alt+Shift+M"
+      },
+      "description": "__MSG_cmdOpen__"
     }
   }
 }

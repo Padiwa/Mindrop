@@ -26,7 +26,7 @@
   <nav class="toc" aria-label="Sur cette page">
     <details open>
       <summary class="toc-head">Sur cette page</summary>
-      <ol><li><a href="#installation">Installation</a></li><li><a href="#enregistrer">Enregistrer</a></li><li><a href="#la-page-mindrop">La page Mindrop</a></li><li><a href="#notes-en-markdown">Notes en Markdown</a></li><li><a href="#relier-tags-et-liens">Relier : tags et liens</a></li><li><a href="#carte-mentale">Carte mentale</a></li><li><a href="#pont-local-agent-ia-et-sauvegardes">Pont local : agent IA et sauvegardes</a></li><li><a href="#bon-a-savoir">Bon à savoir</a></li><li><a href="#developpement">Développement</a></li><li><a href="#licence">Licence</a></li></ol>
+      <ol><li><a href="#installation">Installation</a></li><li><a href="#enregistrer">Enregistrer</a></li><li><a href="#la-page-mindrop">La page Mindrop</a></li><li><a href="#notes-en-markdown">Notes en Markdown</a></li><li><a href="#relier-tags-et-liens">Relier : tags et liens</a></li><li><a href="#carte-mentale">Carte mentale</a></li><li><a href="#langue">Langue</a></li><li><a href="#pont-local-agent-ia-et-sauvegardes">Pont local : agent IA et sauvegardes</a></li><li><a href="#bon-a-savoir">Bon à savoir</a></li><li><a href="#developpement">Développement</a></li><li><a href="#licence">Licence</a></li></ol>
     </details>
   </nav>
   <main id="main" class="prose">
@@ -51,6 +51,9 @@
 <h2 id="carte-mentale">Carte mentale</h2>
 <p>Le bouton <strong>Carte mentale</strong> montre tes souvenirs autour de leurs tags.</p>
 <ul><li>Chaque #tag est une bulle reliée à « Mindrop » ; les pointillés relient les tags qui partagent des souvenirs.</li><li>En zoomant (molette, pavé tactile, boutons + et −), les souvenirs apparaissent autour de leur premier tag, avec un fil vers chacun de leurs autres tags.</li><li>Les liens <code>[[titre]]</code> entre souvenirs sont tracés en orange.</li><li>Un clic sur un tag zoome dessus ; glisser un tag le déplace (sa position est retenue). <strong>Réorganiser</strong> propose une nouvelle disposition, <strong>Tout voir</strong> (ou la touche 0) recadre l’ensemble.</li><li>Survoler un tag ou une carte met ses liens en évidence.</li></ul>
+<h2 id="langue">Langue</h2>
+<p>Mindrop parle français et anglais. Par défaut, il suit ton navigateur : français si le navigateur est en français, anglais sinon. Pour choisir : page Mindrop, <strong>Réglages</strong> dans la colonne de gauche, <strong>Langue</strong> : Automatique, Français ou English. Le choix vaut pour toute l’extension (page, popup, menu contextuel) ; tes notes, elles, ne sont jamais traduites.</p>
+<p>Le nom et la description de l’extension dans la page des extensions suivent toujours la langue du navigateur : Chrome ne permet pas à une extension de les changer.</p>
 <h2 id="pont-local-agent-ia-et-sauvegardes">Pont local : agent IA et sauvegardes</h2>
 <p>Le dossier <code>mcp/</code> installe un pont entre l’extension et ton ordinateur, sans passer par Internet. Il apporte :</p>
 <ul><li>la <strong>sauvegarde automatique</strong> de tous tes souvenirs, images comprises, sur ton disque, avec restauration depuis la page Mindrop ;</li><li>un <strong>serveur MCP</strong>, pour qu’un agent IA (Claude Code, pi ou tout client MCP) cherche dans Mindrop, en lecture seule, avec un interrupteur pour couper l’accès.</li></ul>

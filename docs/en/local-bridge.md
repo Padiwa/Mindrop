@@ -113,7 +113,7 @@ About search:
 
 ## Turn agent access on or off
 
-On the Mindrop page, left column, the **Accès des agents** (agent access) switch controls what the MCP server can read. It is on by default.
+On the Mindrop page, in the left column's settings, the **Agent access** switch controls what the MCP server can read. It is on by default.
 
 - **On:** the copy read by the MCP server is kept up to date after each change. It holds all your memories except images stored inside the extension; links to web images stay.
 - **Off:** the copy is **deleted** at once and replaced by a simple marker. An agent that queries the server gets "agent access is disabled", and no memory.
@@ -131,18 +131,18 @@ Once the bridge is installed, the extension writes a **full copy** of your memor
 
 One file per day, rewritten by each backup of the day; **the 30 most recent files** are kept. Safeguards:
 
-- if a backup holds **fewer memories** than the day's file (deletions, a reinstalled extension), the previous one is not overwritten: it is kept as `YYYY-MM-DD-HHMMSS.json` and shows in the list as "version de HH:MM";
+- if a backup holds **fewer memories** than the day's file (deletions, a reinstalled extension), the previous one is not overwritten: it is kept as `YYYY-MM-DD-HHMMSS.json` and shows in the list as "HH:MM version";
 - an empty database is never backed up;
 - an interrupted backup (browser closed mid-way) never replaces the previous one.
 
 When the browser starts, a backup is made again if the last one is more than a day old.
 
-On the Mindrop page, the **Sauvegarde** (backup) block at the bottom of the left column shows the last backup and lets you:
+On the Mindrop page, the **Backup** block in the left column's settings shows the last backup and lets you:
 
-- **Sauvegarder maintenant** (back up now);
-- **Restaurer** (restore): pick a date, then click a second time to confirm. Restoring adds missing memories and updates those that are older than in the backup; **it never deletes anything**.
+- **Back up now**;
+- **Restore**: pick a date, then click a second time to confirm. Restoring adds missing memories and updates those that are older than in the backup; **it never deletes anything**.
 
-Backup files use the same format as the export: the **Importer** button accepts them too, for example to move to another computer.
+Backup files use the same format as the export: the **Import** button accepts them too, for example to move to another computer.
 
 ## Update, troubleshooting and removal
 

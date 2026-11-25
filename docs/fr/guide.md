@@ -67,6 +67,12 @@ Le bouton **Carte mentale** montre tes souvenirs autour de leurs tags.
 - Un clic sur un tag zoome dessus ; glisser un tag le déplace (sa position est retenue). **Réorganiser** propose une nouvelle disposition, **Tout voir** (ou la touche 0) recadre l'ensemble.
 - Survoler un tag ou une carte met ses liens en évidence.
 
+## Langue
+
+Mindrop parle français et anglais. Par défaut, il suit ton navigateur : français si le navigateur est en français, anglais sinon. Pour choisir : page Mindrop, **Réglages** dans la colonne de gauche, **Langue** : Automatique, Français ou English. Le choix vaut pour toute l'extension (page, popup, menu contextuel) ; tes notes, elles, ne sont jamais traduites.
+
+Le nom et la description de l'extension dans la page des extensions suivent toujours la langue du navigateur : Chrome ne permet pas à une extension de les changer.
+
 ## Pont local : agent IA et sauvegardes
 
 Le dossier `mcp/` installe un pont entre l'extension et ton ordinateur, sans passer par Internet. Il apporte :

@@ -1,0 +1,23 @@
+{
+  "appName": {
+    "message": "Mindrop"
+  },
+  "appShortName": {
+    "message": "Mindrop"
+  },
+  "appDesc": {
+    "message": "Mindrop : ton second cerveau visuel. Garde pages, liens, notes, citations et images, 100 % local."
+  },
+  "actionTitle": {
+    "message": "Enregistrer dans Mindrop"
+  },
+  "cmdAction": {
+    "message": "Ouvrir la fenêtre d'enregistrement"
+  },
+  "cmdQuickSave": {
+    "message": "Enregistrer la page instantanément"
+  },
+  "cmdOpen": {
+    "message": "Ouvrir Mindrop"
+  }
+}

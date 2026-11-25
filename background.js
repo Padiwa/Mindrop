@@ -3,17 +3,29 @@ import { buildPageItem } from './capture.js';
 import { runBackup, getBackupStatus } from './backup.js';
 import { syncAgent } from './agent.js';
 import { withVideoInfo, videoInfo, needsVideoFix, hasPlaceholderTitle } from './video.js';
+import { t, loadLang, onLangChange } from './i18n.js';
+
+// Pas d'await au niveau du module dans un service worker : la langue est chargée au démarrage, puis à chaque changement.
+const langReady = loadLang().catch(() => {});
 
 const MENUS = [
-  { id: 'save-page', title: 'Enregistrer cette page', contexts: ['page'] },
-  { id: 'save-selection', title: 'Enregistrer la sélection comme citation', contexts: ['selection'] },
-  { id: 'save-link', title: 'Enregistrer ce lien', contexts: ['link'] },
-  { id: 'save-image', title: 'Enregistrer cette image', contexts: ['image'] },
-  { id: 'open-brain', title: 'Ouvrir Mindrop', contexts: ['action'] },
+  { id: 'save-page', key: 'menu.savePage', contexts: ['page'] },
+  { id: 'save-selection', key: 'menu.saveSelection', contexts: ['selection'] },
+  { id: 'save-link', key: 'menu.saveLink', contexts: ['link'] },
+  { id: 'save-image', key: 'menu.saveImage', contexts: ['image'] },
+  { id: 'open-brain', key: 'menu.open', contexts: ['action'] },
 ];
 
+// Menu contextuel dans la langue choisie, reconstruit quand elle change.
+async function buildMenus() {
+  await langReady;
+  await loadLang();
+  chrome.contextMenus.removeAll(() => MENUS.forEach(({ key, ...m }) => chrome.contextMenus.create({ ...m, title: t(key) })));
+}
+onLangChange(buildMenus);
+
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.removeAll(() => MENUS.forEach(m => chrome.contextMenus.create(m)));
+  buildMenus();
   repairVideos();
   scheduleSync(0);
   chrome.alarms.create('backup', { delayInMinutes: 1 });
@@ -29,7 +41,7 @@ async function repairVideos() {
         type: 'video',
         title: hasPlaceholderTitle(cur) && v.title ? v.title : cur.title, // un titre choisi par toi n'est jamais remplacé
         image: v.image,
-        description: cur.description || (v.author ? 'Chaîne : ' + v.author : ''),
+        description: cur.description || (v.author ? t('video.channel', { a: v.author }) : ''),
       }));
     }
   } catch (e) { console.warn('réparation des vidéos', e); }

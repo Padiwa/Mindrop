@@ -4,6 +4,8 @@
 // Après chaque écriture, la clé REV de chrome.storage.local change : toutes les pages
 // ouvertes et le service worker sont prévenus (onItemsChanged).
 
+import { t as tr } from './i18n.js';
+
 const DB_NAME = 'second-cerveau'; // nom d'origine, gardé : le changer ferait perdre les souvenirs
 const DB_VERSION = 1;
 const STORE = 'items';
@@ -34,7 +36,7 @@ function openDb() {
       resolve(db);
     };
     r.onerror = () => reject(r.error);
-    r.onblocked = () => reject(new Error('Base bloquée par un autre onglet : ferme les autres onglets Mindrop.'));
+    r.onblocked = () => reject(new Error(tr('storage.blocked')));
   });
 }
 
@@ -51,7 +53,7 @@ async function tx(mode, fn) {
     let result;
     t.oncomplete = () => resolve(result);
     t.onerror = () => reject(t.error);
-    t.onabort = () => reject(t.error || new Error('Enregistrement annulé'));
+    t.onabort = () => reject(t.error || new Error(tr('storage.aborted')));
     Promise.resolve()
       .then(() => fn(t.objectStore(STORE)))
       .then(r => { result = r; }, e => { try { t.abort(); } catch {} reject(e); });

@@ -1,0 +1,23 @@
+{
+  "appName": {
+    "message": "Mindrop"
+  },
+  "appShortName": {
+    "message": "Mindrop"
+  },
+  "appDesc": {
+    "message": "Mindrop: your visual second brain. Keep pages, links, notes, quotes and images, 100% local."
+  },
+  "actionTitle": {
+    "message": "Save to Mindrop"
+  },
+  "cmdAction": {
+    "message": "Open the save window"
+  },
+  "cmdQuickSave": {
+    "message": "Save the page at once"
+  },
+  "cmdOpen": {
+    "message": "Open Mindrop"
+  }
+}

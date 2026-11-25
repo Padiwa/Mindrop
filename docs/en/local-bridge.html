@@ -76,18 +76,18 @@
 <p>About search:</p>
 <ul><li>Every word must match. If no memory contains them all, the search returns those that contain at least one and says so (<code>&quot;mode&quot;: &quot;any&quot;</code>).</li><li>It tolerates plurals, variants (“typography” finds “typographie”) and typos, but knows no synonyms: the agent can rephrase.</li><li>Every answer gives <code>syncedAt</code>, the time of the last copy received from the extension.</li></ul>
 <h2 id="turn-agent-access-on-or-off">Turn agent access on or off</h2>
-<p>On the Mindrop page, left column, the <strong>Accès des agents</strong> (agent access) switch controls what the MCP server can read. It is on by default.</p>
+<p>On the Mindrop page, in the left column’s settings, the <strong>Agent access</strong> switch controls what the MCP server can read. It is on by default.</p>
 <ul><li><strong>On:</strong> the copy read by the MCP server is kept up to date after each change. It holds all your memories except images stored inside the extension; links to web images stay.</li><li><strong>Off:</strong> the copy is <strong>deleted</strong> at once and replaced by a simple marker. An agent that queries the server gets “agent access is disabled”, and no memory.</li><li><strong>On again:</strong> an up-to-date copy is written immediately.</li></ul>
 <p>A line under the switch shows the real state: how many memories are shared, when the last copy was made, or that the bridge is not installed. The switch does not affect <strong>automatic backups</strong>, which go on either way.</p>
 <h2 id="automatic-backups">Automatic backups</h2>
 <p>Once the bridge is installed, the extension writes a <strong>full copy</strong> of your memories, images included, <strong>one minute after the last change</strong>:</p>
 <ul><li>Linux: <code>~/.local/share/second-cerveau/backups/YYYY-MM-DD.json</code></li><li>macOS: <code>~/Library/Application Support/second-cerveau/backups/YYYY-MM-DD.json</code></li></ul>
 <p>One file per day, rewritten by each backup of the day; <strong>the 30 most recent files</strong> are kept. Safeguards:</p>
-<ul><li>if a backup holds <strong>fewer memories</strong> than the day’s file (deletions, a reinstalled extension), the previous one is not overwritten: it is kept as <code>YYYY-MM-DD-HHMMSS.json</code> and shows in the list as “version de HH:MM”;</li><li>an empty database is never backed up;</li><li>an interrupted backup (browser closed mid-way) never replaces the previous one.</li></ul>
+<ul><li>if a backup holds <strong>fewer memories</strong> than the day’s file (deletions, a reinstalled extension), the previous one is not overwritten: it is kept as <code>YYYY-MM-DD-HHMMSS.json</code> and shows in the list as “HH:MM version”;</li><li>an empty database is never backed up;</li><li>an interrupted backup (browser closed mid-way) never replaces the previous one.</li></ul>
 <p>When the browser starts, a backup is made again if the last one is more than a day old.</p>
-<p>On the Mindrop page, the <strong>Sauvegarde</strong> (backup) block at the bottom of the left column shows the last backup and lets you:</p>
-<ul><li><strong>Sauvegarder maintenant</strong> (back up now);</li><li><strong>Restaurer</strong> (restore): pick a date, then click a second time to confirm. Restoring adds missing memories and updates those that are older than in the backup; <strong>it never deletes anything</strong>.</li></ul>
-<p>Backup files use the same format as the export: the <strong>Importer</strong> button accepts them too, for example to move to another computer.</p>
+<p>On the Mindrop page, the <strong>Backup</strong> block in the left column’s settings shows the last backup and lets you:</p>
+<ul><li><strong>Back up now</strong>;</li><li><strong>Restore</strong>: pick a date, then click a second time to confirm. Restoring adds missing memories and updates those that are older than in the backup; <strong>it never deletes anything</strong>.</li></ul>
+<p>Backup files use the same format as the export: the <strong>Import</strong> button accepts them too, for example to move to another computer.</p>
 <h2 id="update-troubleshooting-and-removal">Update, troubleshooting and removal</h2>
 <p><strong>When to run <code>node mcp/install.mjs &lt;id&gt;</code> again:</strong> if you move the project folder, if the extension id changes or if you change Node versions.</p>
 <p><strong>The agent says no copy was found:</strong></p>

@@ -1,6 +1,7 @@
 // Lecture d'une page au moment de l'enregistrer : métadonnées, texte principal, capture miniature.
 import { guessType, imageFor, shrinkImage } from './storage.js';
 import { videoInfo, cleanYoutubeTitle } from './video.js';
+import { t } from './i18n.js';
 
 export const MAX_CONTENT = 100000; // caractères de texte gardés par page
 
@@ -73,7 +74,7 @@ export async function buildPageItem(tab, { withThumb = true } = {}) {
   if (video) {
     item.title = video.title || cleanYoutubeTitle(meta.pageTitle) || cleanYoutubeTitle(tab.title) || item.title;
     item.image = video.image;
-    if (video.author) item.description = 'Chaîne : ' + video.author;
+    if (video.author) item.description = t('video.channel', { a: video.author });
   }
   if (withThumb) item.thumb = await captureThumb(tab.windowId);
   return { item, meta };

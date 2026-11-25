@@ -2,6 +2,7 @@
 // Nécessaire parce que YouTube est une application d'une seule page : en passant d'une vidéo
 // à l'autre, la balise og:title de la page reste celle du premier chargement (« YouTube »).
 import { youtubeId } from './storage.js';
+import { t } from './i18n.js';
 
 const thumb = (id, q) => `https://i.ytimg.com/vi/${id}/${q}.jpg`;
 
@@ -38,7 +39,7 @@ export async function withVideoInfo(item, opts) {
     type: 'video',
     title: v.title || item.title,
     image: v.image,
-    description: v.author ? 'Chaîne : ' + v.author : item.description,
+    description: v.author ? t('video.channel', { a: v.author }) : item.description,
   };
 }
 

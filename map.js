@@ -2,6 +2,7 @@
 import { domainOf } from './storage.js';
 import { plainText } from './markdown.js';
 import { buildLinkGraph } from './links.js';
+import { t } from './i18n.js';
 
 const CARD_W = 150;
 const IMG_H = 84;
@@ -84,7 +85,7 @@ export function createMap(root, { onOpen, onZoom }) {
       }
       const p = prev.get(id) || saved.get(id);
       return {
-        id, label: id === NOTAG ? 'sans tag' : '#' + id, count: list.length, r, excl, slots,
+        id, label: id === NOTAG ? t('map.noTag') : '#' + id, count: list.length, r, excl, slots,
         cloud: (excl.length ? R : r) + 130, color: tagColor(id),
         x: p ? p.x : NaN, y: p ? p.y : NaN, fixed: saved.has(id), isNew: !p,
         match: list.some(n => n.match), members: list,
@@ -230,7 +231,7 @@ export function createMap(root, { onOpen, onZoom }) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = colors.muted; ctx.textAlign = 'center';
       ctx.font = `18px ${fonts.body}`;
-      ctx.fillText('Ajoute des #tags à tes souvenirs pour faire pousser la carte.', W / 2, H / 2 + 110);
+      ctx.fillText(t('map.empty'), W / 2, H / 2 + 110);
     }
   }
 

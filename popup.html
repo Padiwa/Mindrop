@@ -9,43 +9,43 @@
 <body>
   <header>
     <div class="brand"><img src="icons/icon32.png" alt="" width="20" height="20"><span>Mindrop</span></div>
-    <nav class="tabs" aria-label="Type d’enregistrement">
-      <button type="button" class="tab active" data-mode="page" id="tab-page">Page</button>
-      <button type="button" class="tab" data-mode="note" id="tab-note">Note</button>
+    <nav class="tabs" aria-label="Type d’enregistrement" data-i18n-aria-label="popup.modes">
+      <button type="button" class="tab active" data-mode="page" id="tab-page" data-i18n="popup.page">Page</button>
+      <button type="button" class="tab" data-mode="note" id="tab-note" data-i18n="popup.note">Note</button>
     </nav>
   </header>
 
   <section id="mode-page" class="panel">
     <div class="preview" id="preview">
-      <div class="shimmer" id="shimmer">Capture de la page…</div>
+      <div class="shimmer" id="shimmer" data-i18n="popup.capturing">Capture de la page…</div>
     </div>
-    <div class="source"><span id="p-domain"></span><span id="dupe" class="dupe" role="status" hidden>Déjà enregistrée</span></div>
-    <input id="p-title" class="title" placeholder="Titre" aria-label="Titre">
+    <div class="source"><span id="p-domain"></span><span id="dupe" class="dupe" role="status" hidden data-i18n="popup.duplicate">Déjà enregistrée</span></div>
+    <input id="p-title" class="title" placeholder="Titre" aria-label="Titre" data-i18n-placeholder="popup.title" data-i18n-aria-label="popup.title">
     <label class="quote" id="quote-box" hidden>
-      <span class="quote-head"><input type="checkbox" id="use-quote" checked><span>Garder la sélection comme citation</span></span>
+      <span class="quote-head"><input type="checkbox" id="use-quote" checked><span data-i18n="popup.keepQuote">Garder la sélection comme citation</span></span>
       <blockquote id="quote-text"></blockquote>
     </label>
-    <textarea id="p-note" rows="2" placeholder="Pourquoi je garde ça ? (optionnel)" aria-label="Note"></textarea>
-    <input id="p-tags" placeholder="#tags, séparés par des espaces" aria-label="Tags">
-    <button type="button" class="primary" id="save-page" disabled>Enregistrer</button>
+    <textarea id="p-note" rows="2" placeholder="Pourquoi je garde ça ? (optionnel)" aria-label="Note" data-i18n-placeholder="popup.why" data-i18n-aria-label="popup.note.label"></textarea>
+    <input id="p-tags" placeholder="#tags, séparés par des espaces" aria-label="Tags" data-i18n-placeholder="popup.tagsPlaceholder" data-i18n-aria-label="popup.tags">
+    <button type="button" class="primary" id="save-page" disabled data-i18n="popup.save">Enregistrer</button>
   </section>
 
   <section id="mode-note" class="panel" hidden>
-    <textarea id="n-text" rows="7" placeholder="Une idée, une pensée, un rappel… (Markdown accepté : # titre, **gras**, - liste, - [ ] tâche)" aria-label="Note en Markdown"></textarea>
-    <input id="n-tags" placeholder="#tags" aria-label="Tags">
-    <button type="button" class="primary" id="save-note">Enregistrer la note</button>
+    <textarea id="n-text" rows="7" placeholder="Une idée, une pensée, un rappel… (Markdown accepté : # titre, **gras**, - liste, - [ ] tâche)" aria-label="Note en Markdown" data-i18n-placeholder="popup.noteText" data-i18n-aria-label="popup.noteText.label"></textarea>
+    <input id="n-tags" placeholder="#tags" aria-label="Tags" data-i18n-aria-label="popup.tags">
+    <button type="button" class="primary" id="save-note" data-i18n="popup.saveNote">Enregistrer la note</button>
   </section>
 
   <p class="error" id="error" role="alert" hidden></p>
 
   <footer>
-    <button type="button" class="link" id="open-brain">Ouvrir Mindrop</button>
-    <span class="hint"><kbd>Ctrl</kbd> <kbd>Entrée</kbd> pour enregistrer</span>
+    <button type="button" class="link" id="open-brain" data-i18n="popup.open">Ouvrir Mindrop</button>
+    <span class="hint"><kbd>Ctrl</kbd> <kbd data-i18n="key.enter">Entrée</kbd> <span data-i18n="popup.toSave">pour enregistrer</span></span>
   </footer>
 
   <div class="done" id="done" role="status" hidden>
     <div class="done-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
-    <p>Gardé en mémoire</p>
+    <p data-i18n="popup.done">Gardé en mémoire</p>
   </div>
   <script type="module" src="popup.js"></script>
 </body>

@@ -1,6 +1,7 @@
 import { addItem, findByUrl, domainOf, faviconUrl, getItems } from './storage.js';
 import { attachTagSuggest, tagCounts } from './tag-suggest.js';
 import { buildPageItem } from './capture.js';
+import { t, loadLang, translatePage } from './i18n.js';
 
 const $ = s => document.querySelector(s);
 let tab, pageItem, meta = {}, titleTouched = false, mode = 'page';
@@ -8,6 +9,8 @@ let tab, pageItem, meta = {}, titleTouched = false, mode = 'page';
 init();
 
 async function init() {
+  await loadLang();
+  translatePage();
   let counts = [];
   getItems().then(items => { counts = tagCounts(items); }).catch(() => {});
   attachTagSuggest($('#p-tags'), () => counts);
@@ -106,7 +109,7 @@ async function saveNote() {
 // Rien n'a été gardé : on le dit, et le texte saisi reste dans les champs pour réessayer.
 function failed(e) {
   const box = $('#error');
-  box.textContent = 'Rien n’a été enregistré : ' + (e?.message || e || 'erreur inconnue') + '. Réessaie.';
+  box.textContent = t('popup.failed', { e: e?.message || e || t('error.unknown') });
   box.hidden = false;
 }
 

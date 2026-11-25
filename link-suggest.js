@@ -1,6 +1,7 @@
 // Suggestions de titres en tapant « [[ » dans une zone de texte (lien vers un autre souvenir).
 // Flèches : choisir · Entrée ou Tab : insérer [[Titre]] · Échap : fermer. Ctrl/Cmd+Entrée n'est jamais intercepté.
 import { fold } from './search.js';
+import { t } from './i18n.js';
 
 let uid = 0;
 
@@ -57,7 +58,7 @@ export function attachLinkSuggest(ta, getEntries) {
   list.id = id;
   list.className = 'link-suggest';
   list.setAttribute('role', 'listbox');
-  list.setAttribute('aria-label', 'Souvenirs à lier');
+  list.setAttribute('aria-label', t('suggest.links'));
   list.hidden = true;
   document.body.append(list);
   ta.setAttribute('aria-controls', id);

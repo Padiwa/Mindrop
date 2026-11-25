@@ -85,7 +85,7 @@
 claude mcp remove mindrop</code></pre>
 <p>La copie et les sauvegardes restent sur le disque ; supprime le dossier <code>~/.local/share/second-cerveau/</code> si tu n’en veux plus.</p>
 <h2 id="activer-ou-desactiver-l-acces-des-agents">Activer ou désactiver l’accès des agents</h2>
-<p>Dans la page Mindrop, colonne de gauche, l’interrupteur <strong>Accès des agents</strong> contrôle ce que le serveur MCP peut lire. Il est activé par défaut.</p>
+<p>Dans la page Mindrop, dans les réglages de la colonne de gauche, l’interrupteur <strong>Accès des agents</strong> contrôle ce que le serveur MCP peut lire. Il est activé par défaut.</p>
 <ul><li><strong>Activé :</strong> la copie lue par le serveur MCP est tenue à jour après chaque changement. Elle contient tous tes souvenirs sauf les images enregistrées dans l’extension (captures, images déposées) ; les liens vers des images web restent.</li><li><strong>Désactivé :</strong> la copie est <strong>effacée</strong> sur-le-champ et remplacée par un simple marqueur. Un agent qui interroge le serveur reçoit le message « L’accès des agents est désactivé », sans aucun souvenir.</li><li><strong>Réactivé :</strong> une copie à jour est réécrite immédiatement.</li></ul>
 <p>Sous l’interrupteur, une ligne indique l’état réel : nombre de souvenirs partagés, date de la dernière copie, ou pont non installé. L’interrupteur ne touche pas à la <strong>sauvegarde automatique</strong>, qui continue dans les deux cas.</p>
 <h2 id="sauvegarde-automatique">Sauvegarde automatique</h2>
@@ -94,7 +94,7 @@ claude mcp remove mindrop</code></pre>
 <p>Un fichier par jour, réécrit à chaque sauvegarde de la journée ; <strong>les 30 fichiers les plus récents</strong> sont gardés. Garde-fous :</p>
 <ul><li>si une sauvegarde contient <strong>moins de souvenirs</strong> que celle du jour (suppressions, extension réinstallée), l’ancienne n’est pas écrasée : elle est gardée sous le nom <code>AAAA-MM-JJ-HHMMSS.json</code> et apparaît dans la liste comme « version de HH:MM » ;</li><li>une base vide n’est jamais sauvegardée ;</li><li>une sauvegarde interrompue (navigateur fermé en plein envoi) ne remplace jamais la précédente.</li></ul>
 <p>Au démarrage du navigateur, une sauvegarde est refaite si la dernière date de plus d’un jour.</p>
-<p>Dans la page Mindrop, le bloc <strong>Sauvegarde</strong> en bas de la colonne de gauche montre la dernière sauvegarde et permet de :</p>
+<p>Dans la page Mindrop, le bloc <strong>Sauvegarde</strong> des réglages de la colonne de gauche montre la dernière sauvegarde et permet de :</p>
 <ul><li><strong>Sauvegarder maintenant</strong> ;</li><li><strong>Restaurer</strong> : choisis une date, puis clique une seconde fois pour confirmer. La restauration ajoute les souvenirs absents et remet à jour ceux qui sont plus anciens que dans la sauvegarde ; <strong>elle ne supprime jamais rien</strong>.</li></ul>
 <p>Les fichiers de sauvegarde ont le même format que l’export : le bouton <strong>Importer</strong> les accepte aussi, par exemple pour passer sur un autre ordinateur.</p>
 <h2 id="noms-techniques">Noms techniques</h2>

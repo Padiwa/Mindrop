@@ -26,13 +26,11 @@ To update: replace the folder's content with the new version (or `git pull`), th
 | Right-click a link or an image | "Save this link", "Save this image". |
 | Select text, then click the icon | Offers to keep the selection as a quote. |
 
-The interface is in French for now: menus and buttons use their French labels ("Enregistrer la sélection comme citation", "Enregistrer ce lien"…).
-
 When it saves a page, Mindrop also keeps its **main text** (the article, without the menus), so you can find it again by searching. For a YouTube video, it fetches the real title, channel and thumbnail.
 
 ## The Mindrop page
 
-Open it with `Alt+Shift+M`, the "Ouvrir Mindrop" link in the window, or a right-click on the icon.
+Open it with `Alt+Shift+M`, the "Open Mindrop" link in the window, or a right-click on the icon.
 
 - **A mosaic** of all your memories: page captures, coloured notes, quotes, images, videos.
 - **An index** in the left margin: filters by type (links, notes, quotes, images, videos, pinned) and by tag, with how many memories each has.
@@ -40,15 +38,15 @@ Open it with `Alt+Shift+M`, the "Ouvrir Mindrop" link in the window, or a right-
 - **A detail sheet** on click: title, note, tags, colour, pin, delete, and the page text kept when it was saved.
 - **Write an idea directly** in the top area (`Ctrl+Enter` to keep it); pasting an address saves it as a link.
 - **Drag and drop** or **paste** (`Ctrl+V`) an image, a link or some text onto the page.
-- **Redécouvrir** (rediscover) brings back a random memory.
-- **Exporter and Importer** (export and import): a JSON backup, also handy to move from one browser to another.
+- **Rediscover** brings back a random memory.
+- **Export and Import**: a JSON backup, also handy to move from one browser to another.
 
 ## Markdown notes
 
 Notes are written in Markdown: `# title`, `**bold**`, `*italic*`, `~~strikethrough~~`, `` `code` ``, lists (`-`, `1.`), checkboxes (`- [ ] task`), quotes (`>`), code blocks and `[text](https://…)` links.
 
 - Checkboxes can be ticked right on the mosaic card.
-- A note's sheet has two tabs: **Écrire** (write) and **Aperçu** (preview). `Ctrl+E` switches between them; double-click the preview to write.
+- A note's sheet has two tabs: **Write** and **Preview**. `Ctrl+E` switches between them; double-click the preview to write.
 - Personal notes on links and images are shown as Markdown too.
 
 ## Connect: tags and links
@@ -57,17 +55,23 @@ Notes are written in Markdown: `# title`, `**bold**`, `*italic*`, `~~strikethrou
 - **Links between memories**: write `[[Title]]`, or `[[Title|label]]`, in a note or a personal note to cite another memory. A note's title is its first line; accents and capitals do not matter.
   - Typing `[[` suggests existing titles.
   - A link opens with a click. A link to a title that does not exist yet is dashed: a click creates the note.
-  - The sheet lists **Renvoie vers** (links to) and **Cité par** (cited by).
+  - The sheet lists **Links to** and **Cited by**.
 
 ## Mind map
 
-The **Carte mentale** (mind map) button shows your memories around their tags.
+The **Mind map** button shows your memories around their tags.
 
 - Each #tag is a bubble connected to "Mindrop"; dotted lines connect tags that share memories.
 - As you zoom (wheel, trackpad, + and − buttons), memories appear around their first tag, with a thread to each of their other tags.
 - `[[title]]` links between memories are drawn in orange.
-- Click a tag to zoom on it; drag a tag to move it (its position is remembered). **Réorganiser** (rearrange) lays the map out again, **Tout voir** (show all) or the 0 key fits everything.
+- Click a tag to zoom on it; drag a tag to move it (its position is remembered). **Rearrange** lays the map out again, **Show all** or the 0 key fits everything.
 - Hovering a tag or a card highlights its links.
+
+## Language
+
+Mindrop speaks English and French. By default it follows your browser: French if the browser is in French, English otherwise. To choose, open the Mindrop page, then **Settings** in the left column, **Language**: Automatic, Français or English. The choice applies to the whole extension (page, popup, context menu); your own notes are never translated.
+
+The extension's name and description on the browser's extensions page always follow the browser's language: Chrome does not let an extension change them.
 
 ## Local bridge: AI agent and backups
 

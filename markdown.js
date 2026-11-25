@@ -4,6 +4,8 @@
 // En ligne : **gras**, *italique*, ~~barré~~, `code`, [lien](https://…), URL nues,
 // [[Titre]] et [[Titre|texte]] (liens entre souvenirs : opts.wikilink(cible, texte) → nœuds).
 
+import { t } from './i18n.js';
+
 const FENCE = /^\s*(```|~~~)\s*([\w+-]*)\s*$/;
 const HEADING = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/;
 const HR = /^\s{0,3}([-*_])(\s*\1){2,}\s*$/;
@@ -145,7 +147,7 @@ function list(src, i, base, out, opts) {
 
     if (task) {
       li.className = 'task' + (task[1] !== ' ' ? ' done' : '');
-      const box = el('input', { type: 'checkbox', 'aria-label': 'Tâche faite' });
+      const box = el('input', { type: 'checkbox', 'aria-label': t('task.done') });
       box.checked = task[1] !== ' ';
       box.addEventListener('click', e => e.stopPropagation());
       if (opts.onToggle) box.addEventListener('change', () => opts.onToggle(lineNo, box.checked));
