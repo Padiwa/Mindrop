@@ -71,3 +71,69 @@ export interface SearchOptions {
   limit?: number;
   offset?: number;
 }
+
+/** Fichier d'un appareil dans le dossier de synchronisation (devices/<appareil>.json). */
+export interface SyncDoc {
+  format: 'mindrop-sync';
+  version: number;
+  device: string;
+  /** Souvenirs ; les images encodées y sont remplacées par « mindrop-sync:<fichier> ». */
+  items: Item[];
+  /** Suppressions : id → date. */
+  deleted: Record<string, number>;
+}
+
+/** Un fichier ou dossier distant, tel que list() le décrit. */
+export interface RemoteEntry {
+  name: string;
+  dir: boolean;
+  etag: string;
+  /** Date de dernière modification (ms), si le serveur la donne. */
+  modified?: number;
+  size?: number;
+}
+
+/** Dossier distant de synchronisation ; chemins relatifs à ce dossier, les dossiers finissent par « / ». */
+export interface SyncRemote {
+  /** Contenu d'un dossier ; null s'il n'existe pas. */
+  list(dir: string): Promise<RemoteEntry[] | null>;
+  /** null si le fichier n'existe pas. */
+  getText(path: string): Promise<string | null>;
+  getBytes(path: string): Promise<ArrayBuffer | null>;
+  /** Renvoie l'ETag du fichier écrit, ou '' si le serveur ne le donne pas. */
+  put(path: string, body: string | Uint8Array, type: string): Promise<string>;
+  /** Crée le dossier ; ne fait rien s'il existe. */
+  mkdir(dir: string): Promise<void>;
+  remove(path: string): Promise<void>;
+}
+
+/** Ce qu'un passage de synchronisation retient pour le suivant. */
+export interface SyncState {
+  /** Fichiers des autres appareils déjà lus : ETag, et images qu'ils utilisent. */
+  remotes?: Record<string, { etag: string, refs: string[] }>;
+  ownDigest?: string;
+  ownEtag?: string;
+  gcAt?: number;
+}
+
+/** Réglages de la synchronisation Nextcloud (chrome.storage.local). */
+export interface CloudConfig {
+  url: string;
+  user: string;
+  password: string;
+  folder: string;
+}
+
+/** État de la dernière synchronisation, gardé dans chrome.storage.local. */
+export interface CloudStatus {
+  ok: boolean;
+  at: number;
+  pulled?: number;
+  removed?: number;
+  devices?: number;
+  waiting?: number;
+  error?: string;
+  /** 'auth', 'permission', 'network', 'quota', 'version', 'format' (fichier illisible : file), 'http'. */
+  code?: string;
+  file?: string;
+}

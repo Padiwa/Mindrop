@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>storage.js : suppressions et synchronisation</title>
+<script src="chrome-shim.js"></script>
+<script type="module">
+// Une base de la version 1 (avant le magasin des suppressions), comme chez les utilisateurs de la 1.0.0.
+await new Promise((resolve, reject) => {
+  const r = indexedDB.open('second-cerveau', 1);
+  r.onupgradeneeded = () => {
+    const s = r.result.createObjectStore('items', { keyPath: 'id' });
+    s.createIndex('createdAt', 'createdAt');
+    s.createIndex('url', 'url');
+    s.put({ id: 'v1', type: 'note', text: 'gardé depuis la 1.0.0', tags: ['ancien'], createdAt: 1000, updatedAt: 1000 });
+  };
+  r.onsuccess = () => { r.result.close(); resolve(); };
+  r.onerror = () => reject(r.error);
+});
+const { getItems, addItem, updateItem, deleteItem, mergeItems, getDeleted, applySync } = await import('../../storage.js');
+
+test('passage à la version 2 : les souvenirs de la 1.0.0 sont toujours là', async () => {
+  const items = await getItems();
+  assert(items.length === 1 && items[0].text === 'gardé depuis la 1.0.0', JSON.stringify(items));
+  assert(JSON.stringify(await getDeleted()) === '{}');
+});
+
+test('une suppression laisse une trace datée', async () => {
+  const it = await addItem({ type: 'note', text: 'à supprimer' });
+  const before = Date.now();
+  await deleteItem(it.id);
+  const del = await getDeleted();
+  assert(del[it.id] >= before, JSON.stringify(del));
+  assert(!(await getItems()).some(x => x.id === it.id));
+});
+
+test('applySync : n’écrase jamais une version locale plus récente', async () => {
+  const it = await addItem({ type: 'note', text: 'locale' });
+  const cur = await updateItem(it.id, { text: 'modifiée ici' });
+  const r = await applySync({ put: [
+    { ...it, text: 'ancienne venue d’ailleurs', updatedAt: cur.updatedAt - 1 },
+    { id: 'neuf', type: 'note', text: 'venu d’ailleurs', tags: '#a', createdAt: 5, updatedAt: 5 },
+  ] });
+  assert(r.put === 1, JSON.stringify(r));
+  const all = await getItems();
+  assert(all.find(x => x.id === it.id).text === 'modifiée ici');
+  assert(all.find(x => x.id === 'neuf').tags.join() === 'a', 'tags normalisés');
+});
+
+test('applySync : une suppression reçue retire le souvenir, sauf s’il a changé ici depuis', async () => {
+  const a = await addItem({ type: 'note', text: 'a' });
+  const b = await addItem({ type: 'note', text: 'b' });
+  const r = await applySync({ deleted: { [a.id]: a.updatedAt + 10, [b.id]: b.updatedAt - 10, fantome: 7 } });
+  assert(r.removed === 1, JSON.stringify(r));
+  const ids = (await getItems()).map(x => x.id);
+  assert(!ids.includes(a.id) && ids.includes(b.id));
+  const del = await getDeleted();
+  assert(del[a.id] === a.updatedAt + 10 && del.fantome === 7 && !(b.id in del), JSON.stringify(del));
+});
+
+test('applySync : une version supprimée ici après elle ne revient pas ; plus récente, si', async () => {
+  const it = await addItem({ type: 'note', text: 'x' });
+  await deleteItem(it.id);
+  const at = (await getDeleted())[it.id];
+  await applySync({ put: [{ ...it, text: 'ancienne', updatedAt: at - 1 }] });
+  assert(!(await getItems()).some(x => x.id === it.id), 'revenu');
+  await applySync({ put: [{ ...it, text: 'modifiée après', updatedAt: at + 1 }] });
+  assert((await getItems()).find(x => x.id === it.id)?.text === 'modifiée après');
+  assert(!(it.id in await getDeleted()), 'trace effacée');
+});
+
+test('applySync : oublie les vieilles traces', async () => {
+  await applySync({ deleted: { vieux: 1 } });
+  assert('vieux' in await getDeleted());
+  await applySync({ forget: ['vieux'] });
+  assert(!('vieux' in await getDeleted()));
+});
+
+test('restaurer un souvenir supprimé le date du jour, pour que la synchronisation le garde', async () => {
+  const it = await addItem({ type: 'note', text: 'restauré' });
+  await deleteItem(it.id);
+  const deletedAt = (await getDeleted())[it.id];
+  const r = await mergeItems([it]);
+  assert(r.added === 1);
+  const back = (await getItems()).find(x => x.id === it.id);
+  assert(back && back.updatedAt >= deletedAt, JSON.stringify({ back, deletedAt }));
+  assert(!(it.id in await getDeleted()), 'trace effacée');
+});
+
+run();
+</script>

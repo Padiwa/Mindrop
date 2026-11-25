@@ -51,7 +51,7 @@
         <div id="tags" class="chips tags"></div>
       </div>
       <details class="settings" id="settings" open>
-        <summary class="settings-head" data-i18n="settings.summary">Réglages : langue, agents IA et sauvegarde</summary>
+        <summary class="settings-head" data-i18n="settings.summary">Réglages : langue, agents IA, sauvegarde et synchronisation</summary>
         <div class="settings-body">
         <section class="index-group lang" aria-labelledby="lang-head">
           <h2 class="index-head" id="lang-head"><label for="lang-select" data-i18n="lang.head">Langue</label></h2>
@@ -77,6 +77,31 @@
             <button type="button" class="ghost" id="backup-restore" aria-expanded="false" aria-controls="backup-list" data-i18n="backup.restore">Restaurer</button>
           </div>
           <ul class="backup-list" id="backup-list" hidden></ul>
+        </section>
+        <section class="index-group cloud" aria-labelledby="cloud-head">
+          <h2 class="index-head" id="cloud-head" data-i18n="cloud.head">Synchronisation</h2>
+          <p class="backup-status" id="cloud-status" role="status" data-i18n="checking">Vérification…</p>
+          <div class="backup-actions">
+            <button type="button" class="ghost" id="cloud-setup" aria-expanded="false" aria-controls="cloud-form" data-i18n="cloud.setup">Connecter Nextcloud</button>
+            <button type="button" class="ghost" id="cloud-now" hidden data-i18n="cloud.now">Synchroniser maintenant</button>
+            <button type="button" class="ghost" id="cloud-off" hidden data-i18n="cloud.off">Déconnecter</button>
+          </div>
+          <form class="cloud-form" id="cloud-form" hidden novalidate>
+            <label class="field"><span data-i18n="cloud.url">Adresse du serveur</span>
+              <input name="url" type="url" inputmode="url" required spellcheck="false" autocomplete="url" placeholder="https://cloud.exemple.fr" data-i18n-placeholder="cloud.urlPlaceholder"></label>
+            <label class="field"><span data-i18n="cloud.user">Utilisateur</span>
+              <input name="user" required spellcheck="false" autocapitalize="off" autocomplete="username"></label>
+            <label class="field"><span data-i18n="cloud.password">Mot de passe d’application</span>
+              <input name="password" type="password" required autocomplete="new-password" aria-describedby="cloud-hint"></label>
+            <label class="field"><span data-i18n="cloud.folder">Dossier</span>
+              <input name="folder" value="Mindrop" spellcheck="false" autocapitalize="off"></label>
+            <p class="cloud-hint" id="cloud-hint" data-i18n="cloud.hint">Le mot de passe d’application se crée dans Nextcloud : Paramètres personnels, Sécurité, « Créer un nouveau mot de passe d’application ». Tes souvenirs sont copiés dans ce dossier, non chiffrés.</p>
+            <p class="cloud-error" id="cloud-error" role="alert" hidden></p>
+            <div class="backup-actions">
+              <button type="submit" class="primary" id="cloud-connect" data-i18n="cloud.connect">Connecter</button>
+              <button type="button" class="ghost" id="cloud-cancel" data-i18n="cloud.cancel">Annuler</button>
+            </div>
+          </form>
         </section>
         </div>
       </details>

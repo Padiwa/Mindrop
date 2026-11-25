@@ -2,6 +2,7 @@ import { onItemsChanged, getItems, updateItem, addItem, guessType, domainOf, ima
 import { buildPageItem } from './capture.js';
 import { runBackup, getBackupStatus } from './backup.js';
 import { syncAgent } from './agent.js';
+import { runCloudSync, getCloudConfig, PERIODIC_ALARM, CHANGE_ALARM } from './cloud.js';
 import { withVideoInfo, videoInfo, needsVideoFix, hasPlaceholderTitle } from './video.js';
 import { t, loadLang, onLangChange } from './i18n.js';
 
@@ -30,7 +31,16 @@ chrome.runtime.onInstalled.addListener(() => {
   repairVideos();
   scheduleSync(0);
   chrome.alarms.create('backup', { delayInMinutes: 1 });
+  startCloud();
 });
+
+// ---------- synchronisation Nextcloud (cloud.js) ----------
+// Si elle est configurée : 30 secondes après chaque changement, au démarrage, puis toutes les 15 minutes.
+async function startCloud() {
+  if (!(await getCloudConfig())) return;
+  chrome.alarms.create(PERIODIC_ALARM, { periodInMinutes: 15 });
+  chrome.alarms.create(CHANGE_ALARM, { delayInMinutes: 0.5 });
+}
 
 // ---------- vidéos enregistrées avec le titre « YouTube » (avant la 1.5) ----------
 async function repairVideos() {
@@ -59,10 +69,15 @@ onItemsChanged(() => {
   scheduleSync();
   // sauvegarde complète une minute après le dernier changement (l'alarme survit à la mise en veille du service worker)
   chrome.alarms.create('backup', { delayInMinutes: 1 });
+  getCloudConfig().then(cfg => { if (cfg) chrome.alarms.create(CHANGE_ALARM, { delayInMinutes: 0.5 }); });
 });
-chrome.alarms.onAlarm.addListener(a => { if (a.name === 'backup') runBackup(); });
+chrome.alarms.onAlarm.addListener(a => {
+  if (a.name === 'backup') runBackup();
+  if (a.name === CHANGE_ALARM || a.name === PERIODIC_ALARM) runCloudSync();
+});
 chrome.runtime.onStartup.addListener(async () => {
   scheduleSync(0);
+  startCloud();
   const last = await getBackupStatus();
   if (!last?.ok || Date.now() - last.at > 864e5) chrome.alarms.create('backup', { delayInMinutes: 1 });
 });
