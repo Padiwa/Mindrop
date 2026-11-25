@@ -265,8 +265,9 @@ export function onLangChange(cb) {
 }
 
 // Traduit le HTML statique : data-i18n (texte), data-i18n-placeholder, data-i18n-title, data-i18n-aria-label.
+/** @param {ParentNode} [root] */
 export function translatePage(root = document) {
-  for (const el of root.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+  for (const el of /** @type {NodeListOf<HTMLElement>} */ (root.querySelectorAll('[data-i18n]'))) el.textContent = t(el.dataset.i18n);
   for (const attr of ['placeholder', 'title', 'aria-label']) {
     for (const el of root.querySelectorAll(`[data-i18n-${attr}]`)) el.setAttribute(attr, t(el.getAttribute(`data-i18n-${attr}`)));
   }

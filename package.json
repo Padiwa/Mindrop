@@ -9,9 +9,15 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "npm run test:node && npm run test:browser",
+    "test": "npm run typecheck && npm run test:node && npm run test:browser",
+    "typecheck": "tsc -p .",
     "test:node": "node --test \"tests/node/*.test.mjs\"",
     "test:browser": "node tests/run-browser.mjs",
     "site": "node scripts/build-site.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.8",
+    "@types/node": "^26.6.10",
+    "typescript": "^7.0.2"
   }
 }

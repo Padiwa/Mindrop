@@ -22,6 +22,7 @@ export async function getAgentSync() {
 }
 
 // Ce que l'agent peut lire : tout sauf les images encodées (captures, images déposées).
+/** @param {import('./types').Item[]} items */
 export function shareable(items) {
   return items.map(({ thumb, image, ...x }) => ({ ...x, image: /^https?:/.test(image || '') ? image : '' }));
 }

@@ -8,6 +8,7 @@ import { t, loadLang, onLangChange } from './i18n.js';
 // Pas d'await au niveau du module dans un service worker : la langue est chargée au démarrage, puis à chaque changement.
 const langReady = loadLang().catch(() => {});
 
+/** @type {Array<{ id: string, key: string, contexts: [`${chrome.contextMenus.ContextType}`, ...`${chrome.contextMenus.ContextType}`[]] }>} */
 const MENUS = [
   { id: 'save-page', key: 'menu.savePage', contexts: ['page'] },
   { id: 'save-selection', key: 'menu.saveSelection', contexts: ['selection'] },
@@ -81,7 +82,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         await addItem(await withVideoInfo({
           type: guessType(info.linkUrl),
           url: info.linkUrl,
-          title: info.linkText || info.selectionText || domainOf(info.linkUrl) || info.linkUrl,
+          title: /** @type {{ linkText?: string }} */ (info).linkText || info.selectionText || domainOf(info.linkUrl) || info.linkUrl,
           image: imageFor(info.linkUrl),
         }));
         break;

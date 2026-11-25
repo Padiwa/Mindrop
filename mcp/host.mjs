@@ -179,7 +179,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
   const session = new BackupSession();
   let buf = Buffer.alloc(0);
   process.stdin.on('data', chunk => {
-    buf = Buffer.concat([buf, chunk]);
+    buf = Buffer.concat([buf, /** @type {Buffer} */ (chunk)]);
     while (buf.length >= 4) {
       const len = buf.readUInt32LE(0);
       if (buf.length < 4 + len) break;

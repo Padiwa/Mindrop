@@ -436,7 +436,7 @@ export function createMap(root, { onOpen, onZoom }) {
   }, { passive: false });
 
   document.addEventListener('keydown', e => {
-    if (!visible || e.target.matches?.('input, textarea') || !root.offsetParent) return;
+    if (!visible || /** @type {Element} */ (e.target).matches?.('input, textarea') || !root.offsetParent) return;
     if (document.querySelector('#modal:not([hidden])')) return;
     if (e.key === '+' || e.key === '=') zoomAt(W / 2, H / 2, 1.3, true);
     else if (e.key === '-') zoomAt(W / 2, H / 2, 1 / 1.3, true);

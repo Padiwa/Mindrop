@@ -21,10 +21,10 @@ export function pageReader() {
   if (youtube) {
     // la description de la vidéo, pas toute la page (commentaires, suggestions…)
     const d = document.querySelector('ytd-watch-metadata #description-inline-expander, #description-inline-expander, ytd-text-inline-expander');
-    content = clean(d?.innerText).replace(/\s*(…|\.\.\.)?\s*(afficher plus|plus|show more|more|afficher moins|moins|show less|less)\s*$/i, '');
+    content = clean(/** @type {HTMLElement | null} */ (d)?.innerText).replace(/\s*(…|\.\.\.)?\s*(afficher plus|plus|show more|more|afficher moins|moins|show less|less)\s*$/i, '');
   } else {
     // le bloc d'article le plus fourni, sinon toute la page
-    const blocks = [...document.querySelectorAll('article, main, [role="main"], .post-content, .entry-content, .article-body, .article-content, #content')];
+    const blocks = /** @type {HTMLElement[]} */ ([...document.querySelectorAll('article, main, [role="main"], .post-content, .entry-content, .article-body, .article-content, #content')]);
     let best = null, len = 0;
     for (const el of blocks) { const n = (el.innerText || '').length; if (n > len) { best = el; len = n; } }
     if (!best || len < 400) best = document.body;
@@ -42,6 +42,10 @@ export function pageReader() {
   };
 }
 
+/**
+ * @param {number} tabId
+ * @returns {Promise<import('./types').PageMeta>}
+ */
 export async function readPageMeta(tabId) {
   try {
     const [res] = await chrome.scripting.executeScript({ target: { tabId }, func: pageReader });

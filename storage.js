@@ -6,6 +6,9 @@
 
 import { t as tr } from './i18n.js';
 
+/** @typedef {import('./types').Item} Item */
+/** @typedef {import('./types').NewItem} NewItem */
+
 const DB_NAME = 'second-cerveau'; // nom d'origine, gardé : le changer ferait perdre les souvenirs
 const DB_VERSION = 1;
 const STORE = 'items';
@@ -15,6 +18,11 @@ const MIGRATED = 'idbMigrated';
 
 let dbPromise = null;
 
+/**
+ * @template T
+ * @param {IDBRequest<T>} r
+ * @returns {Promise<T>}
+ */
 function req(r) {
   return new Promise((resolve, reject) => {
     r.onsuccess = () => resolve(r.result);
@@ -46,6 +54,12 @@ function db() {
 }
 
 // Exécute fn(store) dans une transaction ; se résout quand elle est validée sur disque.
+/**
+ * @template T
+ * @param {IDBTransactionMode} mode
+ * @param {(store: IDBObjectStore) => T | Promise<T>} fn
+ * @returns {Promise<T>}
+ */
 async function tx(mode, fn) {
   const d = await db();
   return new Promise((resolve, reject) => {
@@ -85,28 +99,36 @@ async function notify() {
   try { await chrome.storage.local.set({ [REV]: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}` }); } catch {}
 }
 
+/** @param {() => void} cb */
 export function onItemsChanged(cb) {
   chrome.storage.onChanged.addListener((changes, area) => { if (area === 'local' && changes[REV]) cb(); });
 }
 
 const newestFirst = (a, b) => (b.createdAt || 0) - (a.createdAt || 0);
 
+/** @returns {Promise<Item[]>} */
 export async function getItems() {
-  const all = await tx('readonly', s => req(s.getAll()));
+  const all = /** @type {Item[]} */ (await tx('readonly', s => req(s.getAll())));
   return all.sort(newestFirst);
 }
 
+/**
+ * @param {string} id
+ * @returns {Promise<Item | undefined>}
+ */
 export async function getItem(id) {
   return tx('readonly', s => req(s.get(id)));
 }
 
 // Remplace tout le contenu (en une seule transaction).
+/** @param {Item[]} items */
 export async function saveItems(items) {
   await tx('readwrite', s => { s.clear(); for (const it of items) if (it?.id) s.put(it); });
   await notify();
 }
 
 // Ajoute ou remplace des souvenirs, sans toucher aux autres.
+/** @param {Item[]} items */
 export async function putItems(items) {
   if (!items.length) return;
   await tx('readwrite', s => { for (const it of items) if (it?.id) s.put(it); });
@@ -117,15 +139,20 @@ export function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+/**
+ * @param {NewItem} data
+ * @returns {Promise<Item>}
+ */
 export async function addItem(data) {
   const now = Date.now();
+  /** @type {Item} */
   const item = {
     id: uid(), type: 'link', title: '', url: '', text: '', note: '',
-    description: '', image: '', thumb: '', tags: [], color: '',
+    description: '', image: '', thumb: '', color: '',
     pinned: false, createdAt: now, updatedAt: now,
     ...data,
+    tags: normalizeTags(data.tags),
   };
-  item.tags = normalizeTags(item.tags);
   await tx('readwrite', s => req(s.add(item)));
   await notify();
   return item;
@@ -133,9 +160,14 @@ export async function addItem(data) {
 
 // patch : un objet, ou une fonction qui reçoit le souvenir à jour et renvoie l'objet
 // (pour les changements qui dépendent de la valeur actuelle : épingler, cocher une tâche).
+/**
+ * @param {string} id
+ * @param {Partial<Item> | ((cur: Item) => Partial<Item> | null | undefined)} patch
+ * @returns {Promise<Item | null>}
+ */
 export async function updateItem(id, patch) {
   const next = await tx('readwrite', async s => {
-    const cur = await req(s.get(id));
+    const cur = /** @type {Item | undefined} */ (await req(s.get(id)));
     if (!cur) return null;
     const p = typeof patch === 'function' ? patch(cur) : patch;
     if (!p) return cur;
@@ -148,6 +180,7 @@ export async function updateItem(id, patch) {
   return next;
 }
 
+/** @param {string} id */
 export async function deleteItem(id) {
   await tx('readwrite', s => { s.delete(id); });
   await notify();
@@ -156,6 +189,10 @@ export async function deleteItem(id) {
 // Fusionne des souvenirs (import, restauration) : ajoute les absents, remplace ceux qui sont
 // plus anciens que la version reçue, ne supprime jamais rien. Tout est vérifié et écrit
 // dans une seule transaction.
+/**
+ * @param {Item[]} incoming
+ * @returns {Promise<{ added: number, updated: number }>}
+ */
 export async function mergeItems(incoming) {
   const result = await tx('readwrite', async s => {
     let added = 0, updated = 0;
@@ -172,12 +209,20 @@ export async function mergeItems(incoming) {
   return result;
 }
 
+/**
+ * @param {string} url
+ * @returns {Promise<Item | null>}
+ */
 export async function findByUrl(url) {
   if (!url) return null;
-  const list = await tx('readonly', s => req(s.index('url').getAll(url)));
+  const list = /** @type {Item[]} */ (await tx('readonly', s => req(s.index('url').getAll(url))));
   return list.find(x => x.type !== 'quote') || null;
 }
 
+/**
+ * @param {string | string[] | undefined} input
+ * @returns {string[]}
+ */
 export function normalizeTags(input) {
   const arr = Array.isArray(input) ? input : String(input || '').split(/[,\s]+/);
   return [...new Set(arr
@@ -185,6 +230,7 @@ export function normalizeTags(input) {
     .filter(Boolean))];
 }
 
+/** @param {string} url */
 export function domainOf(url) {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
 }
@@ -197,17 +243,23 @@ export function faviconUrl(url, size = 32) {
   return u.toString();
 }
 
+/** @param {string | undefined} url */
 export function youtubeId(url) {
   const m = String(url || '').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
   return m ? m[1] : '';
 }
 
+/**
+ * @param {string | undefined} url
+ * @returns {import('./types').ItemType}
+ */
 export function guessType(url) {
   if (/\.(png|jpe?g|gif|webp|avif|svg)(\?|#|$)/i.test(url || '')) return 'image';
   if (youtubeId(url) || /vimeo\.com\/\d+/.test(url || '')) return 'video';
   return 'link';
 }
 
+/** @param {string | undefined} url */
 export function imageFor(url) {
   const yt = youtubeId(url);
   return yt ? `https://i.ytimg.com/vi/${yt}/hqdefault.jpg` : '';

@@ -15,7 +15,7 @@ async function init() {
   getItems().then(items => { counts = tagCounts(items); }).catch(() => {});
   attachTagSuggest($('#p-tags'), () => counts);
   attachTagSuggest($('#n-tags'), () => counts);
-  document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.tab')).forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
   $('#save-page').addEventListener('click', savePage);
   $('#save-note').addEventListener('click', saveNote);
   $('#open-brain').addEventListener('click', () => { chrome.runtime.sendMessage({ type: 'open-brain' }); window.close(); });
@@ -63,7 +63,7 @@ function showPreview(src, fallback) {
 
 function setMode(m) {
   mode = m;
-  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.tab')).forEach(b => b.classList.toggle('active', b.dataset.mode === m));
   $('#mode-page').hidden = m !== 'page';
   $('#mode-note').hidden = m !== 'note';
   (m === 'note' ? $('#n-text') : $('#p-note')).focus();

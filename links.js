@@ -11,6 +11,7 @@ export function firstLine(s) {
   return l ? l.replace(/^\s*(#{1,6}\s+|>\s*|[-*+]\s+(\[[ xX]\]\s+)?)/, '').replace(/[*_`~]/g, '').trim().slice(0, 120) : '';
 }
 
+/** @param {Partial<import('./types').Item>} it */
 export function displayTitle(it) {
   return String(it.title || '').trim() || firstLine(it.text) || it.url || '';
 }
@@ -18,6 +19,10 @@ export function displayTitle(it) {
 const key = s => fold(s).replace(/\s+/g, ' ').trim();
 
 // [{ target, label }] dans l'ordre d'apparition, sans doublon de cible.
+/**
+ * @param {string | undefined} text
+ * @returns {Array<{ target: string, label: string }>}
+ */
 export function parseLinks(text) {
   const out = [], seen = new Set();
   for (const m of String(text || '').matchAll(WIKILINK)) {
@@ -33,6 +38,7 @@ export function parseLinks(text) {
  * Graphe des liens d'une liste de souvenirs.
  * resolve(titre) → souvenir | null · links(id) → [{ target, label, item }] · backlinks(id) → [souvenir]
  * edges : [[idSource, idCible]] (liens résolus, sans lien vers soi-même)
+ * @param {import('./types').Item[]} items
  */
 export function buildLinkGraph(items) {
   const byTitle = new Map();

@@ -74,6 +74,10 @@ export function brief(it, terms = []) {
 // Le souvenir complet (notes en Markdown, telles qu'écrites), avec ses liens [[titre]] dans les deux sens.
 export const CONTENT_LIMIT = 30000;
 
+/**
+ * @param {import('../types').Item} it
+ * @param {{ contentOffset?: number, graph?: ReturnType<typeof buildLinkGraph> }} [opts]
+ */
 export function full(it, { contentOffset = 0, graph } = {}) {
   const content = it.content ? it.content.slice(contentOffset, contentOffset + CONTENT_LIMIT) : '';
   const out = graph ? graph.links(it.id) : [];
@@ -120,6 +124,10 @@ const TYPES = ['link', 'note', 'quote', 'image', 'video'];
 
 // Recherche tolérante (search.js, la même que dans l'extension), classée par pertinence ;
 // si aucun souvenir ne contient tous les mots, bascule en « au moins un mot ».
+/**
+ * @param {import('../types').Item[]} items
+ * @param {import('../types').SearchOptions} [opts]
+ */
 export function search(items, { query = '', type, tags = [], pinned, since, until, limit = 20, offset = 0 } = {}) {
   const q = parseQuery(query);
   const tagTerms = [...q.tags, ...tags.map(t => fold(t).replace(/^#/, ''))].filter(Boolean);

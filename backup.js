@@ -9,6 +9,7 @@ const CHUNK_BYTES = 8 * 1024 * 1024;   // bien sous la limite de 64 Mo par messa
 const NOT_INSTALLED = /not found|introuvable|forbidden|not allowed/i;
 
 // Une connexion au pont : chaque demande reçoit une ou plusieurs réponses (« more: true » = la suite arrive).
+/** @param {import('./types').Connect} [connect] */
 export function openBridge(connect = () => chrome.runtime.connectNative(HOST)) {
   const port = connect();
   const queue = [];
@@ -49,6 +50,7 @@ export function chunkItems(items, maxBytes = CHUNK_BYTES) {
   return out;
 }
 
+/** @param {import('./types').BridgeOptions} [opts] */
 export async function runBackup({ connect, chunkBytes } = {}) {
   let status;
   let bridge;
@@ -71,16 +73,23 @@ export async function runBackup({ connect, chunkBytes } = {}) {
   return status;
 }
 
+/** @returns {Promise<import('./types').BackupStatus | null>} */
 export async function getBackupStatus() {
-  return (await chrome.storage.local.get(STATUS_KEY))[STATUS_KEY] || null;
+  const got = await chrome.storage.local.get(STATUS_KEY);
+  return /** @type {import('./types').BackupStatus} */ (got[STATUS_KEY]) || null;
 }
 
+/** @param {import('./types').BridgeOptions} [opts] */
 export async function listBackups({ connect } = {}) {
   const bridge = openBridge(connect);
   try { return (await bridge.ask({ type: 'list-backups' }))[0].backups; }
   finally { bridge.close(); }
 }
 
+/**
+ * @param {string} name
+ * @param {import('./types').BridgeOptions} [opts]
+ */
 export async function readBackup(name, { connect } = {}) {
   const bridge = openBridge(connect);
   try {

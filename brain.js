@@ -49,6 +49,7 @@ const isUrl = s => /^https?:\/\/\S+$/i.test(s.trim());
 
 function ago(ts) {
   const diff = (ts - Date.now()) / 1000;
+  /** @type {Array<[number, Intl.RelativeTimeFormatUnit]>} */
   const steps = [[60, 'second'], [3600, 'minute'], [86400, 'hour'], [604800, 'day'], [2629800, 'week'], [31557600, 'month'], [Infinity, 'year']];
   const div = { second: 1, minute: 60, hour: 3600, day: 86400, week: 604800, month: 2629800, year: 31557600 };
   for (const [lim, unit] of steps) {
@@ -124,7 +125,7 @@ function render() {
       } },
       h('span', { class: 'label' }, '#' + t), h('span', { class: 'n' }, c))));
 
-  document.querySelectorAll('.views button').forEach(b => {
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.views button')).forEach(b => {
     b.classList.toggle('on', b.dataset.view === state.view);
     b.setAttribute('aria-selected', String(b.dataset.view === state.view));
   });
@@ -388,7 +389,7 @@ function autoGrow(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHei
 
 function closeModal() {
   // valide un éventuel champ tags en cours d'édition
-  document.activeElement?.blur?.();
+  /** @type {HTMLElement | null} */ (document.activeElement)?.blur?.();
   state.openId = null;
   $('#modal').hidden = true;
   document.body.classList.remove('locked');
@@ -444,7 +445,7 @@ function setupDropAndPaste() {
   });
 
   document.addEventListener('paste', async e => {
-    const t = e.target;
+    const t = /** @type {Element} */ (e.target);
     if (t.matches?.('input, textarea')) return;
     const files = [...(e.clipboardData?.files || [])];
     if (files.length) { e.preventDefault(); for (const f of files) await saveFile(f); return; }
@@ -497,7 +498,7 @@ function setView(v) {
   if (isMap) map.show(); else map.hide();
   render();
 }
-document.querySelectorAll('.views button').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+/** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.views button')).forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
 $('#z-in').addEventListener('click', () => map.zoom(1.4));
 $('#z-out').addEventListener('click', () => map.zoom(1 / 1.4));
 $('#z-fit').addEventListener('click', () => map.fit());
@@ -647,7 +648,7 @@ $('#modal').addEventListener('click', e => { if (e.target.closest('[data-close]'
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && state.openId) return closeModal();
-  if (e.key === '/' && !e.target.matches?.('input, textarea')) { e.preventDefault(); $('#q').focus(); }
+  if (e.key === '/' && !/** @type {Element} */ (e.target).matches?.('input, textarea')) { e.preventDefault(); $('#q').focus(); }
 });
 
 setupComposer();

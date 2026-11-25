@@ -31,6 +31,12 @@ export async function videoInfo(url, { fetchImpl = fetch } = {}) {
 }
 
 // Complète un souvenir de type lien s'il pointe vers une vidéo YouTube (titre, chaîne, miniature).
+/**
+ * @template {import('./types').NewItem} T
+ * @param {T} item
+ * @param {{ fetchImpl?: typeof fetch }} [opts]
+ * @returns {Promise<T>}
+ */
 export async function withVideoInfo(item, opts) {
   const v = await videoInfo(item.url, opts);
   if (!v) return item;
