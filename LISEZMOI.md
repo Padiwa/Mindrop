@@ -81,3 +81,12 @@ npm test               # tout
 npm run test:node      # recherche MCP, pont local, Markdown (texte brut)
 npm run test:browser   # stockage IndexedDB, rendu Markdown, sauvegarde et restauration
 ```
+
+## Licence
+
+Mindrop est un logiciel libre, distribué sous la **GNU Affero General Public License, version 3 ou toute version ultérieure** (AGPL-3.0-or-later) : voir le fichier [LICENSE](LICENSE).
+Tu peux l'utiliser, l'étudier, le modifier et le redistribuer ; toute version modifiée que tu distribues, ou que tu proposes à d'autres à travers un réseau, doit rester sous la même licence, avec son code source.
+
+Les polices incluses dans `fonts/` gardent leur propre licence, la SIL Open Font License 1.1 :
+Hanken Grotesk ([OFL-HankenGrotesk.txt](fonts/OFL-HankenGrotesk.txt)), Newsreader ([OFL-Newsreader.txt](fonts/OFL-Newsreader.txt)) et IBM Plex Mono ([OFL-IBMPlexMono.txt](fonts/OFL-IBMPlexMono.txt)).
+

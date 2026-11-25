@@ -2,6 +2,7 @@
   "name": "mindrop",
   "version": "1.6.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "description": "Mindrop : extension de navigateur, second cerveau local, avec pont MCP et sauvegarde automatique.",
   "type": "module",
   "engines": { "node": ">=22" },
