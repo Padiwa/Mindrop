@@ -612,6 +612,12 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 showBackupStatus();
 showAgentStatus();
+
+// Réglages (agents IA, sauvegarde) : ouverts sur grand écran, repliés sur petit écran pour laisser la place à la mosaïque.
+const narrow = matchMedia('(max-width: 60rem)');
+const fitSettings = () => { $('#settings').open = !narrow.matches; };
+narrow.addEventListener('change', fitSettings);
+fitSettings();
 setInterval(() => { showBackupStatus(); showAgentStatus(); }, 60000);
 
 // Une écriture qui échoue (disque plein, base indisponible) ne passe plus inaperçue.

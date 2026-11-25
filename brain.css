@@ -60,6 +60,10 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-2xs); bord
 .chip.on .n { color: var(--color-ink); }
 .chip.tag.on .label { color: var(--color-accent-2); }
 
+/* ---------- réglages (agents IA, sauvegarde) ---------- */
+.settings-head { display: none; }
+.settings-body { display: flex; flex-direction: column; gap: var(--space-xl); }
+
 /* ---------- accès des agents ---------- */
 .agent { display: flex; flex-direction: column; gap: var(--space-xs); }
 .switch { display: flex; align-items: center; gap: var(--space-sm); min-height: 32px; color: var(--color-ink-2); font-size: var(--text-sm); cursor: pointer; }
@@ -94,7 +98,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-2xs); bord
 .stage { min-width: 0; padding: var(--space-lg) var(--gutter) var(--space-3xl); }
 
 .composer { max-width: 760px; margin-bottom: var(--space-lg); }
-.composer textarea { display: block; width: 100%; resize: none; overflow: hidden; padding: var(--space-sm) var(--space-md); border: var(--rule-hair) solid var(--color-muted); border-radius: var(--radius-card); background: var(--color-sheet); color: var(--color-ink); font: 400 var(--text-lg)/1.45 var(--font-body); outline: 2px solid transparent; outline-offset: -3px; }
+.composer textarea { display: block; width: 100%; resize: none; overflow: hidden; field-sizing: content; padding: var(--space-sm) var(--space-md); border: var(--rule-hair) solid var(--color-muted); border-radius: var(--radius-card); background: var(--color-sheet); color: var(--color-ink); font: 400 var(--text-lg)/1.45 var(--font-body); outline: 2px solid transparent; outline-offset: -3px; }
 .composer textarea::placeholder { color: var(--color-muted); }
 .composer textarea:hover { background: var(--color-paper-2); }
 .composer textarea:focus-visible, .composer textarea:focus { outline-color: var(--color-focus); background: var(--color-sheet); }
@@ -325,7 +329,16 @@ body.map-mode .stage { display: flex; flex-direction: column; min-height: 0; pad
   .shell { grid-template-columns: minmax(0, 1fr); }
   .index { position: static; flex-direction: column; gap: var(--space-sm); max-height: none; padding: var(--space-sm) var(--gutter) 0; border-right: 0; }
   .index-group { display: flex; align-items: center; gap: var(--space-sm); min-width: 0; }
-  .index-group.backup, .index-group.agent { flex-wrap: wrap; align-items: flex-start; }
+  .index-group.backup, .index-group.agent { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
+  .settings { border-top: var(--rule-hair) solid var(--color-rule); border-bottom: var(--rule-hair) solid var(--color-rule); }
+  .settings-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); min-height: 40px; color: var(--color-ink-2); font-size: var(--text-sm); font-weight: 500; cursor: pointer; list-style: none; }
+  .settings-head::-webkit-details-marker { display: none; }
+  .settings-head::after { content: "+"; color: var(--color-accent-2); font: 500 var(--text-lg)/1 var(--font-ui); }
+  .settings[open] .settings-head::after { content: "−"; }
+  .settings-head:hover { color: var(--color-ink); }
+  .settings-head:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+  .settings-body { gap: var(--space-lg); padding: var(--space-xs) 0 var(--space-md); }
+  .settings .index-head { padding-bottom: var(--space-2xs); border-bottom: var(--rule-hair) solid var(--color-rule); }
   .index-head { flex: none; padding: 0; border: 0; color: var(--color-muted); font-weight: 500; }
   .chips { flex-direction: row; gap: var(--space-2xs); overflow-x: auto; scrollbar-width: none; mask-image: linear-gradient(to right, var(--color-ink) 82%, transparent); }
   .chip { flex: none; width: auto; min-height: 32px; padding: 0 var(--space-sm); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-pill); }
