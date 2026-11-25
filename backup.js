@@ -2,7 +2,7 @@
 // dans ~/.local/share/second-cerveau/backups/AAAA-MM-JJ.json (30 derniers jours).
 import { getItems } from './storage.js';
 
-export const HOST = 'com.second_cerveau.bridge';
+export const HOST = 'com.second_cerveau.bridge'; // nom d'origine, gardé : le changer couperait le pont installé
 export const STATUS_KEY = 'backupStatus';
 const CHUNK_BYTES = 8 * 1024 * 1024;   // bien sous la limite de 64 Mo par message vers le pont
 

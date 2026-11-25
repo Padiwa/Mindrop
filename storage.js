@@ -1,10 +1,10 @@
 // Stockage des souvenirs : IndexedDB, un enregistrement par souvenir.
 // Chaque ajout ou modification est une transaction sur un seul souvenir : deux écritures
-// simultanées (popup, page cerveau, menu contextuel, raccourci) ne s'écrasent plus.
+// simultanées (popup, page principale, menu contextuel, raccourci) ne s'écrasent plus.
 // Après chaque écriture, la clé REV de chrome.storage.local change : toutes les pages
 // ouvertes et le service worker sont prévenus (onItemsChanged).
 
-const DB_NAME = 'second-cerveau';
+const DB_NAME = 'second-cerveau'; // nom d'origine, gardé : le changer ferait perdre les souvenirs
 const DB_VERSION = 1;
 const STORE = 'items';
 export const KEY = 'items';            // ancien stockage (chrome.storage.local), conservé comme sauvegarde
@@ -34,7 +34,7 @@ function openDb() {
       resolve(db);
     };
     r.onerror = () => reject(r.error);
-    r.onblocked = () => reject(new Error('Base bloquée par un autre onglet : ferme les autres pages du cerveau.'));
+    r.onblocked = () => reject(new Error('Base bloquée par un autre onglet : ferme les autres onglets Mindrop.'));
   });
 }
 

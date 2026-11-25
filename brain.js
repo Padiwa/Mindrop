@@ -141,10 +141,10 @@ function render() {
     empty.replaceChildren(n
       ? h('p', {}, 'Rien ne correspond à cette recherche.')
       : h('div', {},
-          h('h2', {}, 'Ton second cerveau t’attend.'),
+          h('h2', {}, 'Mindrop t’attend.'),
           h('p', {}, 'Clique sur l’icône de l’extension sur n’importe quelle page, fais un clic droit sur une image, un lien ou un texte sélectionné, ou dépose quelque chose ici.'),
           h('dl', { class: 'kbd' },
-            [['S', 'ouvrir'], ['D', 'enregistrer direct'], ['M', 'ce cerveau']].map(([k, what]) => h('div', {},
+            [['S', 'ouvrir'], ['D', 'enregistrer direct'], ['M', 'cette page']].map(([k, what]) => h('div', {},
               h('dt', {}, h('kbd', {}, 'Alt'), ' ', h('kbd', {}, 'Shift'), ' ', h('kbd', {}, k)),
               h('dd', {}, what))))));
   }
@@ -456,7 +456,7 @@ function exportJson() {
   const items = state.items.map(it => Object.fromEntries(Object.entries(it).filter(([k]) => !k.startsWith('_'))));
   const data = { app: 'second-cerveau', version: 1, exportedAt: new Date().toISOString(), items };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const a = h('a', { href: URL.createObjectURL(blob), download: `second-cerveau-${new Date().toISOString().slice(0, 10)}.json` });
+  const a = h('a', { href: URL.createObjectURL(blob), download: `mindrop-${new Date().toISOString().slice(0, 10)}.json` });
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

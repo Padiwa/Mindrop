@@ -1,8 +1,8 @@
 {
-  "name": "second-cerveau",
+  "name": "mindrop",
   "version": "1.6.0",
   "private": true,
-  "description": "Extension de navigateur : second cerveau local, avec pont MCP et sauvegarde automatique.",
+  "description": "Mindrop : extension de navigateur, second cerveau local, avec pont MCP et sauvegarde automatique.",
   "type": "module",
   "engines": { "node": ">=22" },
   "scripts": {

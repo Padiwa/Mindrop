@@ -10,7 +10,7 @@ import { createInterface } from 'node:readline';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 let dir;
-before(() => { dir = mkdtempSync(join(tmpdir(), 'second-cerveau-test-')); });
+before(() => { dir = mkdtempSync(join(tmpdir(), 'mindrop-test-')); });
 after(() => rmSync(dir, { recursive: true, force: true }));
 
 const frame = msg => {
@@ -182,7 +182,7 @@ test('serveur MCP : initialisation, liste des outils, recherche', async () => {
 });
 
 test('serveur MCP : message clair quand aucune copie n’existe', async () => {
-  const empty = mkdtempSync(join(tmpdir(), 'second-cerveau-empty-'));
+  const empty = mkdtempSync(join(tmpdir(), 'mindrop-empty-'));
   const [r] = await mcp([{ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'list_tags', arguments: {} } }], { SECOND_CERVEAU_DIR: empty });
   rmSync(empty, { recursive: true, force: true });
   assert.equal(r.result.isError, true);

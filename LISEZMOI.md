@@ -1,14 +1,16 @@
-# Second Cerveau : extension Chrome / Brave
+# Mindrop : extension Chrome / Brave
+
+Mindrop est ton second cerveau visuel.
 
 Garde tout ce qui compte (pages, liens, notes, citations, images) dans une mosaïque visuelle, à la manière de mymind.
 Tout est stocké **localement** dans ton navigateur : pas de compte, pas de serveur.
 
 ## Installation (Chrome ou Brave)
 
-1. Dézippe le dossier `second-cerveau` quelque part où il restera (ne le supprime pas ensuite).
+1. Dézippe le dossier de l'extension quelque part où il restera (ne le supprime pas ensuite).
 2. Ouvre `chrome://extensions` (Chrome) ou `brave://extensions` (Brave).
 3. Active le **Mode développeur** (en haut à droite).
-4. Clique sur **Charger l'extension non empaquetée** et choisis le dossier `second-cerveau`.
+4. Clique sur **Charger l'extension non empaquetée** et choisis le dossier de l'extension.
 5. Épingle l'icône orange dans la barre d'outils (icône puzzle → épingle).
 
 ## Enregistrer
@@ -21,9 +23,9 @@ Tout est stocké **localement** dans ton navigateur : pas de compte, pas de serv
 | Clic droit sur un lien / une image | « Enregistrer ce lien » / « Enregistrer cette image » |
 | Texte sélectionné + clic sur l'icône | Propose de garder la sélection comme citation |
 
-## Visualiser : la page « cerveau »
+## Visualiser : la page Mindrop
 
-Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou un clic droit sur l'icône.
+Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir Mindrop » de la fenêtre, ou un clic droit sur l'icône.
 
 - **Mosaïque** de tous tes souvenirs : captures des pages, notes colorées, citations, images, vidéos YouTube.
 - **Recherche** instantanée (touche `/`), insensible aux accents ; `#design` filtre par tag.
@@ -31,7 +33,7 @@ Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou
   Elle porte aussi sur le **texte des pages** : à l'enregistrement d'une page, son texte principal (l'article, sans menus) est gardé, et se relit dans la fiche, section « Texte de la page ».
 - **Vidéos YouTube** : titre, chaîne et miniature sont récupérés auprès de YouTube, y compris pour un lien enregistré par clic droit ou collé dans la page. Les vidéos enregistrées avant la version 1.5 avec le titre « YouTube » sont réparées à la mise à jour (un titre que tu as modifié n'est jamais remplacé).
 - **Index** dans la marge gauche : filtres par type (liens, notes, citations, images, vidéos, épinglés) et par tag, avec le nombre de souvenirs de chacun.
-- **Carte mentale** (bouton « Carte mentale ») : chaque #tag est une bulle reliée à « Mon cerveau ».
+- **Carte mentale** (bouton « Carte mentale ») : chaque #tag est une bulle reliée à « Mindrop ».
   Les pointillés relient les tags qui partagent des souvenirs. Zoome (molette, pavé tactile ou +/−) :
   les souvenirs apparaissent autour de leur premier tag, avec un fil vers chacun de leurs autres tags.
   Clic sur un tag = zoom dessus ; glisser un tag = le déplacer (sa position est retenue) ; bouton « Réorganiser » = nouvelle disposition ;
@@ -65,8 +67,8 @@ Ouvre-la avec `Alt+Shift+M`, le lien « Ouvrir mon cerveau » de la fenêtre, ou
 
 Le dossier `mcp/` installe un pont entre l'extension et ton ordinateur, sans passer par Internet. Il apporte :
 
-- la **sauvegarde automatique** de tous tes souvenirs, images comprises, sur ton disque (30 derniers jours), avec restauration depuis la page cerveau ;
-- un **serveur MCP** pour qu'un agent IA (Claude Code ou tout client MCP) cherche dans ton second cerveau, en lecture seule.
+- la **sauvegarde automatique** de tous tes souvenirs, images comprises, sur ton disque (30 derniers jours), avec restauration depuis la page Mindrop ;
+- un **serveur MCP** pour qu'un agent IA (Claude Code ou tout client MCP) cherche dans Mindrop, en lecture seule.
 
 Installation, utilisation, restauration, dépannage : voir **[MCP.md](MCP.md)**.
 

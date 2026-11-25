@@ -2,7 +2,7 @@
 
 Le pont local relie l'extension à ton ordinateur. Une fois installé (une seule fois, voir « Installation »), il apporte deux choses :
 
-- **un serveur MCP** : un agent IA (Claude Code ou tout client MCP) peut **chercher dans ton second cerveau**, en **lecture seule** ;
+- **un serveur MCP** : un agent IA (Claude Code ou tout client MCP) peut **chercher dans Mindrop**, en **lecture seule** ;
 - **la sauvegarde automatique** : une copie complète, images comprises, écrite sur ton disque après chaque changement.
 
 Rien ne passe par Internet.
@@ -29,7 +29,7 @@ Les images enregistrées directement dans l'extension (captures, images déposé
 - **Node.js 18 ou plus** (`node --version`).
 - Un navigateur Chromium : Chrome, Chromium, Brave, Edge ou Vivaldi.
 - **Linux ou macOS.** Sous Windows, l'hôte natif s'enregistre dans le registre, ce que le script d'installation ne fait pas.
-- L'extension Second Cerveau chargée dans le navigateur (voir `LISEZMOI.md`).
+- L'extension Mindrop chargée dans le navigateur (voir `LISEZMOI.md`).
 
 ## Installation
 
@@ -55,7 +55,7 @@ Le script :
 
 ### 3. Recharger l'extension
 
-Dans la page des extensions, clique sur le bouton de rechargement de Second Cerveau. Accepte la nouvelle permission « communiquer avec des applications natives » si le navigateur la demande.
+Dans la page des extensions, clique sur le bouton de rechargement de Mindrop. Accepte la nouvelle permission « communiquer avec des applications natives » si le navigateur la demande.
 
 La première copie part tout de suite. Vérifie qu'elle est arrivée :
 
@@ -68,7 +68,7 @@ ls -l ~/.local/share/second-cerveau/brain.json
 **Claude Code :**
 
 ```sh
-claude mcp add second-cerveau -- node /chemin/vers/second-cerveau/mcp/server.mjs
+claude mcp add mindrop -- node /chemin/vers/l-extension/mcp/server.mjs
 ```
 
 Ajoute `--scope user` pour qu'il soit disponible dans tous tes projets, pas seulement dans le dossier courant. Vérifie avec `claude mcp list`, ou `/mcp` dans une session.
@@ -78,9 +78,9 @@ Ajoute `--scope user` pour qu'il soit disponible dans tous tes projets, pas seul
 ```json
 {
   "mcpServers": {
-    "second-cerveau": {
+    "mindrop": {
       "command": "node",
-      "args": ["/chemin/vers/second-cerveau/mcp/server.mjs"]
+      "args": ["/chemin/vers/l-extension/mcp/server.mjs"]
     }
   }
 }
@@ -92,7 +92,7 @@ Si le client ne trouve pas `node`, mets son chemin complet dans `command` (donn�
 
 Demande simplement à l'agent, par exemple :
 
-- « Cherche dans mon second cerveau ce que j'ai gardé sur la typographie. »
+- « Cherche dans Mindrop ce que j'ai gardé sur la typographie. »
 - « Quels sont mes tags principaux, et comment sont-ils liés ? »
 - « Retrouve la citation de Luhmann et montre-moi les souvenirs proches. »
 - « Résume les liens que j'ai enregistrés ce mois-ci avec le tag #design. »
@@ -129,14 +129,14 @@ Bon à savoir sur la recherche :
 
 ```sh
 node mcp/install.mjs --uninstall
-claude mcp remove second-cerveau
+claude mcp remove mindrop
 ```
 
 La copie et les sauvegardes restent sur le disque ; supprime le dossier `~/.local/share/second-cerveau/` si tu n'en veux plus.
 
 ## Activer ou désactiver l'accès des agents
 
-Dans la page « cerveau », colonne de gauche, l'interrupteur **Accès des agents** contrôle ce que le serveur MCP peut lire. Il est activé par défaut.
+Dans la page Mindrop, colonne de gauche, l'interrupteur **Accès des agents** contrôle ce que le serveur MCP peut lire. Il est activé par défaut.
 
 - **Activé :** la copie lue par le serveur MCP est tenue à jour après chaque changement. Elle contient tous tes souvenirs sauf les images enregistrées dans l'extension (captures, images déposées) ; les liens vers des images web restent.
 - **Désactivé :** la copie est **effacée** sur-le-champ et remplacée par un simple marqueur. Un agent qui interroge le serveur reçoit le message « L'accès des agents est désactivé », sans aucun souvenir.
@@ -159,12 +159,20 @@ Un fichier par jour, réécrit à chaque sauvegarde de la journée ; **les 30 fi
 - une sauvegarde interrompue (navigateur fermé en plein envoi) ne remplace jamais la précédente.
 Au démarrage du navigateur, une sauvegarde est refaite si la dernière date de plus d'un jour.
 
-Dans la page « cerveau », le bloc **Sauvegarde** en bas de la colonne de gauche montre la dernière sauvegarde et permet de :
+Dans la page Mindrop, le bloc **Sauvegarde** en bas de la colonne de gauche montre la dernière sauvegarde et permet de :
 
 - **Sauvegarder maintenant** ;
 - **Restaurer** : choisis une date, puis clique une seconde fois pour confirmer. La restauration ajoute les souvenirs absents et remet à jour ceux qui sont plus anciens que dans la sauvegarde ; **elle ne supprime jamais rien**.
 
 Les fichiers de sauvegarde ont le même format que l'export : le bouton **Importer** les accepte aussi, par exemple pour passer sur un autre ordinateur.
+
+## Noms techniques
+
+L'extension s'appelait « Second Cerveau » avant de devenir Mindrop. Quelques noms techniques ont gardé l'ancien nom, exprès :
+le dossier `~/.local/share/second-cerveau/` (copie et sauvegardes), le pont `com.second_cerveau.bridge` et la base de données interne de l'extension.
+Les renommer couperait le pont déjà installé, égarerait les sauvegardes et ferait disparaître les souvenirs. Ils ne s'affichent nulle part dans l'extension.
+
+Si tu avais déjà branché le serveur sous l'ancien nom dans Claude Code : `claude mcp remove second-cerveau`, puis la commande de l'étape 4.
 
 ## Confidentialité
 

@@ -1,4 +1,6 @@
-// Lecture et recherche dans la copie locale du second cerveau (écrite par host.mjs).
+// Lecture et recherche dans la copie locale de Mindrop (écrite par host.mjs).
+// Les noms techniques « second-cerveau » (dossier, pont) datent d'avant le nom Mindrop et sont gardés
+// pour ne pas couper le pont installé ni égarer les sauvegardes.
 import { readFileSync, statSync } from 'node:fs';
 import { homedir, platform } from 'node:os';
 import { join } from 'node:path';
@@ -25,7 +27,7 @@ export function load() {
   if (st.mtimeMs !== cache.mtime) {
     const raw = JSON.parse(readFileSync(file, 'utf8'));
     if (raw.disabled) {
-      throw new Error("L'accès des agents est désactivé dans l'extension Second Cerveau : aucune donnée n'est partagée. Pour le rétablir : page cerveau, colonne de gauche, « Accès des agents ».");
+      throw new Error("L'accès des agents est désactivé dans l'extension Mindrop : aucune donnée n'est partagée. Pour le rétablir : page principale de Mindrop, colonne de gauche, « Accès des agents ».");
     }
     const items = (Array.isArray(raw.items) ? raw.items : []).map(normalize);
     cache = { mtime: st.mtimeMs, data: { syncedAt: raw.syncedAt || new Date(st.mtimeMs).toISOString(), items } };

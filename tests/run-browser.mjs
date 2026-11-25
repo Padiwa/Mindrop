@@ -40,7 +40,7 @@ const base = `http://127.0.0.1:${server.address().port}`;
 const browser = findBrowser();
 if (!browser) { console.error('Aucun navigateur Chromium trouvé : définis CHROME_PATH.'); process.exit(2); }
 
-const profile = await mkdtemp(join(tmpdir(), 'second-cerveau-chrome-'));
+const profile = await mkdtemp(join(tmpdir(), 'mindrop-chrome-'));
 const port = 9300 + Math.floor(Math.random() * 500);
 const chrome = spawn(browser, ['--headless=new', '--no-sandbox', '--disable-gpu', '--no-first-run', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
 

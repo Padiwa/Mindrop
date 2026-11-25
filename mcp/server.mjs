@@ -1,14 +1,14 @@
 #!/usr/bin/env node
-// Serveur MCP (stdio, sans dépendance) : expose le second cerveau en lecture seule à un agent.
+// Serveur MCP (stdio, sans dépendance) : expose Mindrop en lecture seule à un agent.
 // Messages JSON-RPC 2.0, un par ligne sur stdin/stdout ; les journaux vont sur stderr.
 import { createInterface } from 'node:readline';
 import { load, search, tagIndex, related, full, graphOf, TYPES } from './store.mjs';
 
 const VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-const SERVER = { name: 'second-cerveau', version: '1.0.0' };
+const SERVER = { name: 'mindrop', version: '1.0.0' };
 const READ_ONLY = { readOnlyHint: true, openWorldHint: false };
 
-const INSTRUCTIONS = `Read-only access to the user's "Second Cerveau", a personal knowledge base saved from their browser: links, notes (Markdown), quotes, images and videos, each with #tags. Content is mostly in French.
+const INSTRUCTIONS = `Read-only access to the user's "Mindrop", a personal knowledge base (a "second brain") saved from their browser: links, notes (Markdown), quotes, images and videos, each with #tags. Content is mostly in French.
 Start with search_memories (accent-insensitive; "#tag" in the query filters by tag; an empty query lists the most recent). Use list_tags to see how the knowledge is organised, related_memories to follow connections (notes link to each other with [[Title]], and memories share tags), and get_memory for the full text of one memory. Cite memories by title and URL when you use them.`;
 
 const TOOLS = [
@@ -116,4 +116,4 @@ createInterface({ input: process.stdin }).on('line', line => {
     try { handle(m); } catch (e) { if (m?.id != null) fail(m.id, -32603, String(e.message || e)); }
   }
 });
-console.error(`[second-cerveau] serveur MCP prêt (${SERVER.version})`);
+console.error(`[mindrop] serveur MCP prêt (${SERVER.version})`);

@@ -1,4 +1,4 @@
-// Recherche tolérante, partagée par la page cerveau et le serveur MCP (aucune dépendance au navigateur).
+// Recherche tolérante, partagée par la page principale et le serveur MCP (aucune dépendance au navigateur).
 // Un mot cherché trouve un souvenir, du plus sûr au plus large :
 //   1. texte exact (morceau de mot, nombre, adresse)       « zettel », « 90 000 »
 //   2. même racine (pluriels, -ie/-y, e muet)              « méthodes » → « methods », « typographie » → « Typography »

@@ -258,12 +258,12 @@ export function createMap(root, { onOpen, onZoom }) {
     const fs = Math.max(18, 15 / k);
     ctx.globalAlpha = 1;
     ctx.font = `600 ${fs}px ${fonts.ui}`;
-    const tw = ctx.measureText('Mon cerveau').width;
+    const tw = ctx.measureText('Mindrop').width;
     const w = tw + fs * 1.6, h = fs * 2.2;
     ctx.fillStyle = colors.ink;
     ctx.beginPath(); ctx.roundRect(center.x - w / 2, center.y - h / 2, w, h, h / 2); ctx.fill();
     ctx.fillStyle = colors.bg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('Mon cerveau', center.x, center.y + 1);
+    ctx.fillText('Mindrop', center.x, center.y + 1);
     center.hw = w / 2; center.hh = h / 2;
   }
 

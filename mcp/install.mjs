@@ -50,7 +50,7 @@ chmodSync(launcher, 0o755);
 
 const manifest = {
   name: HOST_NAME,
-  description: 'Second Cerveau : copie locale pour le serveur MCP',
+  description: 'Mindrop : pont local (serveur MCP et sauvegardes)',
   path: launcher,
   type: 'stdio',
   allowed_origins: [`chrome-extension://${arg}/`],
@@ -69,6 +69,6 @@ Ensuite :
      Vérifie que ce fichier existe : ${snapshotPath()}
      La sauvegarde automatique complète arrive une minute plus tard dans ${join(dataDir(), 'backups')}
   2. Branche le serveur MCP sur ton agent. Pour Claude Code :
-       claude mcp add second-cerveau -- "${process.execPath}" "${server}"
+       claude mcp add mindrop -- "${process.execPath}" "${server}"
      Pour un autre client MCP (stdio) :
        { "command": "${process.execPath}", "args": ["${server}"] }`);

@@ -1,4 +1,4 @@
-// Jeu d'icônes unique (trait 1.75, 24 px), partagé par la page cerveau.
+// Jeu d'icônes unique (trait 1.75, 24 px), partagé par la page principale.
 const PATHS = {
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   star: '<path d="M11.5 2.8a.6.6 0 0 1 1 0l2.6 5.3 5.9.9a.6.6 0 0 1 .3 1l-4.2 4.1 1 5.8a.6.6 0 0 1-.9.6L12 17.8l-5.3 2.7a.6.6 0 0 1-.8-.6l1-5.8-4.3-4.1a.6.6 0 0 1 .3-1l5.9-.9z"/>',

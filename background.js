@@ -9,7 +9,7 @@ const MENUS = [
   { id: 'save-selection', title: 'Enregistrer la sélection comme citation', contexts: ['selection'] },
   { id: 'save-link', title: 'Enregistrer ce lien', contexts: ['link'] },
   { id: 'save-image', title: 'Enregistrer cette image', contexts: ['image'] },
-  { id: 'open-brain', title: 'Ouvrir mon second cerveau', contexts: ['action'] },
+  { id: 'open-brain', title: 'Ouvrir Mindrop', contexts: ['action'] },
 ];
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -36,7 +36,7 @@ async function repairVideos() {
 }
 
 // ---------- copie pour le serveur MCP (mcp/) ----------
-// Tenue à jour si l'accès des agents est activé (page cerveau), effacée sinon : voir agent.js.
+// Tenue à jour si l'accès des agents est activé (page principale), effacée sinon : voir agent.js.
 let syncTimer;
 function scheduleSync(delay = 1500) {
   clearTimeout(syncTimer);

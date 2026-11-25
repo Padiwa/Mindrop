@@ -1,6 +1,6 @@
 // Liens entre souvenirs : [[Titre]] ou [[Titre|texte affiché]] dans une note ou une note perso.
 // Un lien vise le souvenir dont le titre est le même, sans tenir compte des accents ni de la casse ;
-// le titre d'une note est sa première ligne. Partagé par la page cerveau, la carte et le serveur MCP.
+// le titre d'une note est sa première ligne. Partagé par la page principale, la carte et le serveur MCP.
 import { fold } from './search.js';
 
 export const WIKILINK = /\[\[([^[\]\n|]+?)(?:\|([^[\]\n]+?))?\]\]/g;
