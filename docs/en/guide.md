@@ -8,13 +8,15 @@ Everything is stored **locally** in your browser: no account, no server, nothing
 
 Mindrop runs in Chromium-based browsers: Chrome, Brave, Edge, Chromium, Vivaldi. It is not on the Chrome Web Store (yet), so you install it from its folder.
 
-1. Get the extension folder from GitHub: the **Code** button, then **Download ZIP** (and unzip it), or `git clone` the repository. Keep it somewhere it will stay: the browser reads it every time it starts.
+1. Download **[mindrop.zip](https://github.com/Padiwa/Mindrop/releases/latest/download/mindrop.zip)**, the latest version (all versions are on the [Releases](https://github.com/Padiwa/Mindrop/releases) page), and unzip it. Keep the `mindrop` folder somewhere it will stay: the browser reads it every time it starts.
 2. Open `chrome://extensions` (or `brave://extensions`, `edge://extensions`).
 3. Turn on **Developer mode** (top right).
-4. Click **Load unpacked** and choose the extension folder (the one that contains `manifest.json`).
+4. Click **Load unpacked** and choose the `mindrop` folder (the one that contains `manifest.json`).
 5. Pin the orange icon to the toolbar (puzzle icon, then the pin).
 
-To update: replace the folder's content with the new version (or `git pull`), then click Mindrop's reload button on the extensions page. Your memories stay.
+To update: replace the folder's content with the new zip's, then click Mindrop's reload button on the extensions page. Your memories stay.
+
+You can also `git clone` the repository and load its folder: you then update with `git pull`.
 
 ## Save
 
@@ -92,14 +94,21 @@ Setup and use: see the **[Local bridge](local-bridge.md)** guide.
 
 ## Development
 
-Mindrop has no dependencies. Tests need Node 22 or later, and a Chromium browser for the browser tests (set `CHROME_PATH` if it is not found on its own):
+The extension has no dependencies and no build step: the repository folder loads as it is. The code is JavaScript, type-checked by TypeScript through JSDoc comments; the shared types are in `types.d.ts`. TypeScript is only a development tool, never shipped in the extension.
+
+Development needs Node 22 or later, and a Chromium browser for the browser tests (set `CHROME_PATH` if it is not found on its own):
 
 ```sh
-npm test               # everything
-npm run test:node      # search, links, local bridge, MCP server
+npm install            # TypeScript and the Chrome and Node types, for the type check
+npm test               # everything: types, Node tests, browser tests
+npm run typecheck      # types only
+npm run test:node      # search, links, local bridge, MCP server, the zip
 npm run test:browser   # IndexedDB storage, Markdown rendering, backups, suggestions
+npm run pack           # builds dist/mindrop.zip, the extension to hand out
 npm run site           # rebuilds the documentation site (docs/ folder)
 ```
+
+**Releasing a version:** raise `version` in `manifest.json` and `package.json`, commit, then push a matching tag: `git tag v1.8.0 && git push origin v1.8.0`. A GitHub Action runs the tests, builds the zip and publishes the release; the site's download button always points to the latest one.
 
 ## License
 

@@ -1,0 +1,46 @@
+# Publie une release GitHub avec le zip de l'extension quand on pousse un tag de version :
+#   git tag v1.7.0 && git push origin v1.7.0
+# Le tag doit correspondre à la version de manifest.json et de package.json.
+# Le zip est joint sous deux noms : mindrop-<version>.zip, et mindrop.zip pour le lien stable
+# https://github.com/<dépôt>/releases/latest/download/mindrop.zip (bouton du site).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Version du tag = version de l'extension
+        run: |
+          v="$(node -p "require('./manifest.json').version")"
+          test "v$v" = "$GITHUB_REF_NAME" || { echo "Le tag $GITHUB_REF_NAME ne correspond pas à manifest.json ($v)"; exit 1; }
+
+      - run: npm ci
+
+      - name: Tests (types, Node, navigateur)
+        run: npm test
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+
+      - run: npm run pack
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" "dist/mindrop-$v.zip" dist/mindrop.zip \
+            --title "Mindrop $v" --generate-notes

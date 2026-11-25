@@ -15,7 +15,8 @@ const SRC = join(root, 'docs');
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const REPO = String((typeof pkg.repository === 'string' ? pkg.repository : pkg.repository?.url) || '')
   .replace(/^git\+/, '').replace(/\.git$/, '');
-const ZIP = REPO ? `${REPO}/archive/refs/heads/main.zip` : '';
+// le zip de la dernière release (scripts/pack.mjs, publié par .github/workflows/release.yml)
+const ZIP = REPO ? `${REPO}/releases/latest/download/mindrop.zip` : '';
 
 // ---------- Markdown → HTML ----------
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -159,9 +160,9 @@ const T = {
     ],
     installH: 'Install it in four steps.',
     steps: [
-      ['Download', REPO ? `the <a href="${esc(ZIP)}">ZIP of the repository</a> and unzip it somewhere it will stay.` : 'the repository from GitHub (Code, then Download ZIP) and unzip it somewhere it will stay.'],
+      ['Download', REPO ? `<a href="${esc(ZIP)}">mindrop.zip</a> and unzip it somewhere it will stay.` : 'the repository from GitHub (Code, then Download ZIP) and unzip it somewhere it will stay.'],
       ['Open', '<code>chrome://extensions</code>, or <code>brave://extensions</code>, and turn on Developer mode.'],
-      ['Load', 'it with “Load\u00a0unpacked”, then pick the folder that holds <code>manifest.json</code>.'],
+      ['Load', 'it with “Load\u00a0unpacked”, then pick the <code>mindrop</code> folder.'],
       ['Pin', 'the orange icon to your toolbar, then press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> on a page.'],
     ],
     download: REPO ? 'Download the ZIP' : 'Installation guide',
@@ -207,9 +208,9 @@ const T = {
     ],
     installH: 'L’installer en quatre étapes.',
     steps: [
-      ['Télécharge', REPO ? `le <a href="${esc(ZIP)}">ZIP du dépôt</a> et dézippe-le là où il restera.` : 'le dépôt depuis GitHub (Code, puis Download ZIP) et dézippe-le là où il restera.'],
+      ['Télécharge', REPO ? `<a href="${esc(ZIP)}">mindrop.zip</a> et dézippe-le là où il restera.` : 'le dépôt depuis GitHub (Code, puis Download ZIP) et dézippe-le là où il restera.'],
       ['Ouvre', '<code>chrome://extensions</code>, ou <code>brave://extensions</code>, et active le mode développeur.'],
-      ['Charge', 'l’extension avec «\u00a0Charger l’extension non empaquetée\u00a0», puis choisis le dossier qui contient <code>manifest.json</code>.'],
+      ['Charge', 'l’extension avec «\u00a0Charger l’extension non empaquetée\u00a0», puis choisis le dossier <code>mindrop</code>.'],
       ['Épingle', 'l’icône orange dans la barre d’outils, puis <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> sur une page.'],
     ],
     download: REPO ? 'Télécharger le ZIP' : 'Guide d’installation',

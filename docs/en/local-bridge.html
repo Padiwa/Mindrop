@@ -18,7 +18,7 @@
       <a href="guide.html">Guide</a>
       <a href="local-bridge.html" aria-current="page">Local bridge</a>
       <a href="../fr/pont-local.html" hreflang="fr" lang="fr" title="Lire en français">Français</a>
-      
+      <a href="https://github.com/Padiwa/Mindrop">GitHub</a>
     </nav>
   </div>
 </header>
@@ -46,7 +46,7 @@
 <p>Open <code>chrome://extensions</code> (or <code>brave://extensions</code>, <code>edge://extensions</code>) and turn on <strong>Developer mode</strong>. The id is the 32-letter string under the extension’s name, for example <code>abcdefghijklmnopabcdefghijklmnop</code>.</p>
 <p>An unpacked extension’s id depends on its folder: if you move the folder, the id changes. You then need to run this setup again, and your data does not follow: export it first.</p>
 <h3 id="2-register-the-bridge">2. Register the bridge</h3>
-<p>From the project folder:</p>
+<p>From the extension folder (the unzipped <code>mindrop</code> folder, or the cloned repository):</p>
 <pre data-lang="sh"><code>node mcp/install.mjs &lt;extension-id&gt;</code></pre>
 <p>The script:</p>
 <ul><li>creates a small <code>host.sh</code> launcher next to the data file, with the full path to your Node (the browser starts programs with a minimal <code>PATH</code>);</li><li>registers the bridge for every browser it finds, in its <code>NativeMessagingHosts</code> folder, allowing only your extension;</li><li>prints the exact command for step 4.</li></ul>
@@ -89,7 +89,7 @@
 <ul><li><strong>Back up now</strong>;</li><li><strong>Restore</strong>: pick a date, then click a second time to confirm. Restoring adds missing memories and updates those that are older than in the backup; <strong>it never deletes anything</strong>.</li></ul>
 <p>Backup files use the same format as the export: the <strong>Import</strong> button accepts them too, for example to move to another computer.</p>
 <h2 id="update-troubleshooting-and-removal">Update, troubleshooting and removal</h2>
-<p><strong>When to run <code>node mcp/install.mjs &lt;id&gt;</code> again:</strong> if you move the project folder, if the extension id changes or if you change Node versions.</p>
+<p><strong>When to run <code>node mcp/install.mjs &lt;id&gt;</code> again:</strong> if you move the extension folder, if the extension id changes or if you change Node versions.</p>
 <p><strong>The agent says no copy was found:</strong></p>
 <ol><li>Check that <code>brain.json</code> exists (command in step 3).</li><li>Reload the extension to force a copy.</li><li>Check that the bridge file exists for your browser, for example for Chrome: <code>~/.config/google-chrome/NativeMessagingHosts/com.second_cerveau.bridge.json</code>. Its <code>allowed_origins</code> field must contain the current extension id.</li><li>Start the launcher by hand: <code>~/.local/share/second-cerveau/host.sh</code> should start without errors (quit with Ctrl+C).</li></ol>
 <p><strong>Results look old:</strong> check <code>syncedAt</code> in the answer. The copy is sent about a second after each change; the extension must be running in an open browser.</p>
@@ -112,7 +112,7 @@ claude mcp remove mindrop</code></pre>
       <a href="local-bridge.html">Local bridge</a>
       <a href="../assets/LICENSE.txt">License</a>
       <a href="../fr/pont-local.html" hreflang="fr" lang="fr">Français</a>
-      
+      <a href="https://github.com/Padiwa/Mindrop">GitHub</a>
     </nav>
     
   </div>

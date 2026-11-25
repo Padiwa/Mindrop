@@ -42,7 +42,7 @@ An unpacked extension's id depends on its folder: if you move the folder, the id
 
 ### 2. Register the bridge
 
-From the project folder:
+From the extension folder (the unzipped `mindrop` folder, or the cloned repository):
 
 ```sh
 node mcp/install.mjs <extension-id>
@@ -146,7 +146,7 @@ Backup files use the same format as the export: the **Import** button accepts th
 
 ## Update, troubleshooting and removal
 
-**When to run `node mcp/install.mjs <id>` again:** if you move the project folder, if the extension id changes or if you change Node versions.
+**When to run `node mcp/install.mjs <id>` again:** if you move the extension folder, if the extension id changes or if you change Node versions.
 
 **The agent says no copy was found:**
 1. Check that `brain.json` exists (command in step 3).

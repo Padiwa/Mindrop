@@ -10,9 +10,9 @@ Mindrop is a second brain that lives in your browser. Keep the pages, links, Mar
 - **Automatic backups** on your disk, and an **MCP server** so an AI agent can search your memories, read-only, with a switch to cut access.
 - In English and French. Chrome, Brave, Edge and other Chromium browsers. Free software under the AGPL.
 
-**Documentation:** [Guide](docs/en/guide.md) · [Local bridge: AI agent and backups](docs/en/local-bridge.md)
+**Documentation:** [website](https://padiwa.github.io/Mindrop/) · [Guide](docs/en/guide.md) · [Local bridge: AI agent and backups](docs/en/local-bridge.md)
 
-**Install:** download this repository (**Code**, then **Download ZIP**), open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and choose the folder. Details in the [guide](docs/en/guide.md#install).
+**Install:** download [mindrop.zip](https://github.com/Padiwa/Mindrop/releases/latest/download/mindrop.zip) and unzip it, open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and choose the `mindrop` folder. Details in the [guide](docs/en/guide.md#install).
 
 ---
 
@@ -28,9 +28,9 @@ Mindrop est un second cerveau qui vit dans ton navigateur. Garde les pages, lien
 - **Sauvegardes automatiques** sur ton disque, et un **serveur MCP** pour qu'un agent IA cherche dans tes souvenirs, en lecture seule, avec un interrupteur pour couper l'accès.
 - En français et en anglais. Chrome, Brave, Edge et les autres navigateurs Chromium. Logiciel libre sous licence AGPL.
 
-**Documentation :** [Guide](docs/fr/guide.md) · [Pont local : agent IA et sauvegardes](docs/fr/pont-local.md)
+**Documentation :** [site](https://padiwa.github.io/Mindrop/fr/) · [Guide](docs/fr/guide.md) · [Pont local : agent IA et sauvegardes](docs/fr/pont-local.md)
 
-**Installer :** télécharge ce dépôt (**Code**, puis **Download ZIP**), ouvre `chrome://extensions`, active le **Mode développeur**, clique sur **Charger l'extension non empaquetée** et choisis le dossier. Le détail est dans le [guide](docs/fr/guide.md#installation).
+**Installer :** télécharge [mindrop.zip](https://github.com/Padiwa/Mindrop/releases/latest/download/mindrop.zip) et dézippe-le, ouvre `chrome://extensions`, active le **Mode développeur**, clique sur **Charger l'extension non empaquetée** et choisis le dossier `mindrop`. Le détail est dans le [guide](docs/fr/guide.md#installation).
 
 ---
 

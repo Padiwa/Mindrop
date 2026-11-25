@@ -18,7 +18,7 @@
       <a href="guide.html" aria-current="page">Guide</a>
       <a href="pont-local.html">Pont local</a>
       <a href="../en/guide.html" hreflang="en" lang="en" title="Read in English">English</a>
-      
+      <a href="https://github.com/Padiwa/Mindrop">GitHub</a>
     </nav>
   </div>
 </header>
@@ -35,8 +35,9 @@
 <p>Tout est stocké <strong>localement</strong> dans ton navigateur : pas de compte, pas de serveur, rien n’est envoyé sur Internet.</p>
 <h2 id="installation">Installation</h2>
 <p>Mindrop fonctionne dans les navigateurs basés sur Chromium : Chrome, Brave, Edge, Chromium, Vivaldi. Il n’est pas (encore) publié sur le Chrome Web Store : on l’installe depuis son dossier.</p>
-<ol><li>Récupère le dossier de l’extension depuis GitHub : bouton <strong>Code</strong>, puis <strong>Download ZIP</strong> (et dézippe-le), ou <code>git clone</code> du dépôt. Range-le à un endroit où il restera : le navigateur le lit à chaque démarrage.</li><li>Ouvre <code>chrome://extensions</code> (ou <code>brave://extensions</code>, <code>edge://extensions</code>).</li><li>Active le <strong>Mode développeur</strong> (en haut à droite).</li><li>Clique sur <strong>Charger l’extension non empaquetée</strong> et choisis le dossier de l’extension (celui qui contient <code>manifest.json</code>).</li><li>Épingle l’icône orange dans la barre d’outils (icône puzzle, puis épingle).</li></ol>
-<p>Pour mettre à jour : remplace le contenu du dossier par la nouvelle version (ou <code>git pull</code>), puis clique sur le bouton de rechargement de Mindrop dans la page des extensions. Tes souvenirs restent.</p>
+<ol><li>Télécharge <strong><a href="https://github.com/Padiwa/Mindrop/releases/latest/download/mindrop.zip">mindrop.zip</a></strong>, la dernière version (toutes les versions sont sur la page <a href="https://github.com/Padiwa/Mindrop/releases">Releases</a>), et dézippe-le. Range le dossier <code>mindrop</code> à un endroit où il restera : le navigateur le lit à chaque démarrage.</li><li>Ouvre <code>chrome://extensions</code> (ou <code>brave://extensions</code>, <code>edge://extensions</code>).</li><li>Active le <strong>Mode développeur</strong> (en haut à droite).</li><li>Clique sur <strong>Charger l’extension non empaquetée</strong> et choisis le dossier <code>mindrop</code> (celui qui contient <code>manifest.json</code>).</li><li>Épingle l’icône orange dans la barre d’outils (icône puzzle, puis épingle).</li></ol>
+<p>Pour mettre à jour : remplace le contenu du dossier par celui du nouveau zip, puis clique sur le bouton de rechargement de Mindrop dans la page des extensions. Tes souvenirs restent.</p>
+<p>Tu peux aussi faire un <code>git clone</code> du dépôt et charger son dossier : la mise à jour se fait alors avec <code>git pull</code>.</p>
 <h2 id="enregistrer">Enregistrer</h2>
 <div class="table"><table><thead><tr><th scope="col">Comment</th><th scope="col">Ce que ça fait</th></tr></thead><tbody><tr><td>Clic sur l’icône, ou <code>Alt+Shift+S</code></td><td>Fenêtre avec l’aperçu de la page, son titre, une note perso et des #tags. L’onglet <strong>Note</strong> sert à écrire une pensée rapide.</td></tr><tr><td><code>Alt+Shift+D</code></td><td>Enregistre la page en cours tout de suite, sans fenêtre (un ✓ s’affiche sur l’icône).</td></tr><tr><td>Clic droit sur un texte sélectionné</td><td>« Enregistrer la sélection comme citation ».</td></tr><tr><td>Clic droit sur un lien ou une image</td><td>« Enregistrer ce lien », « Enregistrer cette image ».</td></tr><tr><td>Texte sélectionné, puis clic sur l’icône</td><td>Propose de garder la sélection comme citation.</td></tr></tbody></table></div>
 <p>À l’enregistrement d’une page, Mindrop garde aussi son <strong>texte principal</strong> (l’article, sans les menus), pour pouvoir le retrouver par la recherche. Pour une vidéo YouTube, il récupère le vrai titre, la chaîne et la miniature.</p>
@@ -61,11 +62,16 @@
 <h2 id="bon-a-savoir">Bon à savoir</h2>
 <ul><li>Si un raccourci ne marche pas, il est sans doute déjà pris par le navigateur : choisis-en un autre dans <code>chrome://extensions/shortcuts</code>.</li><li>Les pages internes du navigateur (<code>chrome://</code>, Web Store) ne peuvent pas être capturées : l’onglet Note reste disponible.</li><li>Désinstaller l’extension efface ses données : exporte d’abord, ou installe le pont local pour avoir des sauvegardes automatiques sur ton disque.</li><li>Pour les fichiers locaux (<code>file://</code>), active « Autoriser l’accès aux URL de fichier » dans les détails de l’extension.</li><li>Les polices sont incluses dans <code>fonts/</code> : rien n’est chargé depuis Internet.</li></ul>
 <h2 id="developpement">Développement</h2>
-<p>Mindrop n’a aucune dépendance. Les tests demandent Node 22 ou plus, et un navigateur Chromium pour les tests navigateur (variable <code>CHROME_PATH</code> s’il n’est pas trouvé tout seul) :</p>
-<pre data-lang="sh"><code>npm test               # tout
-npm run test:node      # recherche, liens, pont local, serveur MCP
+<p>L’extension n’a aucune dépendance ni étape de compilation : le dossier du dépôt se charge tel quel. Le code est en JavaScript, vérifié par TypeScript grâce à des commentaires JSDoc ; les types partagés sont dans <code>types.d.ts</code>. TypeScript n’est qu’un outil de développement, jamais embarqué dans l’extension.</p>
+<p>Le développement demande Node 22 ou plus, et un navigateur Chromium pour les tests navigateur (variable <code>CHROME_PATH</code> s’il n’est pas trouvé tout seul) :</p>
+<pre data-lang="sh"><code>npm install            # TypeScript et les types Chrome et Node, pour la vérification de types
+npm test               # tout : types, tests Node, tests navigateur
+npm run typecheck      # les types seulement
+npm run test:node      # recherche, liens, pont local, serveur MCP, le zip
 npm run test:browser   # stockage IndexedDB, rendu Markdown, sauvegarde, suggestions
+npm run pack           # fabrique dist/mindrop.zip, l'extension à distribuer
 npm run site           # régénère le site de documentation (dossier docs/)</code></pre>
+<p><strong>Publier une version :</strong> augmente <code>version</code> dans <code>manifest.json</code> et <code>package.json</code>, commite, puis pousse le tag correspondant : <code>git tag v1.8.0 &amp;&amp; git push origin v1.8.0</code>. Une GitHub Action lance les tests, fabrique le zip et publie la release ; le bouton de téléchargement du site pointe toujours vers la dernière.</p>
 <h2 id="licence">Licence</h2>
 <p>Mindrop est un logiciel libre, distribué sous la <strong>GNU Affero General Public License, version 3 ou toute version ultérieure</strong> (AGPL-3.0-or-later) : voir le fichier <a href="../assets/LICENSE.txt">LICENSE</a>. Tu peux l’utiliser, l’étudier, le modifier et le redistribuer ; toute version modifiée que tu distribues, ou que tu proposes à d’autres à travers un réseau, doit rester sous la même licence, avec son code source.</p>
 <p>Les polices incluses dans <code>fonts/</code> gardent leur propre licence, la SIL Open Font License 1.1 : Hanken Grotesk (<a href="../assets/fonts/OFL-HankenGrotesk.txt">OFL-HankenGrotesk.txt</a>), Newsreader (<a href="../assets/fonts/OFL-Newsreader.txt">OFL-Newsreader.txt</a>) et IBM Plex Mono (<a href="../assets/fonts/OFL-IBMPlexMono.txt">OFL-IBMPlexMono.txt</a>).</p>
@@ -80,7 +86,7 @@ npm run site           # régénère le site de documentation (dossier docs/)</c
       <a href="pont-local.html">Pont local</a>
       <a href="../assets/LICENSE.txt">Licence</a>
       <a href="../en/guide.html" hreflang="en" lang="en">English</a>
-      
+      <a href="https://github.com/Padiwa/Mindrop">GitHub</a>
     </nav>
     
   </div>

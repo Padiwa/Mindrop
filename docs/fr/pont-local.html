@@ -18,7 +18,7 @@
       <a href="guide.html">Guide</a>
       <a href="pont-local.html" aria-current="page">Pont local</a>
       <a href="../en/local-bridge.html" hreflang="en" lang="en" title="Read in English">English</a>
-      
+      <a href="https://github.com/Padiwa/Mindrop">GitHub</a>
     </nav>
   </div>
 </header>
@@ -46,7 +46,7 @@
 <p>Ouvre <code>chrome://extensions</code> (ou <code>brave://extensions</code>, <code>edge://extensions</code>) et active le <strong>Mode développeur</strong>. L’id est la suite de 32 lettres affichée sous le nom de l’extension, par exemple <code>abcdefghijklmnopabcdefghijklmnop</code>.</p>
 <p>L’id d’une extension chargée « non empaquetée » dépend de son dossier : si tu déplaces le dossier, l’id change. Il faut alors refaire cette installation, et tes données ne suivent pas : exporte-les d’abord.</p>
 <h3 id="2-enregistrer-le-pont">2. Enregistrer le pont</h3>
-<p>Depuis le dossier du projet :</p>
+<p>Depuis le dossier de l’extension (le dossier <code>mindrop</code> dézippé, ou le dépôt cloné) :</p>
 <pre data-lang="sh"><code>node mcp/install.mjs &lt;id-de-l-extension&gt;</code></pre>
 <p>Le script :</p>
 <ul><li>crée un petit lanceur <code>host.sh</code> à côté du fichier de données, avec le chemin complet de ton Node (le navigateur lance les programmes avec un <code>PATH</code> réduit) ;</li><li>enregistre le pont pour chaque navigateur trouvé, dans son dossier <code>NativeMessagingHosts</code>, en n’autorisant que ton extension ;</li><li>affiche la commande exacte à utiliser à l’étape 4.</li></ul>
@@ -76,7 +76,7 @@
 <p>Bon à savoir sur la recherche :</p>
 <ul><li>Tous les mots doivent être présents. Si aucun souvenir ne les contient tous, la recherche renvoie ceux qui en contiennent au moins un et l’indique (<code>&quot;mode&quot;: &quot;any&quot;</code>).</li><li>Elle tolère pluriels, variantes (« typographie » trouve « Typography ») et fautes de frappe, mais ne connaît pas les synonymes : l’agent peut reformuler.</li><li>Chaque réponse indique <code>syncedAt</code>, la date de la dernière copie reçue de l’extension.</li></ul>
 <h2 id="mise-a-jour-depannage-et-desinstallation">Mise à jour, dépannage et désinstallation</h2>
-<p><strong>Quand relancer <code>node mcp/install.mjs &lt;id&gt;</code> :</strong> si tu déplaces le dossier du projet, si l’id de l’extension change ou si tu changes de version de Node.</p>
+<p><strong>Quand relancer <code>node mcp/install.mjs &lt;id&gt;</code> :</strong> si tu déplaces le dossier de l’extension, si l’id de l’extension change ou si tu changes de version de Node.</p>
 <p><strong>L’agent dit qu’aucune copie n’est trouvée :</strong></p>
 <ol><li>Vérifie que <code>brain.json</code> existe (commande de l’étape 3).</li><li>Recharge l’extension pour forcer une copie.</li><li>Vérifie que le fichier du pont existe pour ton navigateur, par exemple pour Chrome : <code>~/.config/google-chrome/NativeMessagingHosts/com.second_cerveau.bridge.json</code>. Son champ <code>allowed_origins</code> doit contenir l’id actuel de l’extension.</li><li>Teste le lanceur à la main : <code>~/.local/share/second-cerveau/host.sh</code> doit démarrer sans erreur (quitte avec Ctrl+C).</li></ol>
 <p><strong>Les résultats semblent anciens :</strong> regarde <code>syncedAt</code> dans la réponse. La copie part environ une seconde après chaque changement ; l’extension doit être active dans un navigateur ouvert.</p>
@@ -112,7 +112,7 @@ claude mcp remove mindrop</code></pre>
       <a href="pont-local.html">Pont local</a>
       <a href="../assets/LICENSE.txt">Licence</a>
       <a href="../en/local-bridge.html" hreflang="en" lang="en">English</a>
-      
+      <a href="https://github.com/Padiwa/Mindrop">GitHub</a>
     </nav>
     
   </div>

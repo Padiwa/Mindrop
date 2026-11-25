@@ -8,13 +8,15 @@ Tout est stocké **localement** dans ton navigateur : pas de compte, pas de serv
 
 Mindrop fonctionne dans les navigateurs basés sur Chromium : Chrome, Brave, Edge, Chromium, Vivaldi. Il n'est pas (encore) publié sur le Chrome Web Store : on l'installe depuis son dossier.
 
-1. Récupère le dossier de l'extension depuis GitHub : bouton **Code**, puis **Download ZIP** (et dézippe-le), ou `git clone` du dépôt. Range-le à un endroit où il restera : le navigateur le lit à chaque démarrage.
+1. Télécharge **[mindrop.zip](https://github.com/Padiwa/Mindrop/releases/latest/download/mindrop.zip)**, la dernière version (toutes les versions sont sur la page [Releases](https://github.com/Padiwa/Mindrop/releases)), et dézippe-le. Range le dossier `mindrop` à un endroit où il restera : le navigateur le lit à chaque démarrage.
 2. Ouvre `chrome://extensions` (ou `brave://extensions`, `edge://extensions`).
 3. Active le **Mode développeur** (en haut à droite).
-4. Clique sur **Charger l'extension non empaquetée** et choisis le dossier de l'extension (celui qui contient `manifest.json`).
+4. Clique sur **Charger l'extension non empaquetée** et choisis le dossier `mindrop` (celui qui contient `manifest.json`).
 5. Épingle l'icône orange dans la barre d'outils (icône puzzle, puis épingle).
 
-Pour mettre à jour : remplace le contenu du dossier par la nouvelle version (ou `git pull`), puis clique sur le bouton de rechargement de Mindrop dans la page des extensions. Tes souvenirs restent.
+Pour mettre à jour : remplace le contenu du dossier par celui du nouveau zip, puis clique sur le bouton de rechargement de Mindrop dans la page des extensions. Tes souvenirs restent.
+
+Tu peux aussi faire un `git clone` du dépôt et charger son dossier : la mise à jour se fait alors avec `git pull`.
 
 ## Enregistrer
 
@@ -92,14 +94,21 @@ Installation et utilisation : voir le guide **[Pont local](pont-local.md)**.
 
 ## Développement
 
-Mindrop n'a aucune dépendance. Les tests demandent Node 22 ou plus, et un navigateur Chromium pour les tests navigateur (variable `CHROME_PATH` s'il n'est pas trouvé tout seul) :
+L'extension n'a aucune dépendance ni étape de compilation : le dossier du dépôt se charge tel quel. Le code est en JavaScript, vérifié par TypeScript grâce à des commentaires JSDoc ; les types partagés sont dans `types.d.ts`. TypeScript n'est qu'un outil de développement, jamais embarqué dans l'extension.
+
+Le développement demande Node 22 ou plus, et un navigateur Chromium pour les tests navigateur (variable `CHROME_PATH` s'il n'est pas trouvé tout seul) :
 
 ```sh
-npm test               # tout
-npm run test:node      # recherche, liens, pont local, serveur MCP
+npm install            # TypeScript et les types Chrome et Node, pour la vérification de types
+npm test               # tout : types, tests Node, tests navigateur
+npm run typecheck      # les types seulement
+npm run test:node      # recherche, liens, pont local, serveur MCP, le zip
 npm run test:browser   # stockage IndexedDB, rendu Markdown, sauvegarde, suggestions
+npm run pack           # fabrique dist/mindrop.zip, l'extension à distribuer
 npm run site           # régénère le site de documentation (dossier docs/)
 ```
+
+**Publier une version :** augmente `version` dans `manifest.json` et `package.json`, commite, puis pousse le tag correspondant : `git tag v1.8.0 && git push origin v1.8.0`. Une GitHub Action lance les tests, fabrique le zip et publie la release ; le bouton de téléchargement du site pointe toujours vers la dernière.
 
 ## Licence
 

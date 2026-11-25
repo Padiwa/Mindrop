@@ -18,7 +18,7 @@
       <a href="guide.html" aria-current="page">Guide</a>
       <a href="local-bridge.html">Local bridge</a>
       <a href="../fr/guide.html" hreflang="fr" lang="fr" title="Lire en français">Français</a>
-      
+      <a href="https://github.com/Padiwa/Mindrop">GitHub</a>
     </nav>
   </div>
 </header>
@@ -35,8 +35,9 @@
 <p>Everything is stored <strong>locally</strong> in your browser: no account, no server, nothing is sent over the Internet.</p>
 <h2 id="install">Install</h2>
 <p>Mindrop runs in Chromium-based browsers: Chrome, Brave, Edge, Chromium, Vivaldi. It is not on the Chrome Web Store (yet), so you install it from its folder.</p>
-<ol><li>Get the extension folder from GitHub: the <strong>Code</strong> button, then <strong>Download ZIP</strong> (and unzip it), or <code>git clone</code> the repository. Keep it somewhere it will stay: the browser reads it every time it starts.</li><li>Open <code>chrome://extensions</code> (or <code>brave://extensions</code>, <code>edge://extensions</code>).</li><li>Turn on <strong>Developer mode</strong> (top right).</li><li>Click <strong>Load unpacked</strong> and choose the extension folder (the one that contains <code>manifest.json</code>).</li><li>Pin the orange icon to the toolbar (puzzle icon, then the pin).</li></ol>
-<p>To update: replace the folder’s content with the new version (or <code>git pull</code>), then click Mindrop’s reload button on the extensions page. Your memories stay.</p>
+<ol><li>Download <strong><a href="https://github.com/Padiwa/Mindrop/releases/latest/download/mindrop.zip">mindrop.zip</a></strong>, the latest version (all versions are on the <a href="https://github.com/Padiwa/Mindrop/releases">Releases</a> page), and unzip it. Keep the <code>mindrop</code> folder somewhere it will stay: the browser reads it every time it starts.</li><li>Open <code>chrome://extensions</code> (or <code>brave://extensions</code>, <code>edge://extensions</code>).</li><li>Turn on <strong>Developer mode</strong> (top right).</li><li>Click <strong>Load unpacked</strong> and choose the <code>mindrop</code> folder (the one that contains <code>manifest.json</code>).</li><li>Pin the orange icon to the toolbar (puzzle icon, then the pin).</li></ol>
+<p>To update: replace the folder’s content with the new zip’s, then click Mindrop’s reload button on the extensions page. Your memories stay.</p>
+<p>You can also <code>git clone</code> the repository and load its folder: you then update with <code>git pull</code>.</p>
 <h2 id="save">Save</h2>
 <div class="table"><table><thead><tr><th scope="col">How</th><th scope="col">What it does</th></tr></thead><tbody><tr><td>Click the icon, or <code>Alt+Shift+S</code></td><td>A window with the page preview, its title, a personal note and #tags. The <strong>Note</strong> tab is for a quick thought.</td></tr><tr><td><code>Alt+Shift+D</code></td><td>Saves the current page at once, without a window (a ✓ shows on the icon).</td></tr><tr><td>Right-click selected text</td><td>“Save the selection as a quote”.</td></tr><tr><td>Right-click a link or an image</td><td>“Save this link”, “Save this image”.</td></tr><tr><td>Select text, then click the icon</td><td>Offers to keep the selection as a quote.</td></tr></tbody></table></div>
 <p>When it saves a page, Mindrop also keeps its <strong>main text</strong> (the article, without the menus), so you can find it again by searching. For a YouTube video, it fetches the real title, channel and thumbnail.</p>
@@ -61,11 +62,16 @@
 <h2 id="good-to-know">Good to know</h2>
 <ul><li>If a shortcut does not work, the browser probably already uses it: pick another one in <code>chrome://extensions/shortcuts</code>.</li><li>The browser’s internal pages (<code>chrome://</code>, the Web Store) cannot be captured: the Note tab still works.</li><li>Uninstalling the extension deletes its data: export first, or install the local bridge for automatic backups on your disk.</li><li>For local files (<code>file://</code>), turn on “Allow access to file URLs” in the extension’s details.</li><li>The fonts ship in <code>fonts/</code>: nothing is loaded from the Internet.</li></ul>
 <h2 id="development">Development</h2>
-<p>Mindrop has no dependencies. Tests need Node 22 or later, and a Chromium browser for the browser tests (set <code>CHROME_PATH</code> if it is not found on its own):</p>
-<pre data-lang="sh"><code>npm test               # everything
-npm run test:node      # search, links, local bridge, MCP server
+<p>The extension has no dependencies and no build step: the repository folder loads as it is. The code is JavaScript, type-checked by TypeScript through JSDoc comments; the shared types are in <code>types.d.ts</code>. TypeScript is only a development tool, never shipped in the extension.</p>
+<p>Development needs Node 22 or later, and a Chromium browser for the browser tests (set <code>CHROME_PATH</code> if it is not found on its own):</p>
+<pre data-lang="sh"><code>npm install            # TypeScript and the Chrome and Node types, for the type check
+npm test               # everything: types, Node tests, browser tests
+npm run typecheck      # types only
+npm run test:node      # search, links, local bridge, MCP server, the zip
 npm run test:browser   # IndexedDB storage, Markdown rendering, backups, suggestions
+npm run pack           # builds dist/mindrop.zip, the extension to hand out
 npm run site           # rebuilds the documentation site (docs/ folder)</code></pre>
+<p><strong>Releasing a version:</strong> raise <code>version</code> in <code>manifest.json</code> and <code>package.json</code>, commit, then push a matching tag: <code>git tag v1.8.0 &amp;&amp; git push origin v1.8.0</code>. A GitHub Action runs the tests, builds the zip and publishes the release; the site’s download button always points to the latest one.</p>
 <h2 id="license">License</h2>
 <p>Mindrop is free software, released under the <strong>GNU Affero General Public License, version 3 or any later version</strong> (AGPL-3.0-or-later): see the <a href="../assets/LICENSE.txt">LICENSE</a> file. You may use, study, change and share it; any modified version you distribute, or offer to others over a network, must stay under the same license, with its source code.</p>
 <p>The fonts in <code>fonts/</code> keep their own license, the SIL Open Font License 1.1: Hanken Grotesk (<a href="../assets/fonts/OFL-HankenGrotesk.txt">OFL-HankenGrotesk.txt</a>), Newsreader (<a href="../assets/fonts/OFL-Newsreader.txt">OFL-Newsreader.txt</a>) and IBM Plex Mono (<a href="../assets/fonts/OFL-IBMPlexMono.txt">OFL-IBMPlexMono.txt</a>).</p>
@@ -80,7 +86,7 @@ npm run site           # rebuilds the documentation site (docs/ folder)</code></
       <a href="local-bridge.html">Local bridge</a>
       <a href="../assets/LICENSE.txt">License</a>
       <a href="../fr/guide.html" hreflang="fr" lang="fr">Français</a>
-      
+      <a href="https://github.com/Padiwa/Mindrop">GitHub</a>
     </nav>
     
   </div>

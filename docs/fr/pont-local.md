@@ -42,7 +42,7 @@ L'id d'une extension chargée « non empaquetée » dépend de son dossier : si 
 
 ### 2. Enregistrer le pont
 
-Depuis le dossier du projet :
+Depuis le dossier de l'extension (le dossier `mindrop` dézippé, ou le dépôt cloné) :
 
 ```sh
 node mcp/install.mjs <id-de-l-extension>
@@ -113,7 +113,7 @@ Bon à savoir sur la recherche :
 
 ## Mise à jour, dépannage et désinstallation
 
-**Quand relancer `node mcp/install.mjs <id>` :** si tu déplaces le dossier du projet, si l'id de l'extension change ou si tu changes de version de Node.
+**Quand relancer `node mcp/install.mjs <id>` :** si tu déplaces le dossier de l'extension, si l'id de l'extension change ou si tu changes de version de Node.
 
 **L'agent dit qu'aucune copie n'est trouvée :**
 1. Vérifie que `brain.json` existe (commande de l'étape 3).
