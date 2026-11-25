@@ -29,7 +29,7 @@ Les images enregistrées directement dans l'extension (captures, images déposé
 - **Node.js 18 ou plus** (`node --version`).
 - Un navigateur Chromium : Chrome, Chromium, Brave, Edge ou Vivaldi.
 - **Linux ou macOS.** Sous Windows, l'hôte natif s'enregistre dans le registre, ce que le script d'installation ne fait pas.
-- L'extension Mindrop chargée dans le navigateur (voir `LISEZMOI.md`).
+- L'extension Mindrop chargée dans le navigateur (voir le [guide](guide.md)).
 
 ## Installation
 
@@ -73,7 +73,7 @@ claude mcp add mindrop -- node /chemin/vers/l-extension/mcp/server.mjs
 
 Ajoute `--scope user` pour qu'il soit disponible dans tous tes projets, pas seulement dans le dossier courant. Vérifie avec `claude mcp list`, ou `/mcp` dans une session.
 
-**Autre client MCP** (Claude Desktop, Cursor…) : déclare un serveur stdio dans sa configuration :
+**Autre client MCP** (Claude Desktop, Cursor, pi…) : déclare un serveur stdio dans sa configuration :
 
 ```json
 {
@@ -157,6 +157,7 @@ Un fichier par jour, réécrit à chaque sauvegarde de la journée ; **les 30 fi
 - si une sauvegarde contient **moins de souvenirs** que celle du jour (suppressions, extension réinstallée), l'ancienne n'est pas écrasée : elle est gardée sous le nom `AAAA-MM-JJ-HHMMSS.json` et apparaît dans la liste comme « version de HH:MM » ;
 - une base vide n'est jamais sauvegardée ;
 - une sauvegarde interrompue (navigateur fermé en plein envoi) ne remplace jamais la précédente.
+
 Au démarrage du navigateur, une sauvegarde est refaite si la dernière date de plus d'un jour.
 
 Dans la page Mindrop, le bloc **Sauvegarde** en bas de la colonne de gauche montre la dernière sauvegarde et permet de :
@@ -171,8 +172,6 @@ Les fichiers de sauvegarde ont le même format que l'export : le bouton **Import
 L'extension s'appelait « Second Cerveau » avant de devenir Mindrop. Quelques noms techniques ont gardé l'ancien nom, exprès :
 le dossier `~/.local/share/second-cerveau/` (copie et sauvegardes), le pont `com.second_cerveau.bridge` et la base de données interne de l'extension.
 Les renommer couperait le pont déjà installé, égarerait les sauvegardes et ferait disparaître les souvenirs. Ils ne s'affichent nulle part dans l'extension.
-
-Si tu avais déjà branché le serveur sous l'ancien nom dans Claude Code : `claude mcp remove second-cerveau`, puis la commande de l'étape 4.
 
 ## Confidentialité
 

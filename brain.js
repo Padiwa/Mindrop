@@ -523,7 +523,7 @@ async function showAgentStatus(st) {
       ? 'Désactivé, mais la copie n’a pas pu être effacée : ' + st.error
       : 'Désactivé : les agents n’ont accès à aucun souvenir.';
   } else if (st?.notInstalled) {
-    el.textContent = 'Activé, mais le pont local n’est pas installé (voir MCP.md, étape 2).';
+    el.textContent = 'Activé, mais le pont local n’est pas installé (voir la documentation, « Pont local »).';
   } else if (st && !st.ok) {
     el.textContent = 'Activé, dernière mise à jour en échec : ' + st.error;
   } else if (st?.enabled) {
@@ -553,7 +553,7 @@ async function showBackupStatus(st) {
   el.classList.toggle('is-error', !!st && !st.ok && !st.notInstalled);
   $('#backup-restore').disabled = !!st?.notInstalled;
   if (!st) { el.textContent = 'Aucune pour l’instant. Elle se fait une minute après chaque changement.'; return; }
-  if (st.notInstalled) { el.textContent = 'Pas encore activée : installe le pont local (voir MCP.md, étape 2).'; return; }
+  if (st.notInstalled) { el.textContent = 'Pas encore activée : installe le pont local (voir la documentation, « Pont local »).'; return; }
   if (!st.ok) { el.textContent = 'Dernier essai en échec : ' + st.error; return; }
   el.textContent = `Dernière : ${ago(st.at)}, ${st.count} souvenir${st.count > 1 ? 's' : ''} (${sizeOf(st.bytes)}).`;
 }
