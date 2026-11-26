@@ -82,7 +82,7 @@
           <h2 class="index-head" id="cloud-head" data-i18n="cloud.head">Synchronisation</h2>
           <p class="backup-status" id="cloud-status" role="status" data-i18n="checking">Vérification…</p>
           <div class="backup-actions">
-            <button type="button" class="ghost" id="cloud-setup" aria-expanded="false" aria-controls="cloud-form" data-i18n="cloud.setup">Connecter Nextcloud</button>
+            <button type="button" class="ghost" id="cloud-setup" aria-expanded="false" aria-controls="cloud-form" data-i18n="cloud.setup">Connecter un serveur WebDAV</button>
             <button type="button" class="ghost" id="cloud-now" hidden data-i18n="cloud.now">Synchroniser maintenant</button>
             <button type="button" class="ghost" id="cloud-off" hidden data-i18n="cloud.off">Déconnecter</button>
           </div>
@@ -91,11 +91,16 @@
               <input name="url" type="url" inputmode="url" required spellcheck="false" autocomplete="url" placeholder="https://cloud.exemple.fr" data-i18n-placeholder="cloud.urlPlaceholder"></label>
             <label class="field"><span data-i18n="cloud.user">Utilisateur</span>
               <input name="user" required spellcheck="false" autocapitalize="off" autocomplete="username"></label>
-            <label class="field"><span data-i18n="cloud.password">Mot de passe d’application</span>
+            <label class="field"><span data-i18n="cloud.password">Mot de passe</span>
               <input name="password" type="password" required autocomplete="new-password" aria-describedby="cloud-hint"></label>
             <label class="field"><span data-i18n="cloud.folder">Dossier</span>
               <input name="folder" value="Mindrop" spellcheck="false" autocapitalize="off"></label>
-            <p class="cloud-hint" id="cloud-hint" data-i18n="cloud.hint">Le mot de passe d’application se crée dans Nextcloud : Paramètres personnels, Sécurité, « Créer un nouveau mot de passe d’application ». Tes souvenirs sont copiés dans ce dossier, non chiffrés.</p>
+            <p class="cloud-hint" id="cloud-hint" data-i18n="cloud.hint">Nextcloud, ownCloud, un NAS ou tout serveur WebDAV. Avec Nextcloud, crée un mot de passe d’application : Paramètres personnels, Sécurité, « Créer un nouveau mot de passe d’application ».</p>
+            <label class="field"><span data-i18n="cloud.passphrase">Phrase de passe de chiffrement (facultative)</span>
+              <input name="passphrase" type="password" autocomplete="new-password" aria-describedby="cloud-pass-hint"></label>
+            <label class="field" id="cloud-pass2" hidden><span data-i18n="cloud.passphrase2">Confirme la phrase de passe</span>
+              <input name="passphrase2" type="password" autocomplete="new-password"></label>
+            <p class="cloud-hint" id="cloud-pass-hint" data-i18n="cloud.passHint">Avec une phrase de passe, tout est chiffré ici avant l’envoi : le serveur ne voit que des fichiers illisibles. La même sur chaque ordinateur. Oubliée, elle ne se récupère pas. Sans elle, tes souvenirs sont copiés en clair.</p>
             <p class="cloud-error" id="cloud-error" role="alert" hidden></p>
             <div class="backup-actions">
               <button type="submit" class="primary" id="cloud-connect" data-i18n="cloud.connect">Connecter</button>

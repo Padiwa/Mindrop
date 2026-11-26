@@ -2,7 +2,7 @@
 
 Mindrop is a second brain that lives in your browser. It keeps the pages, links, notes, quotes, images and videos that matter to you, lets you connect them with #tags and `[[title]]` links, and lets you browse them as a mosaic or a mind map.
 
-Everything is stored **locally** in your browser: no account, no server, nothing is sent over the Internet. The one exception, if you turn it on: [sync](sync.md) with your own Nextcloud.
+Everything is stored **locally** in your browser: no account, no server, nothing is sent over the Internet. The one exception, if you turn it on: [sync](sync.md) with your own WebDAV server.
 
 ## Install
 
@@ -86,7 +86,7 @@ Setup and use: see the **[Local bridge](local-bridge.md)** guide.
 
 ## Sync between computers
 
-To get the same memories on several computers, connect Mindrop to your **Nextcloud** server (or another WebDAV server): Mindrop page, **Settings**, **Sync**. It is off by default and needs nothing installed.
+To get the same memories on several computers, connect Mindrop to a **WebDAV** server (Nextcloud, ownCloud, a NAS…): Mindrop page, **Settings**, **Sync**. It is off by default, needs nothing installed, and can be end-to-end encrypted with a passphrase.
 
 Setup, how it works and privacy: see the **[Sync](sync.md)** guide.
 
@@ -94,7 +94,7 @@ Setup, how it works and privacy: see the **[Sync](sync.md)** guide.
 
 - If a shortcut does not work, the browser probably already uses it: pick another one in `chrome://extensions/shortcuts`.
 - The browser's internal pages (`chrome://`, the Web Store) cannot be captured: the Note tab still works.
-- Uninstalling the extension deletes its data: export first, install the local bridge for automatic backups on your disk, or turn on sync to keep a copy in your Nextcloud.
+- Uninstalling the extension deletes its data: export first, install the local bridge for automatic backups on your disk, or turn on sync to keep a copy on your server.
 - For local files (`file://`), turn on "Allow access to file URLs" in the extension's details.
 - The fonts ship in `fonts/`: nothing is loaded from the Internet.
 

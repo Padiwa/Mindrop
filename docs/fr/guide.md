@@ -2,7 +2,7 @@
 
 Mindrop est un second cerveau qui vit dans ton navigateur. Il garde les pages, les liens, les notes, les citations, les images et les vidéos qui comptent pour toi, et te laisse les relier par des #tags et des liens `[[titre]]`, puis les parcourir en mosaïque ou en carte mentale.
 
-Tout est stocké **localement** dans ton navigateur : pas de compte, pas de serveur, rien n'est envoyé sur Internet. Seule exception, si tu l'actives : la [synchronisation](synchronisation.md) avec ton propre Nextcloud.
+Tout est stocké **localement** dans ton navigateur : pas de compte, pas de serveur, rien n'est envoyé sur Internet. Seule exception, si tu l'actives : la [synchronisation](synchronisation.md) avec ton propre serveur WebDAV.
 
 ## Installation
 
@@ -86,7 +86,7 @@ Installation et utilisation : voir le guide **[Pont local](pont-local.md)**.
 
 ## Synchronisation entre ordinateurs
 
-Pour retrouver les mêmes souvenirs sur plusieurs ordinateurs, connecte Mindrop à ton serveur **Nextcloud** (ou à un autre serveur WebDAV) : page Mindrop, **Réglages**, **Synchronisation**. Elle est désactivée par défaut et ne demande rien à installer.
+Pour retrouver les mêmes souvenirs sur plusieurs ordinateurs, connecte Mindrop à un serveur **WebDAV** (Nextcloud, ownCloud, un NAS…) : page Mindrop, **Réglages**, **Synchronisation**. Elle est désactivée par défaut, ne demande rien à installer, et peut être chiffrée de bout en bout par une phrase de passe.
 
 Mise en place, fonctionnement et confidentialité : voir le guide **[Synchronisation](synchronisation.md)**.
 
@@ -94,7 +94,7 @@ Mise en place, fonctionnement et confidentialité : voir le guide **[Synchronisa
 
 - Si un raccourci ne marche pas, il est sans doute déjà pris par le navigateur : choisis-en un autre dans `chrome://extensions/shortcuts`.
 - Les pages internes du navigateur (`chrome://`, Web Store) ne peuvent pas être capturées : l'onglet Note reste disponible.
-- Désinstaller l'extension efface ses données : exporte d'abord, installe le pont local pour avoir des sauvegardes automatiques sur ton disque, ou active la synchronisation pour en garder une copie dans ton Nextcloud.
+- Désinstaller l'extension efface ses données : exporte d'abord, installe le pont local pour avoir des sauvegardes automatiques sur ton disque, ou active la synchronisation pour en garder une copie sur ton serveur.
 - Pour les fichiers locaux (`file://`), active « Autoriser l'accès aux URL de fichier » dans les détails de l'extension.
 - Les polices sont incluses dans `fonts/` : rien n'est chargé depuis Internet.
 

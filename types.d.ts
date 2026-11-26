@@ -101,7 +101,7 @@ export interface SyncRemote {
   getText(path: string): Promise<string | null>;
   getBytes(path: string): Promise<ArrayBuffer | null>;
   /** Renvoie l'ETag du fichier écrit, ou '' si le serveur ne le donne pas. */
-  put(path: string, body: string | Uint8Array, type: string): Promise<string>;
+  put(path: string, body: string | Uint8Array, type: string, options?: { create?: boolean }): Promise<string>;
   /** Crée le dossier ; ne fait rien s'il existe. */
   mkdir(dir: string): Promise<void>;
   remove(path: string): Promise<void>;
@@ -114,6 +114,29 @@ export interface SyncState {
   ownDigest?: string;
   ownEtag?: string;
   gcAt?: number;
+  /** ETag de mindrop.json déjà vérifié, et sel de la clé utilisée (dossier chiffré). */
+  keyEtag?: string;
+  salt?: string;
+}
+
+/** Clé d'un dossier chiffré, gardée par l'appareil (jamais la phrase de passe). */
+export interface CloudKey {
+  /** 512 bits dérivés de la phrase de passe, en base64. */
+  raw: string;
+  /** Sel du dossier, en base64 (identifie la clé). */
+  salt: string;
+  /** Contenu de mindrop.json, pour le réécrire s'il disparaît. */
+  keyFile: string;
+}
+
+/** Opérations de chiffrement utilisées par sync.js (crypt.js : makeCipher). */
+export interface SyncCipher {
+  salt: string;
+  keyFile: string;
+  /** HMAC-SHA-256 en hexadécimal : nom des images chiffrées. */
+  name(bytes: Uint8Array): Promise<string>;
+  seal(bytes: Uint8Array, path: string): Promise<Uint8Array>;
+  open(bytes: ArrayBuffer | Uint8Array, path: string): Promise<Uint8Array>;
 }
 
 /** Réglages de la synchronisation Nextcloud (chrome.storage.local). */
@@ -122,6 +145,10 @@ export interface CloudConfig {
   user: string;
   password: string;
   folder: string;
+  /** Adresse WebDAV gardée telle quelle (serveur autre que Nextcloud, servi à la racine). */
+  exact?: boolean;
+  /** Dossier chiffré : la clé dérivée de la phrase de passe. */
+  key?: CloudKey;
 }
 
 /** État de la dernière synchronisation, gardé dans chrome.storage.local. */
@@ -132,8 +159,10 @@ export interface CloudStatus {
   removed?: number;
   devices?: number;
   waiting?: number;
+  encrypted?: boolean;
   error?: string;
-  /** 'auth', 'permission', 'network', 'quota', 'version', 'format' (fichier illisible : file), 'http'. */
+  /** 'auth', 'permission', 'network', 'quota', 'version', 'format' (fichier illisible : file), 'http',
+   *  'locked' (dossier chiffré, pas de clé ici), 'keyChanged' (autre clé), 'decrypt'. */
   code?: string;
   file?: string;
 }

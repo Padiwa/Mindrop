@@ -12,7 +12,7 @@ import { withVideoInfo } from './video.js';
 import { attachTagSuggest, tagCounts } from './tag-suggest.js';
 import { runBackup, getBackupStatus, listBackups, readBackup, STATUS_KEY } from './backup.js';
 import { isAgentEnabled, setAgentEnabled, syncAgent, getAgentSync, SYNC_KEY } from './agent.js';
-import { getCloudConfig, getCloudStatus, connectCloud, disconnectCloud, runCloudSync, requestAccess, hostOf, CONFIG_KEY, CLOUD_STATUS_KEY } from './cloud.js';
+import { getCloudConfig, getCloudStatus, connectCloud, disconnectCloud, runCloudSync, requestAccess, hostOf, CONFIG_KEY, CLOUD_STATUS_KEY, MIN_PASSPHRASE } from './cloud.js';
 import { davRoot } from './webdav.js';
 import { t, lang, locale, loadLang, translatePage, getLangPref, setLangPref, onLangChange } from './i18n.js';
 
@@ -613,7 +613,7 @@ function restoreRow(bk) {
   return h('li', {}, btn);
 }
 
-// ---------- synchronisation Nextcloud ----------
+// ---------- synchronisation WebDAV ----------
 const cloudForm = /** @type {HTMLFormElement} */ ($('#cloud-form'));
 const cloudError = $('#cloud-error');
 
@@ -629,8 +629,11 @@ async function showCloudStatus(st) {
   cloudForm.hidden = true;
   const host = hostOf(cfg);
   if (!st) el.textContent = t('cloud.pending', { host });
-  else if (st.ok) el.textContent = t(st.waiting ? 'cloud.okWaiting' : 'cloud.ok', { ago: ago(st.at), host, n: st.devices });
+  else if (st.ok) el.textContent = t(st.waiting ? 'cloud.okWaiting' : 'cloud.ok', { ago: ago(st.at), host, n: st.devices }) + (cfg.key ? ' ' + t('cloud.encryptedNote') : '');
   else el.textContent = {
+    locked: () => t('cloud.errLocked'),
+    keyChanged: () => t('cloud.errKeyChanged'),
+    decrypt: () => t('cloud.errDecrypt'),
     auth: () => t('cloud.errAuth', { host }),
     permission: () => t('cloud.errPermission', { host }),
     network: () => t('cloud.errNetwork', { host }),
@@ -650,6 +653,10 @@ function formError(msg, fields = []) {
   if (fields[0]) /** @type {HTMLInputElement} */ (cloudForm.elements.namedItem(fields[0])).focus();
 }
 
+// la confirmation n'apparaît que si une phrase de passe est entrée
+const showConfirm = () => { $('#cloud-pass2').hidden = !/** @type {HTMLInputElement} */ (cloudForm.elements.namedItem('passphrase')).value; };
+/** @type {HTMLInputElement} */ (cloudForm.elements.namedItem('passphrase')).addEventListener('input', showConfirm);
+
 $('#cloud-setup').addEventListener('click', e => {
   const open = cloudForm.hidden;
   cloudForm.hidden = !open;
@@ -667,10 +674,11 @@ cloudForm.addEventListener('submit', e => {
   const v = name => String(/** @type {HTMLInputElement} */ (cloudForm.elements.namedItem(name)).value || '');
   let url = v('url').trim();
   if (url && !/^[a-z][\w+.-]*:\/\//i.test(url)) url = 'https://' + url;
-  const cfg = { url, user: v('user').trim(), password: v('password'), folder: v('folder').trim() || 'Mindrop' };
+  const cfg = { url, user: v('user').trim(), password: v('password'), folder: v('folder').trim() || 'Mindrop', passphrase: v('passphrase') };
   const missing = ['url', 'user', 'password'].filter(k => !cfg[k]);
   if (missing.length) return formError(t('cloud.missing'), missing);
   try { davRoot(cfg.url, cfg.user); } catch { return formError(t('cloud.badUrl'), ['url']); }
+  if (cfg.passphrase && cfg.passphrase !== v('passphrase2')) return formError(t('cloud.mismatch'), ['passphrase2']);
   // l'autorisation doit être demandée pendant le clic, avant toute attente
   connect(requestAccess(cfg.url), cfg);
 });
@@ -686,13 +694,19 @@ async function connect(granted, cfg) {
     if (!(await granted.catch(() => false))) return formError(t('cloud.denied'));
     const st = await connectCloud(cfg);
     cloudForm.reset();
+    showConfirm();
     $('#cloud-setup').setAttribute('aria-expanded', 'false');
     await showCloudStatus(st);
     $('#cloud-now').focus();
     toast(t('cloud.toastConnected'));
   } catch (err) {
-    const msg = { auth: 'cloud.authFailed', url: err.status === 404 || /404/.test(err.message) ? 'cloud.notFound' : 'cloud.badUrl', network: 'cloud.unreachable' }[err.code];
-    formError(msg ? t(msg) : t('cloud.connectFailed', { e: err.message }), err.code === 'auth' ? ['password'] : err.code === 'url' ? ['url'] : []);
+    const msg = {
+      auth: 'cloud.authFailed', url: err.status === 404 || /404/.test(err.message) ? 'cloud.notFound' : 'cloud.badUrl', network: 'cloud.unreachable',
+      needPassphrase: 'cloud.needPassphrase', passphrase: 'cloud.wrongPassphrase', weak: 'cloud.weak',
+    }[err.code];
+    const field = { auth: 'password', url: 'url', needPassphrase: 'passphrase', passphrase: 'passphrase', weak: 'passphrase' }[err.code];
+    formError(msg ? t(msg, { n: MIN_PASSPHRASE }) : t('cloud.connectFailed', { e: err.message }), field ? [field] : []);
+    if (field === 'passphrase') showConfirm();
   } finally {
     btn.disabled = false; btn.removeAttribute('aria-busy'); btn.textContent = t('cloud.connect');
     inputs.forEach(i => { i.disabled = false; });

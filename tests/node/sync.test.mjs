@@ -2,47 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { plan, syncOnce, imageFile, imageDataUrl, REF } from '../../sync.js';
 import { createDav, davRoot, parseMultistatus, originPattern } from '../../webdav.js';
-import { startDav } from './fake-dav.mjs';
-
-// Un appareil : ses souvenirs et ses suppressions en mémoire, avec les mêmes règles que storage.js.
-function device(id, items = []) {
-  const stamp = it => it?.updatedAt || it?.createdAt || 0;
-  const store = new Map(items.map(it => [it.id, it]));
-  const deleted = new Map();
-  let state = {};
-  const local = {
-    getItems: async () => [...store.values()].map(x => ({ ...x })),
-    getDeleted: async () => Object.fromEntries(deleted),
-    async applySync({ put = [], deleted: del = {}, forget = [] }) {
-      let n = 0, removed = 0;
-      for (const it of put) {
-        const ex = store.get(it.id), gone = deleted.get(it.id);
-        if (ex && stamp(ex) >= stamp(it)) continue;
-        if (gone != null && gone >= stamp(it)) continue;
-        store.set(it.id, { ...it }); deleted.delete(it.id); n++;
-      }
-      for (const [k, at] of Object.entries(del)) {
-        const ex = store.get(k);
-        if (ex && stamp(ex) > at) continue;
-        if (ex) { store.delete(k); removed++; }
-        if (!(deleted.get(k) >= at)) deleted.set(k, at);
-      }
-      for (const k of forget) deleted.delete(k);
-      return { put: n, removed };
-    },
-  };
-  return {
-    id, store, deleted,
-    add(it) { store.set(it.id, { tags: [], type: 'note', createdAt: it.updatedAt, ...it }); },
-    edit(k, patch, at) { store.set(k, { ...store.get(k), ...patch, updatedAt: at }); },
-    remove(k, at) { store.delete(k); deleted.set(k, at); },
-    async sync(remote, now = 10_000) { // dates des tests : petits nombres, « maintenant » juste après
-      const r = await syncOnce({ remote, local, device: id, state, now });
-      state = r.state;
-      return r;
-    },
-  };
-}
+import { startDav, device } from './fake-dav.mjs';
 
 const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 const JPG = 'data:image/jpeg;base64,' + Buffer.from('pas vraiment un jpeg, mais des octets').toString('base64');
@@ -71,6 +31,7 @@ test('adresse WebDAV : serveur Nextcloud, adresse complète, refus du http dista
   assert.equal(davRoot('https://x.org/nc/remote.php/webdav', 'a'), 'https://x.org/nc/remote.php/dav/files/a/');
   assert.equal(davRoot('https://kdrive.infomaniak.com/123/', 'a'), 'https://kdrive.infomaniak.com/123/');
   assert.equal(davRoot('http://localhost:8080', 'a'), 'http://localhost:8080/remote.php/dav/files/a/');
+  assert.equal(davRoot('http://localhost:8080', 'a', true), 'http://localhost:8080/', 'exact : serveur WebDAV servi à la racine');
   assert.throws(() => davRoot('http://cloud.example.org', 'a'), /https/);
   assert.throws(() => davRoot('ftp://cloud.example.org', 'a'), /https/);
   assert.equal(originPattern('https://cloud.example.org:8443/remote.php/'), 'https://cloud.example.org/*');

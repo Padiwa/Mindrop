@@ -9,16 +9,19 @@
  * Adresse WebDAV de l'espace de l'utilisateur. L'adresse d'un serveur Nextcloud
  * (https://cloud.exemple.fr) donne https://cloud.exemple.fr/remote.php/dav/files/<utilisateur>/ ;
  * une adresse WebDAV complète (celle qu'affiche Nextcloud dans Fichiers, Paramètres) est gardée telle quelle.
+ * exact : l'adresse est gardée telle quelle, même nue (serveur WebDAV autre que Nextcloud, servi à la racine).
  * @param {string} url
  * @param {string} user
+ * @param {boolean} [exact]
  */
-export function davRoot(url, user) {
+export function davRoot(url, user, exact = false) {
   const u = new URL(String(url).trim());
   if (!/^https?:$/.test(u.protocol)) throw Object.assign(new Error('https:// required'), { code: 'url' });
   if (u.protocol === 'http:' && !isLocal(u.hostname)) throw Object.assign(new Error('https:// required'), { code: 'url' });
   u.search = ''; u.hash = '';
   let path = u.pathname.replace(/\/+$/, '');
-  if (!path || path === '/index.php') path = `/remote.php/dav/files/${encodeURIComponent(user)}`;
+  if (exact) { /* gardée telle quelle */ }
+  else if (!path || path === '/index.php') path = `/remote.php/dav/files/${encodeURIComponent(user)}`;
   else if (/\/remote\.php\/dav$/.test(path)) path += `/files/${encodeURIComponent(user)}`;
   else if (/\/remote\.php\/webdav$/.test(path)) path = path.replace(/webdav$/, `dav/files/${encodeURIComponent(user)}`);
   u.pathname = path + '/';
@@ -88,8 +91,8 @@ function httpError(res, what) {
  * @param {CloudConfig & { fetch?: typeof fetch }} cfg
  * @returns {SyncRemote & { root: string, base: string, check(): Promise<void> }}
  */
-export function createDav({ url, user, password, folder = 'Mindrop', fetch: f = globalThis.fetch.bind(globalThis) }) {
-  const root = davRoot(url, user);
+export function createDav({ url, user, password, folder = 'Mindrop', exact = false, fetch: f = globalThis.fetch.bind(globalThis) }) {
+  const root = davRoot(url, user, exact);
   const segments = String(folder || 'Mindrop').split('/').map(s => s.trim()).filter(s => s && s !== '.' && s !== '..');
   if (!segments.length) segments.push('Mindrop');
   const base = root + segments.map(encodeURIComponent).join('/') + '/';
@@ -142,8 +145,11 @@ export function createDav({ url, user, password, folder = 'Mindrop', fetch: f = 
       return res.arrayBuffer();
     },
 
-    async put(path, body, type) {
-      const res = await call(at(path), 'PUT', { headers: { 'Content-Type': type }, body: /** @type {BodyInit} */ (body) });
+    // create : seulement si le fichier n'existe pas encore (If-None-Match: *) ; sinon erreur de code 'exists'
+    async put(path, body, type, { create = false } = {}) {
+      const headers = { 'Content-Type': type, ...(create ? { 'If-None-Match': '*' } : {}) };
+      const res = await call(at(path), 'PUT', { headers, body: /** @type {BodyInit} */ (body) });
+      if (create && res.status === 412) throw Object.assign(new Error(`PUT ${path}: already exists`), { code: 'exists' });
       if (!res.ok) throw httpError(res, `PUT ${path}`);
       return cleanEtag(res.headers.get('oc-etag') || res.headers.get('etag'));
     },
