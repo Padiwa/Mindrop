@@ -15,7 +15,8 @@
     "test:node": "node --test \"tests/node/*.test.mjs\"",
     "test:browser": "node tests/run-browser.mjs",
     "site": "node scripts/build-site.mjs",
-    "pack": "node scripts/pack.mjs"
+    "pack": "node scripts/pack.mjs",
+    "check:webdav": "node scripts/check-webdav.mjs"
   },
   "devDependencies": {
     "@types/chrome": "^0.3.8",
