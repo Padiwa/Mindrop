@@ -72,6 +72,7 @@ Sous **Synchronisation**, une ligne indique l'état réel :
 - **… refuse l'utilisateur ou le mot de passe :** le mot de passe a été changé ou retiré. Déconnecte, puis reconnecte avec le bon.
 - **… ne répond pas :** serveur ou connexion indisponible ; un nouvel essai a lieu tout seul.
 - **Ton espace est plein :** libère de la place sur le serveur.
+- **… garde un fichier du dossier verrouillé :** le serveur bloque un fichier, le plus souvent parce qu'il est ouvert dans son interface web (l'éditeur de Nextcloud le verrouille tant qu'il est ouvert). Ferme-le ; un nouvel essai a lieu tout seul. Évite d'ouvrir les fichiers du dossier `Mindrop` dans l'éditeur : regarde-les plutôt sans les ouvrir.
 - **Ce dossier est maintenant chiffré :** un autre ordinateur l'a chiffré. Déconnecte, puis reconnecte avec la phrase de passe.
 - **La clé du dossier a changé :** le dossier a été recréé avec une autre phrase de passe. Reconnecte avec la nouvelle.
 - **Un fichier ne se déchiffre pas :** il a été modifié sur le serveur. Mindrop n'applique rien de ce fichier.

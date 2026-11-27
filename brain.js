@@ -638,6 +638,7 @@ async function showCloudStatus(st) {
     permission: () => t('cloud.errPermission', { host }),
     network: () => t('cloud.errNetwork', { host }),
     quota: () => t('cloud.errQuota', { host }),
+    busy: () => t('cloud.errBusy', { host }),
     version: () => t('cloud.errVersion'),
     format: () => t('cloud.errFormat', { file: st.file }),
   }[st.code]?.() || t('cloud.failed', { e: st.error });

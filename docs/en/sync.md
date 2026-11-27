@@ -72,6 +72,7 @@ Under **Sync**, a line gives the actual state:
 - **… rejects the user or password:** the password was changed or revoked. Disconnect, then connect again with the right one.
 - **… does not answer:** server or connection unavailable; it tries again on its own.
 - **Your space is full:** free some space on the server.
+- **… keeps a file of the folder locked:** the server holds a file, most often because it is open in its web interface (Nextcloud's editor locks it while it is open). Close it; it tries again on its own. Avoid opening the files of the `Mindrop` folder in the editor.
 - **This folder is now encrypted:** another computer encrypted it. Disconnect, then connect again with the passphrase.
 - **The folder's key changed:** the folder was recreated with another passphrase. Connect again with the new one.
 - **A file cannot be decrypted:** it was altered on the server. Mindrop applies nothing from that file.

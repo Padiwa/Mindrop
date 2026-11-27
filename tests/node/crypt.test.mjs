@@ -160,3 +160,29 @@ test('création concurrente du fichier de clé : la seconde est refusée', async
     assert.equal(await remote.getText(KEY_FILE), k1.keyFile);
   } finally { await dav.close(); }
 });
+
+test('passage au chiffrement : un fichier en clair verrouillé (423) est retiré au passage suivant, sans échec', async () => {
+  const { dav, remote } = await setup();
+  try {
+    const A = device('A'), B = device('B');
+    A.add({ id: 'a', text: SECRET, image: PNG, updatedAt: 1 });
+    B.add({ id: 'b', text: 'note de B', updatedAt: 2 });
+    await A.sync(remote); await B.sync(remote); await A.sync(remote);
+
+    const key = await createKey('on chiffre tout maintenant', FAST);
+    await remote.put(KEY_FILE, key.keyFile, 'application/json', { create: true });
+    A.cipher = await makeCipher(key);
+    const plainB = `${dav.space}/Mindrop/devices/B.json`;
+    dav.locked.add(plainB);
+    const r = await A.sync(remote);
+    assert.equal(r.devices, 1, 'le fichier en clair restant ne compte pas comme un appareil chiffré');
+    assert.deepEqual(dav.ls('Mindrop/devices/'), ['A.json', 'B.json'], 'B.json, verrouillé, est resté');
+
+    dav.locked.delete(plainB);
+    dav.log.length = 0;
+    await A.sync(remote);
+    assert.deepEqual(dav.ls('Mindrop/devices/'), ['A.json']);
+    assert.ok(!dav.log.some(l => l.startsWith('GET') && l.endsWith('/B.json')), 'pas relu : son ETag n’a pas changé');
+    assert.ok(!everything(dav).includes('note de B'));
+  } finally { await dav.close(); }
+});

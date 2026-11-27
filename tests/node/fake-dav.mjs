@@ -13,6 +13,7 @@ export async function startDav({ user = 'alice', password = 'app-pass', space = 
   const files = new Map();          // chemin décodé → { body: Buffer, etag, mtime, type }
   const dirs = new Set([space]);
   const log = [];
+  const locked = new Set();         // chemins décodés qui répondent 423 Locked
   let clock = Date.now();
   const parent = p => p.replace(/\/[^/]+$/, '');
   const norm = p => decodeURIComponent(p).replace(/\/+$/, '');
@@ -67,6 +68,7 @@ export async function startDav({ user = 'alice', password = 'app-pass', space = 
         dirs.add(path); res.writeHead(201); return res.end();
       }
       case 'DELETE': {
+        if (locked.has(path)) { res.writeHead(423); return res.end(); }
         if (!files.delete(path) && !dirs.delete(path)) { res.writeHead(404); return res.end(); }
         res.writeHead(204); return res.end();
       }
@@ -76,7 +78,7 @@ export async function startDav({ user = 'alice', password = 'app-pass', space = 
   await new Promise(r => server.listen(0, '127.0.0.1', r));
   const url = `http://127.0.0.1:${server.address().port}`;
   return {
-    url, user, password, files, dirs, log, space,
+    url, user, password, files, dirs, log, space, locked,
     /** fichiers sous <espace>/<dossier>/<sous-dossier>/ */
     ls: sub => [...files.keys()].filter(k => k.startsWith(`${space}/${sub}`)).map(k => k.slice(`${space}/${sub}`.length)).sort(),
     /** date de modification donnée aux prochains fichiers écrits */

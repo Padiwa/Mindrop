@@ -273,14 +273,20 @@ export async function syncOnce({ remote, local, device, cipher = null, state = {
     ownEtag = await remote.put(`devices/${own}`, body, 'application/json') || '';
   }
 
+  // Ménage (étapes 4 et 5) : un fichier verrouillé par le serveur (423) reste pour le passage suivant,
+  // sans faire échouer celui-ci.
+  const tidy = async path => {
+    try { await remote.remove(path); return true; }
+    catch (e) { if (e?.code === 'busy') return false; throw e; }
+  };
+
   // 4. dossier chiffré : plus aucune copie en clair (fichiers d'appareils et images d'avant le chiffrement)
   if (cipher) {
     for (const [name, r] of Object.entries(remotes)) {
       if (r.sealed) continue;
-      await remote.remove(`devices/${name}`);
-      delete remotes[name];
+      if (await tidy(`devices/${name}`)) delete remotes[name];
     }
-    for (const f of images) if (!f.dir && isImageName(f.name) && !isSealedImage(f.name)) await remote.remove(`images/${f.name}`);
+    for (const f of images) if (!f.dir && isImageName(f.name) && !isSealedImage(f.name)) await tidy(`images/${f.name}`);
   }
 
   // 5. ménage, une fois par jour : images qu'aucun appareil n'utilise plus depuis au moins un jour
@@ -291,7 +297,7 @@ export async function syncOnce({ remote, local, device, cipher = null, state = {
     for (const f of images) {
       if (f.dir || !isImageName(f.name) || used.has(f.name)) continue;
       if (cipher && !isSealedImage(f.name)) continue; // déjà retirée à l'étape 4
-      if (f.modified && now - f.modified > GC_GRACE) await remote.remove(`images/${f.name}`);
+      if (f.modified && now - f.modified > GC_GRACE) await tidy(`images/${f.name}`);
     }
     gcAt = now;
   }
@@ -299,7 +305,7 @@ export async function syncOnce({ remote, local, device, cipher = null, state = {
   return {
     state: { remotes, ownDigest: digest, ownEtag, gcAt, keyEtag, salt: cipher?.salt },
     pulled: applied.put, removed: applied.removed, pushed: !same,
-    devices: new Set([...jsonFiles.filter(f => !cipher || f.name === own || remotes[f.name]).map(f => f.name), own]).size,
+    devices: new Set([...jsonFiles.filter(f => !cipher || f.name === own || remotes[f.name]?.sealed).map(f => f.name), own]).size,
     waiting: waiting.size,
   };
 }

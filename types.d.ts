@@ -161,7 +161,7 @@ export interface CloudStatus {
   waiting?: number;
   encrypted?: boolean;
   error?: string;
-  /** 'auth', 'permission', 'network', 'quota', 'version', 'format' (fichier illisible : file), 'http',
+  /** 'auth', 'permission', 'network', 'quota', 'version', 'format' (fichier illisible : file), 'http', 'busy' (fichier verrouillé, 423),
    *  'locked' (dossier chiffré, pas de clé ici), 'keyChanged' (autre clé), 'decrypt'. */
   code?: string;
   file?: string;

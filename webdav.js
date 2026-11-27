@@ -80,9 +80,10 @@ const PROPFIND = '<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV
 const basic = s => 'Basic ' + btoa(String.fromCharCode(...new TextEncoder().encode(s)));
 
 // Erreur d'un appel WebDAV, en termes techniques (la page la traduit d'après son code) :
-// 'auth' si l'identifiant est refusé, 'quota' si l'espace est plein, 'http' sinon.
+// 'auth' si l'identifiant est refusé, 'quota' si l'espace est plein, 'busy' si le fichier est verrouillé
+// (423 : verrou de Nextcloud, posé notamment par son éditeur Text tant que le fichier y est ouvert), 'http' sinon.
 function httpError(res, what) {
-  const code = res.status === 401 || res.status === 403 ? 'auth' : res.status === 507 ? 'quota' : 'http';
+  const code = res.status === 401 || res.status === 403 ? 'auth' : res.status === 507 ? 'quota' : res.status === 423 ? 'busy' : 'http';
   return Object.assign(new Error(`${what}: HTTP ${res.status}${res.statusText ? ' ' + res.statusText : ''}`), { code, status: res.status });
 }
 
