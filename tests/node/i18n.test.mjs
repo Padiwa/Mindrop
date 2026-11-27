@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { DICT, resolveLang, t, setCurrent } from '../../i18n.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const sample = { n: 2, e: 'erreur', t: 'Titre', c: '#fff', a: 'Chaîne', ago: 'hier', size: '2 Mo', date: '25 novembre', time: '10:15', type: 'note', added: 2, updated: 1, skipped: 0 };
+const sample = { n: 2, e: 'erreur', t: 'Titre', c: '#fff', a: 'Chaîne', ago: 'hier', size: '2 Mo', date: '25 novembre', time: '10:15', type: 'note', added: 2, updated: 1, skipped: 0, host: 'cloud.example.org', file: 'devices/a.json', pulled: 3, removed: 1 };
 
 test('français et anglais ont exactement les mêmes clés, de même nature', () => {
   const fr = Object.keys(DICT.fr).sort(), en = Object.keys(DICT.en).sort();

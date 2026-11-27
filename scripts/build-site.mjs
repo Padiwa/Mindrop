@@ -117,8 +117,8 @@ export function markdown(md, { link = u => u } = {}) {
 
 // ---------- Pages ----------
 const PAGES = {
-  en: { home: 'index.html', docs: [['guide', 'guide.md', 'Guide'], ['bridge', 'local-bridge.md', 'Local bridge']] },
-  fr: { home: 'fr/index.html', docs: [['guide', 'guide.md', 'Guide'], ['bridge', 'pont-local.md', 'Pont local']] },
+  en: { home: 'index.html', docs: [['guide', 'guide.md', 'Guide'], ['bridge', 'local-bridge.md', 'Local bridge'], ['sync', 'sync.md', 'Sync']] },
+  fr: { home: 'fr/index.html', docs: [['guide', 'guide.md', 'Guide'], ['bridge', 'pont-local.md', 'Pont local'], ['sync', 'synchronisation.md', 'Synchronisation']] },
 };
 const docPath = (lang, file) => `${lang}/${file.replace(/\.md$/, '.html')}`;
 const other = lang => (lang === 'fr' ? 'en' : 'fr');

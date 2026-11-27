@@ -17,9 +17,9 @@ before(() => {
 });
 after(() => rmSync(out, { recursive: true, force: true }));
 
-test('six pages : deux vitrines, quatre pages de doc', () => {
+test('huit pages : deux vitrines, six pages de doc', () => {
   const names = pages.map(p => p.slice(out.length + 1)).sort();
-  assert.deepEqual(names, ['en/guide.html', 'en/local-bridge.html', 'fr/guide.html', 'fr/index.html', 'fr/pont-local.html', 'index.html']);
+  assert.deepEqual(names, ['en/guide.html', 'en/local-bridge.html', 'en/sync.html', 'fr/guide.html', 'fr/index.html', 'fr/pont-local.html', 'fr/synchronisation.html', 'index.html']);
   assert.ok(existsSync(join(out, '.nojekyll')));
 });
 

@@ -3,6 +3,8 @@
 // simultanées (popup, page principale, menu contextuel, raccourci) ne s'écrasent plus.
 // Après chaque écriture, la clé REV de chrome.storage.local change : toutes les pages
 // ouvertes et le service worker sont prévenus (onItemsChanged).
+// Chaque suppression laisse une trace (id et date, magasin « deleted ») : la synchronisation
+// (sync.js) la transmet aux autres appareils, sinon le souvenir y survivrait et reviendrait.
 
 import { t as tr } from './i18n.js';
 
@@ -10,8 +12,9 @@ import { t as tr } from './i18n.js';
 /** @typedef {import('./types').NewItem} NewItem */
 
 const DB_NAME = 'second-cerveau'; // nom d'origine, gardé : le changer ferait perdre les souvenirs
-const DB_VERSION = 1;
+const DB_VERSION = 2;            // 2 : magasin des suppressions
 const STORE = 'items';
+const DELETED = 'deleted';        // { id, at } : souvenirs supprimés, pour la synchronisation
 export const KEY = 'items';            // ancien stockage (chrome.storage.local), conservé comme sauvegarde
 export const REV = 'itemsRev';
 const MIGRATED = 'idbMigrated';
@@ -34,9 +37,13 @@ function openDb() {
   return new Promise((resolve, reject) => {
     const r = indexedDB.open(DB_NAME, DB_VERSION);
     r.onupgradeneeded = () => {
-      const store = r.result.createObjectStore(STORE, { keyPath: 'id' });
-      store.createIndex('createdAt', 'createdAt');
-      store.createIndex('url', 'url');
+      const d = r.result;
+      if (!d.objectStoreNames.contains(STORE)) {
+        const store = d.createObjectStore(STORE, { keyPath: 'id' });
+        store.createIndex('createdAt', 'createdAt');
+        store.createIndex('url', 'url');
+      }
+      if (!d.objectStoreNames.contains(DELETED)) d.createObjectStore(DELETED, { keyPath: 'id' });
     };
     r.onsuccess = () => {
       const db = r.result;
@@ -60,16 +67,28 @@ function db() {
  * @param {(store: IDBObjectStore) => T | Promise<T>} fn
  * @returns {Promise<T>}
  */
-async function tx(mode, fn) {
+function tx(mode, fn) {
+  return txBoth(mode, (items) => fn(items), [STORE]);
+}
+
+// Transaction sur les souvenirs et les suppressions à la fois : fn(items, deleted).
+/**
+ * @template T
+ * @param {IDBTransactionMode} mode
+ * @param {(items: IDBObjectStore, deleted: IDBObjectStore) => T | Promise<T>} fn
+ * @param {string[]} [stores]
+ * @returns {Promise<T>}
+ */
+async function txBoth(mode, fn, stores = [STORE, DELETED]) {
   const d = await db();
   return new Promise((resolve, reject) => {
-    const t = d.transaction(STORE, mode, { durability: 'strict' });
+    const t = d.transaction(stores, mode, { durability: 'strict' });
     let result;
     t.oncomplete = () => resolve(result);
     t.onerror = () => reject(t.error);
     t.onabort = () => reject(t.error || new Error(tr('storage.aborted')));
     Promise.resolve()
-      .then(() => fn(t.objectStore(STORE)))
+      .then(() => fn(t.objectStore(stores[0]), stores[1] ? t.objectStore(stores[1]) : null))
       .then(r => { result = r; }, e => { try { t.abort(); } catch {} reject(e); });
   });
 }
@@ -182,30 +201,80 @@ export async function updateItem(id, patch) {
 
 /** @param {string} id */
 export async function deleteItem(id) {
-  await tx('readwrite', s => { s.delete(id); });
+  await txBoth('readwrite', (s, del) => { s.delete(id); del.put({ id, at: Date.now() }); });
   await notify();
 }
+
+// Date de la dernière modification d'un souvenir : c'est elle qui départage deux versions.
+/** @param {Partial<Item>} it */
+export const stampOf = it => it?.updatedAt || it?.createdAt || 0;
 
 // Fusionne des souvenirs (import, restauration) : ajoute les absents, remplace ceux qui sont
 // plus anciens que la version reçue, ne supprime jamais rien. Tout est vérifié et écrit
 // dans une seule transaction.
+// Un souvenir supprimé ici puis restauré prend la date du jour : sinon la synchronisation
+// le supprimerait de nouveau, puisque la suppression est plus récente que lui.
 /**
  * @param {Item[]} incoming
  * @returns {Promise<{ added: number, updated: number }>}
  */
 export async function mergeItems(incoming) {
-  const result = await tx('readwrite', async s => {
+  const result = await txBoth('readwrite', async (s, del) => {
     let added = 0, updated = 0;
     for (const raw of incoming) {
       if (!raw?.id) continue;
       const it = { ...raw, tags: normalizeTags(raw.tags) };
       const ex = await req(s.get(it.id));
-      if (!ex) { added++; s.put(it); }
+      if (!ex) {
+        const gone = await req(del.get(it.id));
+        if (gone) { del.delete(it.id); if (gone.at >= stampOf(it)) it.updatedAt = Date.now(); }
+        added++; s.put(it);
+      }
       else if ((it.updatedAt || 0) > (ex.updatedAt || 0)) { updated++; s.put(it); }
     }
     return { added, updated };
   });
   if (result.added || result.updated) await notify();
+  return result;
+}
+
+// ---------- pour la synchronisation (sync.js) ----------
+
+/** @returns {Promise<Record<string, number>>} id → date de suppression */
+export async function getDeleted() {
+  const rows = await txBoth('readonly', (_, del) => req(del.getAll()));
+  return Object.fromEntries(rows.map(r => [r.id, r.at]));
+}
+
+// Applique ce que la synchronisation a reçu des autres appareils, en une transaction, et
+// seulement si c'est toujours plus récent : une modification faite ici pendant la
+// synchronisation n'est jamais écrasée.
+/**
+ * @param {{ put?: Item[], deleted?: Record<string, number>, forget?: string[] }} changes
+ *   put : versions reçues ; deleted : suppressions reçues (id → date) ; forget : vieilles traces à oublier
+ * @returns {Promise<{ put: number, removed: number }>}
+ */
+export async function applySync({ put = [], deleted = {}, forget = [] }) {
+  const result = await txBoth('readwrite', async (s, del) => {
+    let n = 0, removed = 0;
+    for (const it of put) {
+      const [ex, gone] = await Promise.all([req(s.get(it.id)), req(del.get(it.id))]);
+      if (ex && stampOf(ex) >= stampOf(it)) continue;
+      if (gone && gone.at >= stampOf(it)) continue;
+      s.put({ ...it, tags: normalizeTags(it.tags) });
+      if (gone) del.delete(it.id);
+      n++;
+    }
+    for (const [id, at] of Object.entries(deleted)) {
+      const [ex, gone] = await Promise.all([req(s.get(id)), req(del.get(id))]);
+      if (ex && stampOf(ex) > at) continue;      // modifié ici après la suppression : il reste
+      if (ex) { s.delete(id); removed++; }
+      if (!gone || gone.at < at) del.put({ id, at });
+    }
+    for (const id of forget) del.delete(id);
+    return { put: n, removed };
+  });
+  if (result.put || result.removed) await notify();
   return result;
 }
 

@@ -12,6 +12,8 @@ import { withVideoInfo } from './video.js';
 import { attachTagSuggest, tagCounts } from './tag-suggest.js';
 import { runBackup, getBackupStatus, listBackups, readBackup, STATUS_KEY } from './backup.js';
 import { isAgentEnabled, setAgentEnabled, syncAgent, getAgentSync, SYNC_KEY } from './agent.js';
+import { getCloudConfig, getCloudStatus, connectCloud, disconnectCloud, runCloudSync, requestAccess, hostOf, CONFIG_KEY, CLOUD_STATUS_KEY, MIN_PASSPHRASE } from './cloud.js';
+import { davRoot } from './webdav.js';
 import { t, lang, locale, loadLang, translatePage, getLangPref, setLangPref, onLangChange } from './i18n.js';
 
 // La langue est chargée avant le premier affichage ; le HTML statique est traduit tout de suite.
@@ -611,14 +613,132 @@ function restoreRow(bk) {
   return h('li', {}, btn);
 }
 
+// ---------- synchronisation WebDAV ----------
+const cloudForm = /** @type {HTMLFormElement} */ ($('#cloud-form'));
+const cloudError = $('#cloud-error');
+
+/** @param {import('./types').CloudStatus | null} [st] */
+async function showCloudStatus(st) {
+  const cfg = await getCloudConfig();
+  st ??= await getCloudStatus();
+  const el = $('#cloud-status');
+  $('#cloud-setup').hidden = !!cfg;
+  $('#cloud-now').hidden = $('#cloud-off').hidden = !cfg;
+  el.classList.toggle('is-error', !!cfg && !!st && !st.ok);
+  if (!cfg) { el.textContent = t('cloud.offState'); return; }
+  cloudForm.hidden = true;
+  const host = hostOf(cfg);
+  if (!st) el.textContent = t('cloud.pending', { host });
+  else if (st.ok) el.textContent = t(st.waiting ? 'cloud.okWaiting' : 'cloud.ok', { ago: ago(st.at), host, n: st.devices }) + (cfg.key ? ' ' + t('cloud.encryptedNote') : '');
+  else el.textContent = {
+    locked: () => t('cloud.errLocked'),
+    keyChanged: () => t('cloud.errKeyChanged'),
+    decrypt: () => t('cloud.errDecrypt'),
+    auth: () => t('cloud.errAuth', { host }),
+    permission: () => t('cloud.errPermission', { host }),
+    network: () => t('cloud.errNetwork', { host }),
+    quota: () => t('cloud.errQuota', { host }),
+    busy: () => t('cloud.errBusy', { host }),
+    version: () => t('cloud.errVersion'),
+    format: () => t('cloud.errFormat', { file: st.file }),
+  }[st.code]?.() || t('cloud.failed', { e: st.error });
+}
+
+/** @param {string} msg @param {string[]} [fields] champs à signaler */
+function formError(msg, fields = []) {
+  cloudError.textContent = msg;
+  cloudError.hidden = !msg;
+  for (const input of cloudForm.querySelectorAll('input')) {
+    if (fields.includes(input.name)) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid');
+  }
+  if (fields[0]) /** @type {HTMLInputElement} */ (cloudForm.elements.namedItem(fields[0])).focus();
+}
+
+// la confirmation n'apparaît que si une phrase de passe est entrée
+const showConfirm = () => { $('#cloud-pass2').hidden = !/** @type {HTMLInputElement} */ (cloudForm.elements.namedItem('passphrase')).value; };
+/** @type {HTMLInputElement} */ (cloudForm.elements.namedItem('passphrase')).addEventListener('input', showConfirm);
+
+$('#cloud-setup').addEventListener('click', e => {
+  const open = cloudForm.hidden;
+  cloudForm.hidden = !open;
+  e.currentTarget.setAttribute('aria-expanded', String(open));
+  if (open) { formError(''); /** @type {HTMLInputElement} */ (cloudForm.elements.namedItem('url')).focus(); }
+});
+$('#cloud-cancel').addEventListener('click', () => {
+  cloudForm.hidden = true;
+  $('#cloud-setup').setAttribute('aria-expanded', 'false');
+  $('#cloud-setup').focus();
+});
+
+cloudForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const v = name => String(/** @type {HTMLInputElement} */ (cloudForm.elements.namedItem(name)).value || '');
+  let url = v('url').trim();
+  if (url && !/^[a-z][\w+.-]*:\/\//i.test(url)) url = 'https://' + url;
+  const cfg = { url, user: v('user').trim(), password: v('password'), folder: v('folder').trim() || 'Mindrop', passphrase: v('passphrase') };
+  const missing = ['url', 'user', 'password'].filter(k => !cfg[k]);
+  if (missing.length) return formError(t('cloud.missing'), missing);
+  try { davRoot(cfg.url, cfg.user); } catch { return formError(t('cloud.badUrl'), ['url']); }
+  if (cfg.passphrase && cfg.passphrase !== v('passphrase2')) return formError(t('cloud.mismatch'), ['passphrase2']);
+  // l'autorisation doit être demandée pendant le clic, avant toute attente
+  connect(requestAccess(cfg.url), cfg);
+});
+
+/** @param {Promise<boolean>} granted @param {import('./types').CloudConfig} cfg */
+async function connect(granted, cfg) {
+  const btn = /** @type {HTMLButtonElement} */ ($('#cloud-connect'));
+  const inputs = [...cloudForm.querySelectorAll('input')];
+  formError('');
+  btn.disabled = true; btn.setAttribute('aria-busy', 'true'); btn.textContent = t('cloud.connecting');
+  inputs.forEach(i => { i.disabled = true; });
+  try {
+    if (!(await granted.catch(() => false))) return formError(t('cloud.denied'));
+    const st = await connectCloud(cfg);
+    cloudForm.reset();
+    showConfirm();
+    $('#cloud-setup').setAttribute('aria-expanded', 'false');
+    await showCloudStatus(st);
+    $('#cloud-now').focus();
+    toast(t('cloud.toastConnected'));
+  } catch (err) {
+    const msg = {
+      auth: 'cloud.authFailed', url: err.status === 404 || /404/.test(err.message) ? 'cloud.notFound' : 'cloud.badUrl', network: 'cloud.unreachable',
+      needPassphrase: 'cloud.needPassphrase', passphrase: 'cloud.wrongPassphrase', weak: 'cloud.weak',
+    }[err.code];
+    const field = { auth: 'password', url: 'url', needPassphrase: 'passphrase', passphrase: 'passphrase', weak: 'passphrase' }[err.code];
+    formError(msg ? t(msg, { n: MIN_PASSPHRASE }) : t('cloud.connectFailed', { e: err.message }), field ? [field] : []);
+    if (field === 'passphrase') showConfirm();
+  } finally {
+    btn.disabled = false; btn.removeAttribute('aria-busy'); btn.textContent = t('cloud.connect');
+    inputs.forEach(i => { i.disabled = false; });
+  }
+}
+
+$('#cloud-now').addEventListener('click', async e => {
+  const b = e.currentTarget;
+  b.disabled = true; b.setAttribute('aria-busy', 'true');
+  const st = await runCloudSync();
+  b.disabled = false; b.removeAttribute('aria-busy');
+  await showCloudStatus(st);
+  toast(st?.ok ? t('cloud.toastDone', { pulled: st.pulled, removed: st.removed }) : t('cloud.toastFailed'));
+});
+$('#cloud-off').addEventListener('click', async () => {
+  await disconnectCloud();
+  await showCloudStatus();
+  $('#cloud-setup').focus();
+  toast(t('cloud.toastOff'));
+});
+
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && changes[STATUS_KEY]) showBackupStatus(changes[STATUS_KEY].newValue);
   if (area === 'local' && changes[SYNC_KEY]) showAgentStatus(changes[SYNC_KEY].newValue);
+  if (area === 'local' && (changes[CLOUD_STATUS_KEY] || changes[CONFIG_KEY])) showCloudStatus();
 });
 showBackupStatus();
 showAgentStatus();
+showCloudStatus();
 
-// Réglages (agents IA, sauvegarde) : ouverts sur grand écran, repliés sur petit écran pour laisser la place à la mosaïque.
+// Réglages (agents IA, sauvegarde, synchronisation) : ouverts sur grand écran, repliés sur petit écran pour laisser la place à la mosaïque.
 const narrow = matchMedia('(max-width: 60rem)');
 const fitSettings = () => { $('#settings').open = !narrow.matches; };
 narrow.addEventListener('change', fitSettings);
@@ -629,7 +749,7 @@ const langSelect = $('#lang-select');
 langSelect.value = await getLangPref();
 langSelect.addEventListener('change', () => setLangPref(langSelect.value));
 onLangChange(() => location.reload());
-setInterval(() => { showBackupStatus(); showAgentStatus(); }, 60000);
+setInterval(() => { showBackupStatus(); showAgentStatus(); showCloudStatus(); }, 60000);
 
 // Une écriture qui échoue (disque plein, base indisponible) ne passe plus inaperçue.
 window.addEventListener('unhandledrejection', e => {

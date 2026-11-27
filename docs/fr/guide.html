@@ -17,6 +17,7 @@
     <nav aria-label="Principale">
       <a href="guide.html" aria-current="page">Guide</a>
       <a href="pont-local.html">Pont local</a>
+      <a href="synchronisation.html">Synchronisation</a>
       <a href="../en/guide.html" hreflang="en" lang="en" title="Read in English">English</a>
       <a href="https://github.com/Padiwa/Mindrop">GitHub</a>
     </nav>
@@ -26,13 +27,13 @@
   <nav class="toc" aria-label="Sur cette page">
     <details open>
       <summary class="toc-head">Sur cette page</summary>
-      <ol><li><a href="#installation">Installation</a></li><li><a href="#enregistrer">Enregistrer</a></li><li><a href="#la-page-mindrop">La page Mindrop</a></li><li><a href="#notes-en-markdown">Notes en Markdown</a></li><li><a href="#relier-tags-et-liens">Relier : tags et liens</a></li><li><a href="#carte-mentale">Carte mentale</a></li><li><a href="#langue">Langue</a></li><li><a href="#pont-local-agent-ia-et-sauvegardes">Pont local : agent IA et sauvegardes</a></li><li><a href="#bon-a-savoir">Bon à savoir</a></li><li><a href="#developpement">Développement</a></li><li><a href="#licence">Licence</a></li></ol>
+      <ol><li><a href="#installation">Installation</a></li><li><a href="#enregistrer">Enregistrer</a></li><li><a href="#la-page-mindrop">La page Mindrop</a></li><li><a href="#notes-en-markdown">Notes en Markdown</a></li><li><a href="#relier-tags-et-liens">Relier : tags et liens</a></li><li><a href="#carte-mentale">Carte mentale</a></li><li><a href="#langue">Langue</a></li><li><a href="#pont-local-agent-ia-et-sauvegardes">Pont local : agent IA et sauvegardes</a></li><li><a href="#synchronisation-entre-ordinateurs">Synchronisation entre ordinateurs</a></li><li><a href="#bon-a-savoir">Bon à savoir</a></li><li><a href="#developpement">Développement</a></li><li><a href="#licence">Licence</a></li></ol>
     </details>
   </nav>
   <main id="main" class="prose">
 <h1>Guide de Mindrop</h1>
 <p>Mindrop est un second cerveau qui vit dans ton navigateur. Il garde les pages, les liens, les notes, les citations, les images et les vidéos qui comptent pour toi, et te laisse les relier par des #tags et des liens <code>[[titre]]</code>, puis les parcourir en mosaïque ou en carte mentale.</p>
-<p>Tout est stocké <strong>localement</strong> dans ton navigateur : pas de compte, pas de serveur, rien n’est envoyé sur Internet.</p>
+<p>Tout est stocké <strong>localement</strong> dans ton navigateur : pas de compte, pas de serveur, rien n’est envoyé sur Internet. Seule exception, si tu l’actives : la <a href="synchronisation.html">synchronisation</a> avec ton propre serveur WebDAV.</p>
 <h2 id="installation">Installation</h2>
 <p>Mindrop fonctionne dans les navigateurs basés sur Chromium : Chrome, Brave, Edge, Chromium, Vivaldi. Il n’est pas (encore) publié sur le Chrome Web Store : on l’installe depuis son dossier.</p>
 <ol><li>Télécharge <strong><a href="https://github.com/Padiwa/Mindrop/releases/latest/download/mindrop.zip">mindrop.zip</a></strong>, la dernière version (toutes les versions sont sur la page <a href="https://github.com/Padiwa/Mindrop/releases">Releases</a>), et dézippe-le. Range le dossier <code>mindrop</code> à un endroit où il restera : le navigateur le lit à chaque démarrage.</li><li>Ouvre <code>chrome://extensions</code> (ou <code>brave://extensions</code>, <code>edge://extensions</code>).</li><li>Active le <strong>Mode développeur</strong> (en haut à droite).</li><li>Clique sur <strong>Charger l’extension non empaquetée</strong> et choisis le dossier <code>mindrop</code> (celui qui contient <code>manifest.json</code>).</li><li>Épingle l’icône orange dans la barre d’outils (icône puzzle, puis épingle).</li></ol>
@@ -59,15 +60,18 @@
 <p>Le dossier <code>mcp/</code> installe un pont entre l’extension et ton ordinateur, sans passer par Internet. Il apporte :</p>
 <ul><li>la <strong>sauvegarde automatique</strong> de tous tes souvenirs, images comprises, sur ton disque, avec restauration depuis la page Mindrop ;</li><li>un <strong>serveur MCP</strong>, pour qu’un agent IA (Claude Code, pi ou tout client MCP) cherche dans Mindrop, en lecture seule, avec un interrupteur pour couper l’accès.</li></ul>
 <p>Installation et utilisation : voir le guide <strong><a href="pont-local.html">Pont local</a></strong>.</p>
+<h2 id="synchronisation-entre-ordinateurs">Synchronisation entre ordinateurs</h2>
+<p>Pour retrouver les mêmes souvenirs sur plusieurs ordinateurs, connecte Mindrop à un serveur <strong>WebDAV</strong> (Nextcloud, ownCloud, un NAS…) : page Mindrop, <strong>Réglages</strong>, <strong>Synchronisation</strong>. Elle est désactivée par défaut, ne demande rien à installer, et peut être chiffrée de bout en bout par une phrase de passe.</p>
+<p>Mise en place, fonctionnement et confidentialité : voir le guide <strong><a href="synchronisation.html">Synchronisation</a></strong>.</p>
 <h2 id="bon-a-savoir">Bon à savoir</h2>
-<ul><li>Si un raccourci ne marche pas, il est sans doute déjà pris par le navigateur : choisis-en un autre dans <code>chrome://extensions/shortcuts</code>.</li><li>Les pages internes du navigateur (<code>chrome://</code>, Web Store) ne peuvent pas être capturées : l’onglet Note reste disponible.</li><li>Désinstaller l’extension efface ses données : exporte d’abord, ou installe le pont local pour avoir des sauvegardes automatiques sur ton disque.</li><li>Pour les fichiers locaux (<code>file://</code>), active « Autoriser l’accès aux URL de fichier » dans les détails de l’extension.</li><li>Les polices sont incluses dans <code>fonts/</code> : rien n’est chargé depuis Internet.</li></ul>
+<ul><li>Si un raccourci ne marche pas, il est sans doute déjà pris par le navigateur : choisis-en un autre dans <code>chrome://extensions/shortcuts</code>.</li><li>Les pages internes du navigateur (<code>chrome://</code>, Web Store) ne peuvent pas être capturées : l’onglet Note reste disponible.</li><li>Désinstaller l’extension efface ses données : exporte d’abord, installe le pont local pour avoir des sauvegardes automatiques sur ton disque, ou active la synchronisation pour en garder une copie sur ton serveur.</li><li>Pour les fichiers locaux (<code>file://</code>), active « Autoriser l’accès aux URL de fichier » dans les détails de l’extension.</li><li>Les polices sont incluses dans <code>fonts/</code> : rien n’est chargé depuis Internet.</li></ul>
 <h2 id="developpement">Développement</h2>
 <p>L’extension n’a aucune dépendance ni étape de compilation : le dossier du dépôt se charge tel quel. Le code est en JavaScript, vérifié par TypeScript grâce à des commentaires JSDoc ; les types partagés sont dans <code>types.d.ts</code>. TypeScript n’est qu’un outil de développement, jamais embarqué dans l’extension.</p>
 <p>Le développement demande Node 22 ou plus, et un navigateur Chromium pour les tests navigateur (variable <code>CHROME_PATH</code> s’il n’est pas trouvé tout seul) :</p>
 <pre data-lang="sh"><code>npm install            # TypeScript et les types Chrome et Node, pour la vérification de types
 npm test               # tout : types, tests Node, tests navigateur
 npm run typecheck      # les types seulement
-npm run test:node      # recherche, liens, pont local, serveur MCP, le zip
+npm run test:node      # recherche, liens, synchronisation, pont local, serveur MCP, le zip
 npm run test:browser   # stockage IndexedDB, rendu Markdown, sauvegarde, suggestions
 npm run pack           # fabrique dist/mindrop.zip, l'extension à distribuer
 npm run site           # régénère le site de documentation (dossier docs/)</code></pre>
@@ -84,6 +88,7 @@ npm run site           # régénère le site de documentation (dossier docs/)</c
     <nav class="foot-links" aria-label="Documentation">
       <a href="guide.html">Guide</a>
       <a href="pont-local.html">Pont local</a>
+      <a href="synchronisation.html">Synchronisation</a>
       <a href="../assets/LICENSE.txt">Licence</a>
       <a href="../en/guide.html" hreflang="en" lang="en">English</a>
       <a href="https://github.com/Padiwa/Mindrop">GitHub</a>

@@ -51,7 +51,7 @@
         <div id="tags" class="chips tags"></div>
       </div>
       <details class="settings" id="settings" open>
-        <summary class="settings-head" data-i18n="settings.summary">Réglages : langue, agents IA et sauvegarde</summary>
+        <summary class="settings-head" data-i18n="settings.summary">Réglages : langue, agents IA, sauvegarde et synchronisation</summary>
         <div class="settings-body">
         <section class="index-group lang" aria-labelledby="lang-head">
           <h2 class="index-head" id="lang-head"><label for="lang-select" data-i18n="lang.head">Langue</label></h2>
@@ -77,6 +77,36 @@
             <button type="button" class="ghost" id="backup-restore" aria-expanded="false" aria-controls="backup-list" data-i18n="backup.restore">Restaurer</button>
           </div>
           <ul class="backup-list" id="backup-list" hidden></ul>
+        </section>
+        <section class="index-group cloud" aria-labelledby="cloud-head">
+          <h2 class="index-head" id="cloud-head" data-i18n="cloud.head">Synchronisation</h2>
+          <p class="backup-status" id="cloud-status" role="status" data-i18n="checking">Vérification…</p>
+          <div class="backup-actions">
+            <button type="button" class="ghost" id="cloud-setup" aria-expanded="false" aria-controls="cloud-form" data-i18n="cloud.setup">Connecter un serveur WebDAV</button>
+            <button type="button" class="ghost" id="cloud-now" hidden data-i18n="cloud.now">Synchroniser maintenant</button>
+            <button type="button" class="ghost" id="cloud-off" hidden data-i18n="cloud.off">Déconnecter</button>
+          </div>
+          <form class="cloud-form" id="cloud-form" hidden novalidate>
+            <label class="field"><span data-i18n="cloud.url">Adresse du serveur</span>
+              <input name="url" type="url" inputmode="url" required spellcheck="false" autocomplete="url" placeholder="https://cloud.exemple.fr" data-i18n-placeholder="cloud.urlPlaceholder"></label>
+            <label class="field"><span data-i18n="cloud.user">Utilisateur</span>
+              <input name="user" required spellcheck="false" autocapitalize="off" autocomplete="username"></label>
+            <label class="field"><span data-i18n="cloud.password">Mot de passe</span>
+              <input name="password" type="password" required autocomplete="new-password" aria-describedby="cloud-hint"></label>
+            <label class="field"><span data-i18n="cloud.folder">Dossier</span>
+              <input name="folder" value="Mindrop" spellcheck="false" autocapitalize="off"></label>
+            <p class="cloud-hint" id="cloud-hint" data-i18n="cloud.hint">Nextcloud, ownCloud, un NAS ou tout serveur WebDAV. Avec Nextcloud, crée un mot de passe d’application : Paramètres personnels, Sécurité, « Créer un nouveau mot de passe d’application ».</p>
+            <label class="field"><span data-i18n="cloud.passphrase">Phrase de passe de chiffrement (facultative)</span>
+              <input name="passphrase" type="password" autocomplete="new-password" aria-describedby="cloud-pass-hint"></label>
+            <label class="field" id="cloud-pass2" hidden><span data-i18n="cloud.passphrase2">Confirme la phrase de passe</span>
+              <input name="passphrase2" type="password" autocomplete="new-password"></label>
+            <p class="cloud-hint" id="cloud-pass-hint" data-i18n="cloud.passHint">Avec une phrase de passe, tout est chiffré ici avant l’envoi : le serveur ne voit que des fichiers illisibles. La même sur chaque ordinateur. Oubliée, elle ne se récupère pas. Sans elle, tes souvenirs sont copiés en clair.</p>
+            <p class="cloud-error" id="cloud-error" role="alert" hidden></p>
+            <div class="backup-actions">
+              <button type="submit" class="primary" id="cloud-connect" data-i18n="cloud.connect">Connecter</button>
+              <button type="button" class="ghost" id="cloud-cancel" data-i18n="cloud.cancel">Annuler</button>
+            </div>
+          </form>
         </section>
         </div>
       </details>
